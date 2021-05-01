@@ -3,6 +3,11 @@ on:
   push:
     paths:
       - '**.go'
+      - 'go.mod'
+      - '.github/workflows/lsif.yml'
+env:
+  GOPROXY: "https://proxy.golang.org"
+
 jobs:
   lsif-go:
     if: github.repository == 'flamego/flamego'
