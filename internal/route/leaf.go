@@ -23,14 +23,17 @@ const (
 	matchStyleAll                           // e.g. /webapi/{name: **}
 )
 
-// todo
+// Leaf is a leaf derived from a segment.
 type Leaf interface {
+	// Parent returns the parent tree the leaf belongs to.
 	Parent() *Tree
+	// Optional returns true if the leaf is optional.
 	Optional() bool
+	// MatchStyle returns the match style of the leaf.
 	MatchStyle() MatchStyle
 }
 
-// todo
+// staticLeaf is a leaf with a static match style.
 type staticLeaf struct {
 	parent  *Tree    // The parent tree this leaf belongs to.
 	segment *Segment // The segment that the leaf is derived from.
@@ -49,7 +52,7 @@ func (l *staticLeaf) MatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
-// todo
+// regexLeaf is a leaf with a regex match style.
 type regexLeaf struct {
 	parent  *Tree          // The parent tree this leaf belongs to.
 	segment *Segment       // The segment that the leaf is derived from.
@@ -70,7 +73,7 @@ func (l *regexLeaf) MatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
-// todo
+// placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
 	parent  *Tree    // The parent tree this leaf belongs to.
 	segment *Segment // The segment that the leaf is derived from.
@@ -89,7 +92,7 @@ func (l *placeholderLeaf) MatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
-// todo
+// placeholderLeaf is a leaf with a match all style.
 type matchAllLeaf struct {
 	parent  *Tree    // The parent tree this leaf belongs to.
 	segment *Segment // The segment that the leaf is derived from.
@@ -109,7 +112,7 @@ func (l *matchAllLeaf) MatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
-// todo
+// newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
 	if len(s.Elements) == 0 {
 		return nil, errors.Errorf("empty segment in position %d", s.Pos.Offset)
@@ -152,6 +155,7 @@ func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
 	buf := bytes.NewBufferString("^")
 	for _, e := range s.Elements {
 		if e.Ident != nil {
+			// Dots (".") may appear as literals, we need to escape them in a regex.
 			buf.WriteString(strings.ReplaceAll(*e.Ident, ".", `\.`))
 			continue
 		} else if e.BindIdent != nil {
