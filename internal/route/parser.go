@@ -26,33 +26,33 @@ func NewParser() (*Parser, error) {
 	lexer, err := stateful.New(
 		stateful.Rules{
 			"Root": {
-				{"Segment", `/`, stateful.Push("Segment")},
+				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
 			},
 			"Segment": {
 				stateful.Include("Common"),
-				{"Bind", `{`, stateful.Push("Bind")},
-				{"Segment", `/`, stateful.Push("Segment")},
+				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
+				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
 			},
 			"Bind": {
 				stateful.Include("Common"),
-				{"BindParameter", `:`, stateful.Push("BindParameter")},
-				{"Bind", `{`, stateful.Push("Bind")},
-				{"BindEnd", `}`, stateful.Pop()},
-				{"Segment", `/`, stateful.Push("Segment")},
+				{Name: "BindParameter", Pattern: `:`, Action: stateful.Push("BindParameter")},
+				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
+				{Name: "BindEnd", Pattern: `}`, Action: stateful.Pop()},
+				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
 			},
 			"BindParameter": {
 				stateful.Include("Common"),
-				{"BindParameterValue", `/`, stateful.Push("BindParameterValue")},
-				{"BindParameterEnd", `[},]`, stateful.Pop()},
+				{Name: "BindParameterValue", Pattern: `/`, Action: stateful.Push("BindParameterValue")},
+				{Name: "BindParameterEnd", Pattern: `[},]`, Action: stateful.Pop()},
 			},
 			"BindParameterValue": {
 				stateful.Include("Common"),
-				{"Regex", `[a-zA-Z0-9*\-+.,?()\[\]{} \\]+`, nil},
-				{"RegexEnd", `/`, stateful.Pop()},
+				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+.,?()\[\]{} \\]+`, Action: nil},
+				{Name: "RegexEnd", Pattern: `/`, Action: stateful.Pop()},
 			},
 			"Common": {
-				{"Ident", `[a-zA-Z0-9*\-]+`, nil},
-				{"Whitespace", `\s`, nil},
+				{Name: "Ident", Pattern: `[a-zA-Z0-9*\-]+`, Action: nil},
+				{Name: "Whitespace", Pattern: `\s`, Action: nil},
 			},
 		},
 	)
