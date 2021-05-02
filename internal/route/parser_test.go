@@ -12,13 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func strptr(s string) *string {
+	return &s
+}
+
 func TestParser(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
-
-	strptr := func(s string) *string {
-		return &s
-	}
 
 	t.Run("valid routes", func(t *testing.T) {
 		tests := []struct {
@@ -28,7 +28,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/webapi",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -57,7 +57,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/webapi/users",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -107,7 +107,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/webapi/users/?{id}",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -179,7 +179,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/{name}",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -208,7 +208,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/webapi/{name-1}/{name-2: /[a-z0-9]{7, 40}/}",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -286,7 +286,7 @@ func TestParser(t *testing.T) {
 			{
 				route: "/webapi/{name-1}/{name-2: /[a-z0-9]{7, 40}/}/{year: regex2}-{month-day}",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
@@ -419,7 +419,7 @@ func TestParser(t *testing.T) {
 				// NOTE: Extra spaces before "3" is on purpose to test consecutive spaces.
 				route: "/webapi/{name-1}/{name-2: /[a-z0-9]{7, 40}/}/{year: regex2}-{month-day}/{**: **, capture:  3}",
 				want: &Route{
-					Segments: []Segment{
+					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
 								Offset: 1,
