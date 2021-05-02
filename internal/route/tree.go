@@ -29,10 +29,10 @@ type Params map[string]string
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
 // todo
-func (t *Tree) addLeaf(s *Segment, h Handler) (Leaf, error) {
+func (t *Tree) addLeaf(r *Route, s *Segment, h Handler) (Leaf, error) {
 	// todo: check if the same segment has been added already
 
-	leaf, err := newLeaf(t, s, h)
+	leaf, err := newLeaf(t, r, s, h)
 	if err != nil {
 		return nil, errors.Wrap(err, "new leaf")
 	}
@@ -40,12 +40,12 @@ func (t *Tree) addLeaf(s *Segment, h Handler) (Leaf, error) {
 	if leaf.Optional() {
 		parent := leaf.Parent()
 		if parent.parent != nil {
-			_, err = parent.parent.addLeaf(parent.segment, h)
+			_, err = parent.parent.addLeaf(r, parent.segment, h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to grandparent")
 			}
 		} else {
-			_, err = parent.addLeaf(parent.segment, h)
+			_, err = parent.addLeaf(r, parent.segment, h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to parent")
 			}
@@ -69,26 +69,26 @@ func (t *Tree) addLeaf(s *Segment, h Handler) (Leaf, error) {
 }
 
 // todo
-func (t *Tree) addSubtree(s *Segment, remaining []*Segment, h Handler) (Leaf, error) {
+func (t *Tree) addSubtree(r *Route, next int, h Handler) (Leaf, error) {
 	return nil, nil // todo
 }
 
 // todo
-func (t *Tree) addNextSegment(next *Segment, remaining []*Segment, h Handler) (Leaf, error) {
-	if len(remaining) == 0 {
-		return t.addLeaf(next, h)
+func (t *Tree) addNextSegment(r *Route, next int, h Handler) (Leaf, error) {
+	if len(r.Segments) >= next+1 {
+		return t.addLeaf(r, r.Segments[next], h)
 	}
 
-	if next.Optional {
+	if r.Segments[next].Optional {
 		return nil, errors.New("only the last segment can be optional")
 	}
-	return t.addSubtree(next, remaining, h)
+	return t.addSubtree(r, next+1, h)
 }
 
 // todo
-func (t *Tree) Add(r *Route, h Handler) (Leaf, error) {
+func (t *Tree) AddRoute(r *Route, h Handler) (Leaf, error) {
 	if r == nil || len(r.Segments) == 0 {
-		return nil, errors.New("empty route or no segments")
+		return nil, errors.New("cannot add empty route")
 	}
-	return t.addNextSegment(r.Segments[0], r.Segments[1:], h)
+	return t.addNextSegment(r, 0, h)
 }

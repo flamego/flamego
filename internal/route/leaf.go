@@ -31,21 +31,68 @@ type Leaf interface {
 	Optional() bool
 	// MatchStyle returns the match style of the leaf.
 	MatchStyle() MatchStyle
+	// URLPath fills in bind parameters with given values to build the "path"
+	// portion of the URL. If withOptional is true, the path will include the
+	// current leaf when it is optional; otherwise, the current leaf is excluded.
+	URLPath(vals map[string]string, withOptional bool) string
 }
 
-// staticLeaf is a leaf with a static match style.
-type staticLeaf struct {
+// baseLeaf contains common fields for any leaf.
+type baseLeaf struct {
 	parent  *Tree    // The parent tree this leaf belongs to.
+	route   *Route   // The route that the segment belongs to.
 	segment *Segment // The segment that the leaf is derived from.
 	handler Handler  // The handler bound to the leaf.
 }
 
-func (l *staticLeaf) Parent() *Tree {
+func (l *baseLeaf) Parent() *Tree {
 	return l.parent
 }
 
-func (l *staticLeaf) Optional() bool {
+func (l *baseLeaf) Optional() bool {
 	return l.segment.Optional
+}
+
+func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
+	var buf bytes.Buffer
+	for _, s := range l.route.Segments {
+		if s.Optional && !withOptional {
+			break
+		}
+
+		buf.WriteString("/")
+		for _, e := range s.Elements {
+			if e.Ident != nil {
+				buf.WriteString(*e.Ident)
+				continue
+			} else if e.BindIdent != nil {
+				buf.WriteString("{")
+				buf.WriteString(*e.BindIdent)
+				buf.WriteString("}")
+				continue
+			} else if e.BindParameters == nil || len(e.BindParameters.Parameters) == 0 {
+				// This element is empty, which should never happen, but just in case
+				buf.WriteString("???")
+				continue
+			}
+
+			buf.WriteString("{")
+			buf.WriteString(e.BindParameters.Parameters[0].Ident)
+			buf.WriteString("}")
+		}
+		s.str = buf.String()
+	}
+
+	pairs := make([]string, 0, len(vals)*2)
+	for k, v := range vals {
+		pairs = append(pairs, "{"+k+"}", v)
+	}
+	return strings.NewReplacer(pairs...).Replace(buf.String())
+}
+
+// staticLeaf is a leaf with a static match style.
+type staticLeaf struct {
+	baseLeaf
 }
 
 func (l *staticLeaf) MatchStyle() MatchStyle {
@@ -54,19 +101,9 @@ func (l *staticLeaf) MatchStyle() MatchStyle {
 
 // regexLeaf is a leaf with a regex match style.
 type regexLeaf struct {
-	parent  *Tree          // The parent tree this leaf belongs to.
-	segment *Segment       // The segment that the leaf is derived from.
-	handler Handler        // The handler bound to the leaf.
-	regexp  *regexp.Regexp // The regexp for the leaf.
-	binds   []string       // The list of bind parameters.
-}
-
-func (l *regexLeaf) Parent() *Tree {
-	return l.parent
-}
-
-func (l *regexLeaf) Optional() bool {
-	return l.segment.Optional
+	baseLeaf
+	regexp *regexp.Regexp // The regexp for the leaf.
+	binds  []string       // The list of bind parameters.
 }
 
 func (l *regexLeaf) MatchStyle() MatchStyle {
@@ -75,17 +112,7 @@ func (l *regexLeaf) MatchStyle() MatchStyle {
 
 // placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
-	parent  *Tree    // The parent tree this leaf belongs to.
-	segment *Segment // The segment that the leaf is derived from.
-	handler Handler  // The handler bound to the leaf.
-}
-
-func (l *placeholderLeaf) Parent() *Tree {
-	return l.parent
-}
-
-func (l *placeholderLeaf) Optional() bool {
-	return l.segment.Optional
+	baseLeaf
 }
 
 func (l *placeholderLeaf) MatchStyle() MatchStyle {
@@ -94,18 +121,8 @@ func (l *placeholderLeaf) MatchStyle() MatchStyle {
 
 // placeholderLeaf is a leaf with a match all style.
 type matchAllLeaf struct {
-	parent  *Tree    // The parent tree this leaf belongs to.
-	segment *Segment // The segment that the leaf is derived from.
-	handler Handler  // The handler bound to the leaf.
-	bind    string   // The name of the bind parameter.
-}
-
-func (l *matchAllLeaf) Parent() *Tree {
-	return l.parent
-}
-
-func (l *matchAllLeaf) Optional() bool {
-	return l.segment.Optional
+	baseLeaf
+	bind string // The name of the bind parameter.
 }
 
 func (l *matchAllLeaf) MatchStyle() MatchStyle {
@@ -113,7 +130,7 @@ func (l *matchAllLeaf) MatchStyle() MatchStyle {
 }
 
 // newLeaf creates and returns a new Leaf derived from the given segment.
-func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
+func newLeaf(t *Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	if len(s.Elements) == 0 {
 		return nil, errors.Errorf("empty segment in position %d", s.Pos.Offset)
 	}
@@ -121,18 +138,24 @@ func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
 	// Fast path for static route
 	if len(s.Elements) == 1 && s.Elements[0].Ident != nil {
 		return &staticLeaf{
-			parent:  t,
-			segment: s,
-			handler: h,
+			baseLeaf: baseLeaf{
+				parent:  t,
+				route:   r,
+				segment: s,
+				handler: h,
+			},
 		}, nil
 	}
 
 	// Fast path for placeholder
 	if len(s.Elements) == 1 && s.Elements[0].BindIdent != nil {
 		return &placeholderLeaf{
-			parent:  t,
-			segment: s,
-			handler: h,
+			baseLeaf: baseLeaf{
+				parent:  t,
+				route:   r,
+				segment: s,
+				handler: h,
+			},
 		}, nil
 	}
 
@@ -143,10 +166,13 @@ func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
 		s.Elements[0].BindParameters.Parameters[0].Value.Literal != nil &&
 		*s.Elements[0].BindParameters.Parameters[0].Value.Literal == "**" {
 		return &matchAllLeaf{
-			parent:  t,
-			segment: s,
-			handler: h,
-			bind:    s.Elements[0].BindParameters.Parameters[0].Ident,
+			baseLeaf: baseLeaf{
+				parent:  t,
+				route:   r,
+				segment: s,
+				handler: h,
+			},
+			bind: s.Elements[0].BindParameters.Parameters[0].Ident,
 		}, nil
 	}
 
@@ -184,10 +210,13 @@ func newLeaf(t *Tree, s *Segment, h Handler) (Leaf, error) {
 		return nil, errors.Wrapf(err, "compile regexp near position %d", s.Pos.Offset)
 	}
 	return &regexLeaf{
-		parent:  t,
-		segment: s,
-		handler: h,
-		regexp:  re,
-		binds:   binds,
+		baseLeaf: baseLeaf{
+			parent:  t,
+			route:   r,
+			segment: s,
+			handler: h,
+		},
+		regexp: re,
+		binds:  binds,
 	}, nil
 }
