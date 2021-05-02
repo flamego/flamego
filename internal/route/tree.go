@@ -11,21 +11,34 @@ import (
 	"github.com/pkg/errors"
 )
 
-// todo
+// Tree is a tree derived from a segment.
 type Tree interface {
-	// Parent returns the parent tree. The root tree does not have parent.
-	Parent() Tree
-	// Segment returns the segment that the tree is derived from.
-	Segment() *Segment
-	// MatchStyle returns the match style of the tree.
-	MatchStyle() MatchStyle
-	// todo
-	addNextSegment(r *Route, next int, h Handler) (Leaf, error)
-	// todo
-	addLeaf(r *Route, s *Segment, h Handler) (Leaf, error)
+	// AddRoute adds a new route to the tree and associates given handler to it.
+	AddRoute(r *Route, h Handler) (Leaf, error)
+
+	// getParent returns the parent tree. The root tree does not have parent.
+	getParent() Tree
+	// getSegment returns the segment that the tree is derived from.
+	getSegment() *Segment
+	// getMatchStyle returns the match style of the tree.
+	getMatchStyle() MatchStyle
+	// addNextSegment adds next segment of the route to the tree.
+	addNextSegment(t Tree, r *Route, next int, h Handler) (Leaf, error)
+	// addLeaf adds a new leaf from the given segment.
+	addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error)
+	// addSubtree adds a new subtree from next segment of the route.
+	addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error)
+	// getSubtrees returns the list of direct subtrees.
+	getSubtrees() []Tree
+	// getLeaves returns the list of direct leaves.
+	getLeaves() []Leaf
+	// setSubtrees sets the list of direct subtrees.
+	setSubtrees(subtrees []Tree)
+	// setLeaves sets the list of direct leaves.
+	setLeaves(leaves []Leaf)
 }
 
-// todo
+// baseTree contains common fields for any tree.
 type baseTree struct {
 	parent   Tree     // The parent tree.
 	segment  *Segment // The segment that the tree is derived from.
@@ -33,26 +46,44 @@ type baseTree struct {
 	leaves   []Leaf   // The list of direct leaves.
 }
 
-func (t *baseTree) Parent() Tree {
+func (t *baseTree) getParent() Tree {
 	return t.parent
 }
 
-func (t *baseTree) Segment() *Segment {
+func (t *baseTree) getSegment() *Segment {
 	return t.segment
 }
 
-func (t *baseTree) MatchStyle() MatchStyle {
+func (t *baseTree) getMatchStyle() MatchStyle {
 	return matchStyleNone
 }
 
-// todo
+func (t *baseTree) getSubtrees() []Tree {
+	return t.subtrees
+}
+
+func (t *baseTree) getLeaves() []Leaf {
+	return t.leaves
+}
+
+func (t *baseTree) setSubtrees(subtrees []Tree) {
+	t.subtrees = subtrees
+}
+
+func (t *baseTree) setLeaves(leaves []Leaf) {
+	t.leaves = leaves
+}
+
+// Params is a set of bind parameters extracted from the URL.
 type Params map[string]string
 
-// todo
+// Handler is a function that can be registered to a route for handling HTTP
+// requests.
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
-func (t *baseTree) addLeaf(r *Route, s *Segment, h Handler) (Leaf, error) {
-	for _, l := range t.leaves {
+func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
+	leaves := t.getLeaves()
+	for _, l := range leaves {
 		if l.Segment().String() == s.String() {
 			return l, nil
 		}
@@ -65,13 +96,13 @@ func (t *baseTree) addLeaf(r *Route, s *Segment, h Handler) (Leaf, error) {
 
 	if leaf.Segment().Optional {
 		parent := leaf.Parent()
-		if parent.Parent() != nil {
-			_, err = parent.Parent().addLeaf(r, parent.Segment(), h)
+		if parent.getParent() != nil {
+			_, err = parent.getParent().addLeaf(t, r, parent.getSegment(), h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to grandparent")
 			}
 		} else {
-			_, err = parent.addLeaf(r, parent.Segment(), h)
+			_, err = parent.addLeaf(t, r, parent.getSegment(), h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to parent")
 			}
@@ -80,25 +111,26 @@ func (t *baseTree) addLeaf(r *Route, s *Segment, h Handler) (Leaf, error) {
 
 	// Determine leaf position by the priority of match styles.
 	i := 0
-	for ; i < len(t.leaves); i++ {
-		if leaf.MatchStyle() < t.leaves[i].MatchStyle() {
+	for ; i < len(leaves); i++ {
+		if leaf.MatchStyle() < leaves[i].MatchStyle() {
 			break
 		}
 	}
 
-	if i == len(t.leaves) {
-		t.leaves = append(t.leaves, leaf)
+	if i == len(leaves) {
+		leaves = append(leaves, leaf)
 	} else {
-		t.leaves = append(t.leaves[:i], append([]Leaf{leaf}, t.leaves[i:]...)...)
+		leaves = append(leaves[:i], append([]Leaf{leaf}, leaves[i:]...)...)
 	}
+	t.setLeaves(leaves)
+
 	return leaf, nil
 }
 
-// todo
-func (t *baseTree) addSubtree(r *Route, next int, h Handler) (Leaf, error) {
-	for _, st := range t.subtrees {
-		if st.Segment().String() == r.Segments[next].String() {
-			return st.addNextSegment(r, next+1, h)
+func (*baseTree) addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error) {
+	for _, st := range t.getSubtrees() {
+		if st.getSegment().String() == r.Segments[next].String() {
+			return st.addNextSegment(st, r, next+1, h)
 		}
 	}
 
@@ -108,38 +140,40 @@ func (t *baseTree) addSubtree(r *Route, next int, h Handler) (Leaf, error) {
 	}
 
 	// Determine subtree position by the priority of match styles.
+	subtrees := t.getSubtrees()
 	i := 0
-	for ; i < len(t.subtrees); i++ {
-		if subtree.MatchStyle() < t.subtrees[i].MatchStyle() {
+	for ; i < len(subtrees); i++ {
+		if subtree.getMatchStyle() < subtrees[i].getMatchStyle() {
 			break
 		}
 	}
 
-	if i == len(t.subtrees) {
-		t.subtrees = append(t.subtrees, subtree)
+	if i == len(subtrees) {
+		subtrees = append(subtrees, subtree)
 	} else {
-		t.subtrees = append(t.subtrees[:i], append([]Tree{subtree}, t.subtrees[i:]...)...)
+		subtrees = append(subtrees[:i], append([]Tree{subtree}, subtrees[i:]...)...)
 	}
-	return subtree.addNextSegment(r, next+1, h)
+	t.setSubtrees(subtrees)
+
+	return subtree.addNextSegment(subtree, r, next+1, h)
 }
 
-func (t *baseTree) addNextSegment(r *Route, next int, h Handler) (Leaf, error) {
-	if len(r.Segments) >= next+1 {
-		return t.addLeaf(r, r.Segments[next], h)
+func (*baseTree) addNextSegment(t Tree, r *Route, next int, h Handler) (Leaf, error) {
+	if len(r.Segments) <= next+1 {
+		return t.addLeaf(t, r, r.Segments[next], h)
 	}
 
 	if r.Segments[next].Optional {
 		return nil, errors.New("only the last segment can be optional")
 	}
-	return t.addSubtree(r, next+1, h)
+	return t.addSubtree(t, r, next, h)
 }
 
-// todo
 func (t *baseTree) AddRoute(r *Route, h Handler) (Leaf, error) {
 	if r == nil || len(r.Segments) == 0 {
 		return nil, errors.New("cannot add empty route")
 	}
-	return t.addNextSegment(r, 0, h)
+	return t.addNextSegment(&staticTree{baseTree: *t}, r, 0, h)
 }
 
 // staticTree is a tree with a static match style.
@@ -147,7 +181,7 @@ type staticTree struct {
 	baseTree
 }
 
-func (t *staticTree) MatchStyle() MatchStyle {
+func (t *staticTree) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
@@ -158,7 +192,7 @@ type regexTree struct {
 	binds  []string       // The list of bind parameters.
 }
 
-func (t *regexTree) MatchStyle() MatchStyle {
+func (t *regexTree) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
@@ -167,7 +201,7 @@ type placeholderTree struct {
 	baseTree
 }
 
-func (l *placeholderTree) MatchStyle() MatchStyle {
+func (l *placeholderTree) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
@@ -177,7 +211,7 @@ type matchAllTree struct {
 	bind string // The name of the bind parameter.
 }
 
-func (l *matchAllTree) MatchStyle() MatchStyle {
+func (l *matchAllTree) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
@@ -209,9 +243,10 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		// One route can only have at most one match all style for subtree.
 		ancestor := parent
 		for ancestor != nil {
-			if ancestor.MatchStyle() == matchStyleAll {
+			if ancestor.getMatchStyle() == matchStyleAll {
 				return nil, errors.Errorf("duplicated match all style in position %d", s.Pos.Offset)
 			}
+			ancestor = ancestor.getParent()
 		}
 
 		return &matchAllTree{
@@ -236,4 +271,9 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		regexp: re,
 		binds:  binds,
 	}, nil
+}
+
+// NewTree creates and returns a root tree.
+func NewTree() Tree {
+	return &baseTree{}
 }
