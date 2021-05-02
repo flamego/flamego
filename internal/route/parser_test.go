@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +31,19 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{Ident: strptr("webapi")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
 							},
 						},
 					},
@@ -42,11 +55,35 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{Ident: strptr("webapi")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
 							},
 						}, {
 							Elements: []SegmentElement{
-								{Ident: strptr("users")},
+								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 13,
+										Line:   1,
+										Column: 14,
+									},
+									Ident: strptr("users"),
+								},
 							},
 						},
 					},
@@ -58,7 +95,19 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{BindIdent: strptr("name")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									BindIdent: strptr("name"),
+								},
 							},
 						},
 					},
@@ -70,15 +119,49 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{Ident: strptr("webapi")},
-							},
-						}, {
-							Elements: []SegmentElement{
-								{BindIdent: strptr("name-1")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
 							},
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 16,
+										Line:   1,
+										Column: 17,
+									},
+									BindIdent: strptr("name-1"),
+								},
+							},
+						}, {
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 17,
+										Line:   1,
+										Column: 18,
+									},
+									EndPos: lexer.Position{
+										Offset: 44,
+										Line:   1,
+										Column: 45,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{
@@ -99,15 +182,49 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{Ident: strptr("webapi")},
-							},
-						}, {
-							Elements: []SegmentElement{
-								{BindIdent: strptr("name-1")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
 							},
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 16,
+										Line:   1,
+										Column: 17,
+									},
+									BindIdent: strptr("name-1"),
+								},
+							},
+						}, {
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 17,
+										Line:   1,
+										Column: 18,
+									},
+									EndPos: lexer.Position{
+										Offset: 44,
+										Line:   1,
+										Column: 45,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{
@@ -121,6 +238,16 @@ func TestParser(t *testing.T) {
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 45,
+										Line:   1,
+										Column: 46,
+									},
+									EndPos: lexer.Position{
+										Offset: 59,
+										Line:   1,
+										Column: 60,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{
@@ -130,8 +257,32 @@ func TestParser(t *testing.T) {
 										},
 									},
 								},
-								{Ident: strptr("-")},
-								{BindIdent: strptr("month-day")},
+								{
+									Pos: lexer.Position{
+										Offset: 59,
+										Line:   1,
+										Column: 60,
+									},
+									EndPos: lexer.Position{
+										Offset: 60,
+										Line:   1,
+										Column: 61,
+									},
+									Ident: strptr("-"),
+								},
+								{
+									Pos: lexer.Position{
+										Offset: 60,
+										Line:   1,
+										Column: 61,
+									},
+									EndPos: lexer.Position{
+										Offset: 71,
+										Line:   1,
+										Column: 72,
+									},
+									BindIdent: strptr("month-day"),
+								},
 							},
 						},
 					},
@@ -144,15 +295,49 @@ func TestParser(t *testing.T) {
 					Segments: []Segment{
 						{
 							Elements: []SegmentElement{
-								{Ident: strptr("webapi")},
-							},
-						}, {
-							Elements: []SegmentElement{
-								{BindIdent: strptr("name-1")},
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
 							},
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 16,
+										Line:   1,
+										Column: 17,
+									},
+									BindIdent: strptr("name-1"),
+								},
+							},
+						}, {
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 17,
+										Line:   1,
+										Column: 18,
+									},
+									EndPos: lexer.Position{
+										Offset: 44,
+										Line:   1,
+										Column: 45,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{
@@ -166,6 +351,16 @@ func TestParser(t *testing.T) {
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 45,
+										Line:   1,
+										Column: 46,
+									},
+									EndPos: lexer.Position{
+										Offset: 59,
+										Line:   1,
+										Column: 60,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{
@@ -175,12 +370,46 @@ func TestParser(t *testing.T) {
 										},
 									},
 								},
-								{Ident: strptr("-")},
-								{BindIdent: strptr("month-day")},
+								{
+									Pos: lexer.Position{
+										Offset: 59,
+										Line:   1,
+										Column: 60,
+									},
+									EndPos: lexer.Position{
+										Offset: 60,
+										Line:   1,
+										Column: 61,
+									},
+									Ident: strptr("-"),
+								},
+								{
+									Pos: lexer.Position{
+										Offset: 60,
+										Line:   1,
+										Column: 61,
+									},
+									EndPos: lexer.Position{
+										Offset: 71,
+										Line:   1,
+										Column: 72,
+									},
+									BindIdent: strptr("month-day"),
+								},
 							},
 						}, {
 							Elements: []SegmentElement{
 								{
+									Pos: lexer.Position{
+										Offset: 72,
+										Line:   1,
+										Column: 73,
+									},
+									EndPos: lexer.Position{
+										Offset: 93,
+										Line:   1,
+										Column: 94,
+									},
 									BindParameters: &BindParameters{
 										Parameters: []BindParameter{
 											{

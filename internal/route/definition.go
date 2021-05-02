@@ -4,6 +4,10 @@
 
 package route
 
+import (
+	"github.com/alecthomas/participle/v2/lexer"
+)
+
 // BindParameterValue is a single bind parameter value containing either literal
 // or regex, the latter is surrounded by slashes ("/").
 type BindParameterValue struct {
@@ -28,6 +32,8 @@ type BindParameters struct {
 // identifier or bind parameters. Bind identifier and bind parameters are
 // surrounded by brackets ("{}").
 type SegmentElement struct {
+	Pos            lexer.Position
+	EndPos         lexer.Position
 	Ident          *string         `parser:"  @Ident"`
 	BindIdent      *string         `parser:"| '{' @Ident '}'"`
 	BindParameters *BindParameters `parser:"| '{' @@ '}'"`
