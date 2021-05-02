@@ -273,7 +273,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: &BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -351,7 +351,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: &BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -379,7 +379,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "year",
-												Value: &BindParameterValue{Literal: strptr("regex2")},
+												Value: BindParameterValue{Literal: strptr("regex2")},
 											},
 										},
 									},
@@ -484,7 +484,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: &BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -512,7 +512,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "year",
-												Value: &BindParameterValue{Literal: strptr("regex2")},
+												Value: BindParameterValue{Literal: strptr("regex2")},
 											},
 										},
 									},
@@ -566,10 +566,10 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "**",
-												Value: &BindParameterValue{Literal: strptr("**")},
+												Value: BindParameterValue{Literal: strptr("**")},
 											}, {
 												Ident: "capture",
-												Value: &BindParameterValue{Literal: strptr("3")},
+												Value: BindParameterValue{Literal: strptr("3")},
 											},
 										},
 									},

@@ -5,6 +5,8 @@
 package route
 
 import (
+	"bytes"
+
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
@@ -18,8 +20,8 @@ type BindParameterValue struct {
 // BindParameter is a single pair of bind parameter containing identifier and
 // value that are separated by the colon (":").
 type BindParameter struct {
-	Ident string              `parser:"@Ident ':' ' '*"`
-	Value *BindParameterValue `parser:"@@"`
+	Ident string             `parser:"@Ident ':' ' '*"`
+	Value BindParameterValue `parser:"@@"`
 }
 
 // BindParameters is a set of bind parameters that are separated by commas
@@ -50,4 +52,57 @@ type Segment struct {
 // ("/").
 type Route struct {
 	Segments []Segment `parser:"( '/' @@ )+"`
+}
+
+// String returns the string representation of the Route, which basically
+// traverses the Route AST to reconstruct the original route string.
+func (r Route) String() string {
+	var buf bytes.Buffer
+	for _, s := range r.Segments {
+		buf.WriteString("/")
+
+		if s.Optional {
+			buf.WriteString("?")
+		}
+
+		for _, e := range s.Elements {
+			if e.Ident != nil {
+				buf.WriteString(*e.Ident)
+				continue
+			} else if e.BindIdent != nil {
+				buf.WriteString("{")
+				buf.WriteString(*e.BindIdent)
+				buf.WriteString("}")
+				continue
+			} else if e.BindParameters == nil || len(e.BindParameters.Parameters) == 0 {
+				// This element is empty, which should never happen, but just in case
+				buf.WriteString("???")
+				continue
+			}
+
+			buf.WriteString("{")
+			for i, p := range e.BindParameters.Parameters {
+				buf.WriteString(p.Ident)
+				buf.WriteString(": ")
+
+				switch {
+				case p.Value.Literal != nil:
+					buf.WriteString(*p.Value.Literal)
+				case p.Value.Regex != nil:
+					buf.WriteString("/")
+					buf.WriteString(*p.Value.Regex)
+					buf.WriteString("/")
+				default:
+					// This parameter has no value, which should never happen, but just in case
+					buf.WriteString("???")
+				}
+
+				if len(e.BindParameters.Parameters) > i+1 {
+					buf.WriteString(", ")
+				}
+			}
+			buf.WriteString("}")
+		}
+	}
+	return buf.String()
 }
