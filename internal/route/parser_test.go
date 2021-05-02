@@ -90,6 +90,63 @@ func TestParser(t *testing.T) {
 				},
 			},
 			{
+				route: "/webapi/users/?{id}",
+				want: &Route{
+					Segments: []Segment{
+						{
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
+							},
+						}, {
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 13,
+										Line:   1,
+										Column: 14,
+									},
+									Ident: strptr("users"),
+								},
+							},
+						}, {
+							Optional: true,
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 15,
+										Line:   1,
+										Column: 16,
+									},
+									EndPos: lexer.Position{
+										Offset: 19,
+										Line:   1,
+										Column: 20,
+									},
+									BindIdent: strptr("id"),
+								},
+							},
+						},
+					},
+				},
+			},
+			{
 				route: "/{name}",
 				want: &Route{
 					Segments: []Segment{

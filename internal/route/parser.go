@@ -30,6 +30,7 @@ func NewParser() (*Parser, error) {
 			},
 			"Segment": {
 				stateful.Include("Common"),
+				{Name: "Optional", Pattern: `[?]`, Action: nil},
 				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
 				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
 			},
