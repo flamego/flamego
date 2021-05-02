@@ -4,36 +4,42 @@
 
 package route
 
-// todo
+// BindParameterValue is a single bind parameter value containing either literal
+// or regex, the latter is surrounded by slashes ("/").
 type BindParameterValue struct {
 	Literal *string `parser:"  @Ident"`
 	Regex   *string `parser:"| '/' @Regex '/'"`
 }
 
-// todo
+// BindParameter is a single pair of bind parameter containing identifier and
+// value that are separated by the colon (":").
 type BindParameter struct {
 	Ident string              `parser:"@Ident ':' ' '*"`
 	Value *BindParameterValue `parser:"@@"`
 }
 
-// todo
+// BindParameters is a set of bind parameters that are separated by commas
+// (",").
 type BindParameters struct {
 	Parameters []BindParameter `parser:"( @@ ( ',' ' '* @@ )* )+"`
 }
 
-// todo
+// SegmentElement is a single segment element containing either identifier, bind
+// identifier or bind parameters. Bind identifier and bind parameters are
+// surrounded by brackets ("{}").
 type SegmentElement struct {
 	Ident          *string         `parser:"  @Ident"`
 	BindIdent      *string         `parser:"| '{' @Ident '}'"`
 	BindParameters *BindParameters `parser:"| '{' @@ '}'"`
 }
 
-// todo
+// Segment is a single segment containing multiple elements.
 type Segment struct {
 	Elements []SegmentElement `parser:"@@*"`
 }
 
-// todo
+// Route is a single route containing segments that are separated by slashes
+// ("/").
 type Route struct {
 	Segments []Segment `parser:"( '/' @@ )+"`
 }

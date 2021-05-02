@@ -10,18 +10,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-// todo
+// Parser is BNF-based route syntax parser using stateful lexer.
 type Parser struct {
 	parser *participle.Parser
 }
 
-// todo
+// Parse parses and returns a single route.
 func (p *Parser) Parse(s string) (*Route, error) {
 	ast := &Route{}
 	return ast, p.parser.ParseString("", s, ast)
 }
 
-// todo
+// NewParser creates and returns a new Parser.
 func NewParser() (*Parser, error) {
 	lexer, err := stateful.New(
 		stateful.Rules{

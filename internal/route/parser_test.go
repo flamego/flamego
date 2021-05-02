@@ -5,6 +5,7 @@
 package route
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -208,6 +209,38 @@ func TestParser(t *testing.T) {
 	})
 
 	t.Run("invalid routes", func(t *testing.T) {
-		// todo
+		tests := []struct {
+			name    string
+			route   string
+			wantErr string
+		}{
+			{
+				name:    "missing leading slash",
+				route:   "webapi",
+				wantErr: `1:1: invalid input text "webapi"`,
+			},
+			{
+				name:    "missing opening bracket",
+				route:   "/name}",
+				wantErr: `1:6: invalid input text "}"`,
+			},
+			{
+				name:    "missing closing bracket",
+				route:   "/{name",
+				wantErr: `1:7: unexpected token "<EOF>" (expected "}")`,
+			},
+			{
+				name:    "no surroundings for regex",
+				route:   "/{name: [a-z0-9]{7, 40}}",
+				wantErr: `1:9: invalid input text "[a-z0-9]{7, 40}}"`,
+			},
+		}
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				_, err := parser.Parse(test.route)
+				got := fmt.Sprintf("%v", err)
+				assert.Equal(t, test.wantErr, got)
+			})
+		}
 	})
 }
