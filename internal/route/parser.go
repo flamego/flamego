@@ -23,13 +23,37 @@ func (p *Parser) Parse(s string) (*Route, error) {
 
 // todo
 func NewParser() (*Parser, error) {
-	lexer, err := stateful.NewSimple(
-		// NOTE: The order of rules matters!
-		[]stateful.Rule{
-			{"Whitespace", `\s`, nil},
-			{"Punct", `[/{}:;]`, nil},
-			{"Ident", `[a-zA-Z0-9*\-]+`, nil},
-			{"Regex", `[a-zA-Z0-9*\-+.,?()\[\]{} \\]+`, nil},
+	lexer, err := stateful.New(
+		stateful.Rules{
+			"Root": {
+				{"Segment", `/`, stateful.Push("Segment")},
+			},
+			"Segment": {
+				stateful.Include("Common"),
+				{"Bind", `{`, stateful.Push("Bind")},
+				{"Segment", `/`, stateful.Push("Segment")},
+			},
+			"Bind": {
+				stateful.Include("Common"),
+				{"BindParameter", `:`, stateful.Push("BindParameter")},
+				{"Bind", `{`, stateful.Push("Bind")},
+				{"BindEnd", `}`, stateful.Pop()},
+				{"Segment", `/`, stateful.Push("Segment")},
+			},
+			"BindParameter": {
+				stateful.Include("Common"),
+				{"BindParameterValue", `/`, stateful.Push("BindParameterValue")},
+				{"BindParameterEnd", `[},]`, stateful.Pop()},
+			},
+			"BindParameterValue": {
+				stateful.Include("Common"),
+				{"Regex", `[a-zA-Z0-9*\-+.,?()\[\]{} \\]+`, nil},
+				{"RegexEnd", `/`, stateful.Pop()},
+			},
+			"Common": {
+				{"Ident", `[a-zA-Z0-9*\-]+`, nil},
+				{"Whitespace", `\s`, nil},
+			},
 		},
 	)
 	if err != nil {

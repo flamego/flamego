@@ -7,7 +7,7 @@ package route
 // todo
 type BindParameterValue struct {
 	Literal *string `parser:"  @Ident"`
-	Regex   *string `parser:"| @Regex"`
+	Regex   *string `parser:"| '/' @Regex '/'"`
 }
 
 // todo
@@ -18,7 +18,7 @@ type BindParameter struct {
 
 // todo
 type BindParameters struct {
-	Parameters []BindParameter `parser:"( @@ ( ';' ' '* @@ )* )+"`
+	Parameters []BindParameter `parser:"( @@ ( ',' ' '* @@ )* )+"`
 }
 
 // todo
