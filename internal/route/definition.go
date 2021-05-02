@@ -41,6 +41,7 @@ type SegmentElement struct {
 
 // Segment is a single segment containing multiple elements.
 type Segment struct {
+	Pos      lexer.Position
 	Optional bool             `parser:"@'?'?"`
 	Elements []SegmentElement `parser:"@@*"`
 }
