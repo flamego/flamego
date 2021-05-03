@@ -31,6 +31,8 @@ type Tree interface {
 	setSubtrees(subtrees []Tree)
 	// setLeaves sets the list of direct leaves.
 	setLeaves(leaves []Leaf)
+	// getBinds returns the list of bind parameters.
+	getBinds() []string
 	match(segment string, params Params) bool
 	matchNextSegment(path string, offset int, params Params) (Leaf, bool)
 }
@@ -69,6 +71,10 @@ func (t *baseTree) setSubtrees(subtrees []Tree) {
 
 func (t *baseTree) setLeaves(leaves []Leaf) {
 	t.leaves = leaves
+}
+
+func (t *baseTree) getBinds() []string {
+	return nil
 }
 
 func (t *baseTree) match(_ string, _ Params) bool {
@@ -182,6 +188,10 @@ func (t *staticTree) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
+func (t *staticTree) getBinds() []string {
+	return nil
+}
+
 func (t *staticTree) match(segment string, _ Params) bool {
 	return t.segment.String()[1:] == segment // Skip the leading "/"
 }
@@ -195,6 +205,12 @@ type regexTree struct {
 
 func (t *regexTree) getMatchStyle() MatchStyle {
 	return matchStyleRegex
+}
+
+func (t *regexTree) getBinds() []string {
+	binds := make([]string, len(t.binds))
+	copy(binds, t.binds)
+	return binds
 }
 
 func (t *regexTree) match(segment string, params Params) bool {
@@ -219,6 +235,10 @@ func (t *placeholderTree) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
+func (t *placeholderTree) getBinds() []string {
+	return []string{t.bind}
+}
+
 func (t *placeholderTree) match(segment string, params Params) bool {
 	params[t.bind] = segment
 	return true
@@ -233,6 +253,10 @@ type matchAllTree struct {
 
 func (t *matchAllTree) getMatchStyle() MatchStyle {
 	return matchStyleAll
+}
+
+func (t *matchAllTree) getBinds() []string {
+	return []string{t.bind}
 }
 
 func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
@@ -277,7 +301,12 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		}, nil
 	}
 
+	parentBindSet := getParentBindSet(parent)
+
 	if bind, ok := checkMatchStylePlaceholder(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
 		return &placeholderTree{
 			baseTree: baseTree{
 				parent:  parent,
@@ -288,6 +317,10 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 	}
 
 	if bind, capture, ok := checkMatchStyleAll(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+
 		// One route can only have at most one match all style for subtree.
 		ancestor := parent
 		for ancestor != nil {
@@ -312,6 +345,13 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	for _, bind := range binds {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+	}
+
 	return &regexTree{
 		baseTree: baseTree{
 			parent:  parent,

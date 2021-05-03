@@ -254,6 +254,20 @@ func constructMatchStyleRegex(s *Segment) (*regexp.Regexp, []string, error) {
 	return re, binds, nil
 }
 
+// getParentBindSet returns a set of all bind parameters defined in parent
+// trees.
+func getParentBindSet(parent Tree) map[string]struct{} {
+	bindSet := make(map[string]struct{})
+	ancestor := parent
+	for ancestor != nil {
+		for _, bind := range ancestor.getBinds() {
+			bindSet[bind] = struct{}{}
+		}
+		ancestor = ancestor.getParent()
+	}
+	return bindSet
+}
+
 // newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	if len(s.Elements) == 0 {
@@ -271,7 +285,12 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 		}, nil
 	}
 
+	parentBindSet := getParentBindSet(parent)
+
 	if bind, ok := checkMatchStylePlaceholder(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
 		return &placeholderLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,
@@ -284,6 +303,9 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	}
 
 	if bind, capture, ok := checkMatchStyleAll(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
 		return &matchAllLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,
@@ -301,6 +323,13 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	for _, bind := range binds {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+	}
+
 	return &regexLeaf{
 		baseLeaf: baseLeaf{
 			parent:  parent,

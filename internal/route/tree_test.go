@@ -271,16 +271,48 @@ func TestAddRoute(t *testing.T) {
 	}
 }
 
-func TestTree_Match(t *testing.T) {
+func TestAddRoute_DuplicatedBinds(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
 
 	tree := NewTree()
 
 	routes := []string{
+		// Leaf
+		"/webapi/{name}/{name}",
+		"/webapi/{name}/{name: /regexp/}",
+		"/webapi/{name}/{name: **}",
+
+		// Tree
+		"/webapi/{name}/{name}/events",
+		"/webapi/{name}/{name: /regexp/}/events",
+		"/webapi/{name}/{name: **}/events",
+	}
+	for _, route := range routes {
+		t.Run(route, func(t *testing.T) {
+			r, err := parser.Parse(route)
+			assert.Nil(t, err)
+
+			_, err = AddRoute(tree, r, nil)
+			got := fmt.Sprintf("%v", err)
+			assert.Contains(t, got, "duplicated bind parameter")
+		})
+	}
+}
+
+func TestTree_Match(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	// NOTE: The order of routes and tests matters, matching for the same priority
+	//  is first in first match.
+	routes := []string{
 		"/webapi",
 		"/webapi/users/?{id}",
 		"/webapi/users/ids/{id: /[0-9]+/}",
+		"/webapi/users/ids/{sha: /[a-z0-9]{7,40}/}",
 		"/webapi/users/sessions/{paths: **}",
 		"/webapi/users/events/{names: **}/feed",
 		"/webapi/projects/{name}/hashes/{paths: **, capture: 2}/blob/{lineno: /[0-9]+/}",
@@ -328,10 +360,17 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
-			path:   "/webapi/users/ids/123",
+			path:   "/webapi/users/ids/123", // Matched before "/webapi/users/ids/{sha: /[a-z0-9]{7,40}/}"
 			wantOK: true,
 			wantParams: Params{
 				"id": "123",
+			},
+		},
+		{
+			path:   "/webapi/users/ids/368c7b2d0b1e0b243b2",
+			wantOK: true,
+			wantParams: Params{
+				"sha": "368c7b2d0b1e0b243b2",
 			},
 		},
 		{
@@ -366,7 +405,7 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
-			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2",
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2", // "ext" is optional
 			wantOK: true,
 			wantParams: Params{
 				"name": "flamego",
