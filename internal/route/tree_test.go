@@ -148,7 +148,7 @@ func TestAddRoute(t *testing.T) {
 		assert.Nil(t, err)
 		_, err = AddRoute(tree, r2, nil)
 		got := fmt.Sprintf("%v", err)
-		want := `add optional leaf to grandparent: leaf for the route "/webapi/users/?events" already exists`
+		want := `add optional leaf to grandparent: duplicated route "/webapi/users/?events"`
 		assert.Equal(t, want, got)
 	})
 

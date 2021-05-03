@@ -32,6 +32,12 @@ type Leaf interface {
 	// portion of the URL. If `withOptional` is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
+	// Route returns the string representation of the original route.
+	Route() string
+	// Handler the Handler that is associated with the leaf.
+	Handler() Handler
+	// Static returns true if the leaf and all ancestors are static routes.
+	Static() bool
 
 	// getParent returns the parent tree the leaf belongs to.
 	getParent() Tree
@@ -96,6 +102,14 @@ func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
 	return strings.NewReplacer(pairs...).Replace(buf.String())
 }
 
+func (l *baseLeaf) Route() string {
+	return l.route.String()
+}
+
+func (l *baseLeaf) Handler() Handler {
+	return l.handler
+}
+
 // staticLeaf is a leaf with a static match style.
 type staticLeaf struct {
 	baseLeaf
@@ -107,6 +121,16 @@ func (l *staticLeaf) getMatchStyle() MatchStyle {
 
 func (l *staticLeaf) match(segment string, _ Params) bool {
 	return l.segment.String()[1:] == segment // Skip the leading "/"
+}
+
+func (l *staticLeaf) Static() bool {
+	ancestor := l.parent
+	for ancestor != nil {
+		if ancestor.getMatchStyle() > matchStyleStatic {
+			return false
+		}
+	}
+	return true
 }
 
 // regexLeaf is a leaf with a regex match style.
@@ -132,6 +156,10 @@ func (l *regexLeaf) match(segment string, params Params) bool {
 	return true
 }
 
+func (l *regexLeaf) Static() bool {
+	return false
+}
+
 // placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
 	baseLeaf
@@ -145,6 +173,10 @@ func (l *placeholderLeaf) getMatchStyle() MatchStyle {
 func (l *placeholderLeaf) match(segment string, params Params) bool {
 	params[l.bind] = segment
 	return true
+}
+
+func (l *placeholderLeaf) Static() bool {
+	return false
 }
 
 // placeholderLeaf is a leaf with a match all style.
@@ -161,6 +193,10 @@ func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 func (l *matchAllLeaf) match(segment string, params Params) bool {
 	params[l.bind] = segment
 	return true
+}
+
+func (l *matchAllLeaf) Static() bool {
+	return false
 }
 
 // matchAll matches all remaining segments up to the capture limit (when
