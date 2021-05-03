@@ -33,15 +33,6 @@ func (invoke httpHandlerFuncInvoker) Invoke(args []interface{}) ([]reflect.Value
 	return nil, nil
 }
 
-// internalServerErrorInvoker is an inject.FastInvoker implementation of
-// `func(http.ResponseWriter, error)`.
-type internalServerErrorInvoker func(rw http.ResponseWriter, err error)
-
-func (invoke internalServerErrorInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
-	invoke(params[0].(http.ResponseWriter), params[1].(error))
-	return nil, nil
-}
-
 // validateAndWrapHandler makes sure the handler is a callable function, it
 // panics if not. When the handler is also convertible to any built-in
 // inject.FastInvoker implementations, it wraps the handler automatically to
@@ -59,8 +50,6 @@ func validateAndWrapHandler(h Handler) Handler {
 			return httpHandlerFuncInvoker(v)
 		case http.HandlerFunc:
 			return httpHandlerFuncInvoker(v)
-		case func(http.ResponseWriter, error):
-			return internalServerErrorInvoker(v)
 		}
 	}
 	return h
