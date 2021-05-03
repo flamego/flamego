@@ -129,6 +129,7 @@ func (l *staticLeaf) Static() bool {
 		if ancestor.getMatchStyle() > matchStyleStatic {
 			return false
 		}
+		ancestor = ancestor.getParent()
 	}
 	return true
 }

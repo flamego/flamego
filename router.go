@@ -62,12 +62,12 @@ type Router interface {
 type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler) Context
 
 type router struct {
-	parser       *route.Parser         // The route parser.
-	autoHead     bool                  // Whether to automatically attach the same handler of a GET method as HEAD.
-	groups       []group               // The living stack of nested route groups.
-	routeTrees   map[string]route.Tree // A set of route trees, keys are HTTP methods.
-	namedRoutes  map[string]route.Leaf // A set of named routes.
-	staticRoutes map[string]route.Leaf // A set of static routes, keys are full route paths.
+	parser       *route.Parser                    // The route parser.
+	autoHead     bool                             // Whether to automatically attach the same handler of a GET method as HEAD.
+	groups       []group                          // The living stack of nested route groups.
+	routeTrees   map[string]route.Tree            // A set of route trees, keys are HTTP methods.
+	namedRoutes  map[string]route.Leaf            // A set of named routes.
+	staticRoutes map[string]map[string]route.Leaf // A set of static routes, keys are HTTP methods and full route paths.
 
 	notFound http.HandlerFunc // The handler to be called when a route has no match.
 
@@ -92,11 +92,12 @@ func newRouter(contextCreator contextCreator) Router {
 		parser:         parser,
 		routeTrees:     make(map[string]route.Tree),
 		namedRoutes:    make(map[string]route.Leaf),
-		staticRoutes:   make(map[string]route.Leaf),
+		staticRoutes:   make(map[string]map[string]route.Leaf),
 		contextCreator: contextCreator,
 	}
 	for _, m := range httpMethods {
 		r.routeTrees[m] = route.NewTree()
+		r.staticRoutes[m] = make(map[string]route.Leaf)
 	}
 
 	r.NotFound(http.NotFound)
@@ -151,15 +152,15 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	}
 
 	var leaf route.Leaf
-	for _, m := range methods[1:] {
+	for _, m := range methods {
 		leaf, err = route.AddRoute(r.routeTrees[m], ast, handler)
 		if err != nil {
 			panic(fmt.Sprintf("unable to add route %q: %v", routePath, err))
 		}
-	}
 
-	if leaf.Static() {
-		r.staticRoutes[leaf.Route()] = leaf
+		if leaf.Static() {
+			r.staticRoutes[m][leaf.Route()] = leaf
+		}
 	}
 
 	return &Route{
@@ -207,7 +208,7 @@ func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
 func (r *router) Get(routePath string, handlers ...Handler) *Route {
 	route := r.Route("GET", routePath, handlers)
 	if r.autoHead {
-		r.Head(routePath, handlers)
+		r.Head(routePath, handlers...)
 	}
 	return route
 }
@@ -261,7 +262,7 @@ func (r *router) NotFound(handlers ...Handler) {
 
 func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Fast path for static routes
-	leaf, ok := r.staticRoutes[req.URL.Path]
+	leaf, ok := r.staticRoutes[req.Method][req.URL.Path]
 	if ok {
 		leaf.Handler()(w, req, route.Params{
 			"route": leaf.Route(),
