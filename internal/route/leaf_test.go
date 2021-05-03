@@ -43,7 +43,9 @@ func TestNewLeaf(t *testing.T) {
 		{
 			route: "/{name}",
 			style: matchStylePlaceholder,
-			want:  &placeholderLeaf{},
+			want: &placeholderLeaf{
+				bind: "name",
+			},
 		},
 		{
 			route: "/{paths: **}",

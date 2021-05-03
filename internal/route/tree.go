@@ -6,13 +6,17 @@ package route
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 )
 
 // Tree is a tree derived from a segment.
 type Tree interface {
+	Match(path string) (Leaf, Params, bool)
+
 	// getParent returns the parent tree. The root tree does not have parent.
 	getParent() Tree
 	// getSegment returns the segment that the tree is derived from.
@@ -27,14 +31,16 @@ type Tree interface {
 	setSubtrees(subtrees []Tree)
 	// setLeaves sets the list of direct leaves.
 	setLeaves(leaves []Leaf)
+	match(segment string, params Params) bool
+	matchNextSegment(path string, offset int, params Params) (Leaf, bool)
 }
 
 // baseTree contains common fields and methods for any tree.
 type baseTree struct {
 	parent   Tree     // The parent tree.
 	segment  *Segment // The segment that the tree is derived from.
-	subtrees []Tree   // The list of direct subtrees.
-	leaves   []Leaf   // The list of direct leaves.
+	subtrees []Tree   // The list of direct subtrees ordered by matching priority.
+	leaves   []Leaf   // The list of direct leaves ordered by matching priority.
 }
 
 func (t *baseTree) getParent() Tree {
@@ -63,6 +69,10 @@ func (t *baseTree) setSubtrees(subtrees []Tree) {
 
 func (t *baseTree) setLeaves(leaves []Leaf) {
 	t.leaves = leaves
+}
+
+func (t *baseTree) match(_ string, _ Params) bool {
+	panic("unreachable")
 }
 
 // Params is a set of bind parameters extracted from the URL.
@@ -172,6 +182,10 @@ func (t *staticTree) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
+func (t *staticTree) match(segment string, _ Params) bool {
+	return t.segment.String()[1:] == segment // Skip the leading "/"
+}
+
 // regexTree is a tree with a regex match style.
 type regexTree struct {
 	baseTree
@@ -183,13 +197,31 @@ func (t *regexTree) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
+func (t *regexTree) match(segment string, params Params) bool {
+	submatches := t.regexp.FindStringSubmatch(segment)
+	if len(submatches) != len(t.binds)+1 {
+		return false
+	}
+
+	for i, bind := range t.binds {
+		params[bind] = submatches[i+1]
+	}
+	return true
+}
+
 // placeholderTree is a tree with a placeholder match style.
 type placeholderTree struct {
 	baseTree
+	bind string // The name of the bind parameter.
 }
 
 func (t *placeholderTree) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
+}
+
+func (t *placeholderTree) match(segment string, params Params) bool {
+	params[t.bind] = segment
+	return true
 }
 
 // placeholderTree is a tree with a match all style.
@@ -200,6 +232,27 @@ type matchAllTree struct {
 
 func (t *matchAllTree) getMatchStyle() MatchStyle {
 	return matchStyleAll
+}
+
+func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
+	for {
+		leaf, ok := t.matchNextSegment(path, next, params)
+		if ok {
+			params[t.bind] = segment
+			return leaf, true
+		}
+
+		i := strings.Index(path[next:], "/")
+		if i == -1 {
+			// We've reached last segment of the request path, but it should be matched by a
+			// leaf not a subtree by definition.
+			break
+		}
+
+		segment += "/" + path[next:next+i]
+		next += i + 1
+	}
+	return nil, false
 }
 
 // newTree creates and returns a new Tree derived from the given segment.
@@ -217,12 +270,13 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		}, nil
 	}
 
-	if isMatchStylePlaceholder(s) {
+	if bind, ok := checkMatchStylePlaceholder(s); ok {
 		return &placeholderTree{
 			baseTree: baseTree{
 				parent:  parent,
 				segment: s,
 			},
+			bind: bind,
 		}, nil
 	}
 
@@ -262,7 +316,7 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 
 // NewTree creates and returns a root tree.
 func NewTree() Tree {
-	return &staticTree{baseTree: baseTree{}}
+	return &baseTree{}
 }
 
 // AddRoute adds a new route to the tree and associates given handler to it.
@@ -271,4 +325,83 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 		return nil, errors.New("cannot add empty route")
 	}
 	return addNextSegment(t, r, 0, h)
+}
+func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
+	unescaped, err := url.PathUnescape(segment)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, l := range t.leaves {
+		ok := l.match(unescaped, params)
+		if ok {
+			return l, true
+		}
+	}
+	return nil, false
+}
+
+func (t *baseTree) matchSubtree(path string, segment string, next int, params Params) (Leaf, bool) {
+	unescaped, err := url.PathUnescape(segment)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, st := range t.subtrees {
+		if st.getMatchStyle() == matchStyleAll {
+			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params)
+			if ok {
+				return leaf, true
+			}
+
+			// Any list of subtrees only has at most one match all style as the last
+			// element. Therefore both "break" and "continue" have the same effect, but
+			// using "break" here to be explicit.
+			break
+		}
+
+		ok := st.match(unescaped, params)
+		if !ok {
+			continue
+		}
+
+		leaf, ok := st.matchNextSegment(path, next, params)
+		if !ok {
+			continue
+		}
+		return leaf, true
+	}
+
+	// Fall back to match all leaf of the tree.
+	if len(t.leaves) > 0 {
+		leaf := t.leaves[len(t.leaves)-1]
+		if leaf.getMatchStyle() != matchStyleAll {
+			return nil, false
+		}
+
+		nextUnescaped, err := url.PathUnescape(path[next:])
+		if err != nil {
+			return nil, false
+		}
+
+		// Match all is guaranteed to match.
+		leaf.match(unescaped+"/"+nextUnescaped, params)
+		return leaf, true
+	}
+	return nil, false
+}
+
+func (t *baseTree) matchNextSegment(path string, next int, params Params) (Leaf, bool) {
+	i := strings.Index(path[next:], "/")
+	if i == -1 {
+		return t.matchLeaf(path[next:], params)
+	}
+	return t.matchSubtree(path, path[next:next+i], next+i+1, params)
+}
+
+func (t *baseTree) Match(path string) (Leaf, Params, bool) {
+	path = strings.Trim(path, "/")
+	params := make(Params)
+	leaf, ok := t.matchNextSegment(path, 0, params)
+	return leaf, params, ok
 }

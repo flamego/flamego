@@ -43,7 +43,9 @@ func TestNewTree(t *testing.T) {
 		{
 			route: "/{name}/events",
 			style: matchStylePlaceholder,
-			want:  &placeholderTree{},
+			want: &placeholderTree{
+				bind: "name",
+			},
 		},
 		{
 			route: "/{paths: **}/events",
@@ -129,7 +131,7 @@ func TestNewTree_Regex(t *testing.T) {
 	}
 }
 
-func TestTree_AddRoute(t *testing.T) {
+func TestAddRoute(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
 
@@ -187,6 +189,7 @@ func TestTree_AddRoute(t *testing.T) {
 			wantDepth: 4,
 			wantLeaf: &placeholderLeaf{
 				baseLeaf: baseLeaf{},
+				bind:     "name",
 			},
 		},
 		{
@@ -263,6 +266,100 @@ func TestTree_AddRoute(t *testing.T) {
 				depth++
 			}
 			assert.Equal(t, test.wantDepth, depth)
+		})
+	}
+}
+
+func TestTree_Match(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	routes := []string{
+		"/webapi",
+		"/webapi/users/?{id}",
+		"/webapi/users/ids/{id: /[0-9]+/}",
+		"/webapi/projects/{name}/hashes/{paths: **}/blob/{lineno: /[0-9]+/}",
+	}
+	for _, route := range routes {
+		r, err := parser.Parse(route)
+		assert.Nil(t, err)
+
+		_, err = AddRoute(tree, r, nil)
+		assert.Nil(t, err)
+	}
+
+	tests := []struct {
+		path         string
+		withOptional bool
+		wantOK       bool
+		wantRoute    string
+		wantParams   Params
+	}{
+		// Match
+		{
+			path:       "/webapi",
+			wantOK:     true,
+			wantRoute:  "/webapi",
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/",
+			wantOK:     true,
+			wantRoute:  "/webapi",
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/users",
+			wantOK:     true,
+			wantRoute:  "/webapi/users",
+			wantParams: Params{},
+		},
+		{
+			path:         "/webapi/users/12",
+			withOptional: true,
+			wantOK:       true,
+			wantRoute:    "/webapi/users/12",
+			wantParams: Params{
+				"id": "12",
+			},
+		},
+		{
+			path:      "/webapi/users/ids/123",
+			wantOK:    true,
+			wantRoute: "/webapi/users/ids/123",
+			wantParams: Params{
+				"id": "123",
+			},
+		},
+		{
+			path:      "/webapi/projects/flamego/hashes/src/lib/blob/15",
+			wantOK:    true,
+			wantRoute: "/webapi/projects/flamego/hashes/src/lib/blob/15",
+			wantParams: Params{
+				"name":   "flamego",
+				"paths":  "src/lib",
+				"lineno": "15",
+			},
+		},
+
+		// No match
+		{
+			path:   "/webapi/users/ids/abc",
+			wantOK: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			leaf, params, ok := tree.Match(test.path)
+			assert.Equal(t, test.wantOK, ok)
+
+			if !ok {
+				return
+			}
+			assert.Equal(t, test.wantParams, params)
+			assert.Equal(t, test.wantRoute, leaf.URLPath(params, test.withOptional))
 		})
 	}
 }

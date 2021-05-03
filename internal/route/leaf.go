@@ -37,6 +37,8 @@ type Leaf interface {
 	getSegment() *Segment
 	// getMatchStyle returns the match style of the leaf.
 	getMatchStyle() MatchStyle
+	// todo
+	match(segment string, params Params) bool
 }
 
 // baseLeaf contains common fields for any leaf.
@@ -82,7 +84,6 @@ func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
 			buf.WriteString(e.BindParameters.Parameters[0].Ident)
 			buf.WriteString("}")
 		}
-		s.str = buf.String()
 	}
 
 	pairs := make([]string, 0, len(vals)*2)
@@ -101,6 +102,10 @@ func (l *staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
+func (l *staticLeaf) match(segment string, _ Params) bool {
+	return l.segment.String()[1:] == segment // Skip the leading "/"
+}
+
 // regexLeaf is a leaf with a regex match style.
 type regexLeaf struct {
 	baseLeaf
@@ -112,13 +117,31 @@ func (l *regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
+func (l *regexLeaf) match(segment string, params Params) bool {
+	submatches := l.regexp.FindStringSubmatch(segment)
+	if len(submatches) != len(l.binds)+1 {
+		return false
+	}
+
+	for i, bind := range l.binds {
+		params[bind] = submatches[i+1]
+	}
+	return true
+}
+
 // placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
 	baseLeaf
+	bind string // The name of the bind parameter.
 }
 
 func (l *placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
+}
+
+func (l *placeholderLeaf) match(segment string, params Params) bool {
+	params[l.bind] = segment
+	return true
 }
 
 // placeholderLeaf is a leaf with a match all style.
@@ -131,14 +154,24 @@ func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
+func (l *matchAllLeaf) match(segment string, params Params) bool {
+	params[l.bind] = segment
+	return true
+}
+
 // isMatchStyleStatic returns true if the Segment is static match style.
 func isMatchStyleStatic(s *Segment) bool {
 	return len(s.Elements) == 1 && s.Elements[0].Ident != nil
 }
 
-// isMatchStylePlaceholder returns true if the Segment is placeholder match style.
-func isMatchStylePlaceholder(s *Segment) bool {
-	return len(s.Elements) == 1 && s.Elements[0].BindIdent != nil
+// checkMatchStylePlaceholder returns true if the Segment is placeholder match
+// style, along with // its bind parameter name.
+func checkMatchStylePlaceholder(s *Segment) (bind string, ok bool) {
+	if len(s.Elements) == 1 &&
+		s.Elements[0].BindIdent != nil {
+		return *s.Elements[0].BindIdent, true
+	}
+	return "", false
 }
 
 // checkMatchStyleAll returns true if the Segment is match all style, along with
@@ -210,7 +243,7 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 		}, nil
 	}
 
-	if isMatchStylePlaceholder(s) {
+	if bind, ok := checkMatchStylePlaceholder(s); ok {
 		return &placeholderLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,
@@ -218,6 +251,7 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 				segment: s,
 				handler: h,
 			},
+			bind: bind,
 		}, nil
 	}
 
