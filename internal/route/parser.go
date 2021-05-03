@@ -43,10 +43,10 @@ func NewParser() (*Parser, error) {
 			},
 			"BindParameter": {
 				stateful.Include("Common"),
-				{Name: "BindParameterValue", Pattern: `/`, Action: stateful.Push("BindParameterValue")},
+				{Name: "BindParameterRegexValue", Pattern: `/`, Action: stateful.Push("BindParameterRegexValue")},
 				{Name: "BindParameterEnd", Pattern: `[},]`, Action: stateful.Pop()},
 			},
-			"BindParameterValue": {
+			"BindParameterRegexValue": {
 				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+._,?()\[\]{} \\\|]+`},
 				{Name: "RegexEnd", Pattern: `/`, Action: stateful.Pop()},
 			},
