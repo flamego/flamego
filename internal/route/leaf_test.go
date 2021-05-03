@@ -12,13 +12,6 @@ import (
 )
 
 func TestNewLeaf(t *testing.T) {
-	t.Run("empty segment", func(t *testing.T) {
-		_, err := newLeaf(nil, &Route{}, &Segment{}, nil)
-		got := fmt.Sprintf("%v", err)
-		want := "empty segment in position 0"
-		assert.Equal(t, want, got)
-	})
-
 	t.Run("empty segment element", func(t *testing.T) {
 		s := &Segment{Elements: []SegmentElement{{}}}
 		_, err := newLeaf(nil, &Route{Segments: []*Segment{s}}, s, nil)
