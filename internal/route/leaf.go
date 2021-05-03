@@ -26,16 +26,17 @@ const (
 
 // Leaf is a leaf derived from a segment.
 type Leaf interface {
-	// Parent returns the parent tree the leaf belongs to.
-	Parent() Tree
-	// Segment returns the segment that the leaf is derived from.
-	Segment() *Segment
-	// MatchStyle returns the match style of the leaf.
-	MatchStyle() MatchStyle
 	// URLPath fills in bind parameters with given values to build the "path"
 	// portion of the URL. If withOptional is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
+
+	// getParent returns the parent tree the leaf belongs to.
+	getParent() Tree
+	// getSegment returns the segment that the leaf is derived from.
+	getSegment() *Segment
+	// getMatchStyle returns the match style of the leaf.
+	getMatchStyle() MatchStyle
 }
 
 // baseLeaf contains common fields for any leaf.
@@ -46,11 +47,11 @@ type baseLeaf struct {
 	handler Handler  // The handler bound to the leaf.
 }
 
-func (l *baseLeaf) Parent() Tree {
+func (l *baseLeaf) getParent() Tree {
 	return l.parent
 }
 
-func (l *baseLeaf) Segment() *Segment {
+func (l *baseLeaf) getSegment() *Segment {
 	return l.segment
 }
 
@@ -96,7 +97,7 @@ type staticLeaf struct {
 	baseLeaf
 }
 
-func (l *staticLeaf) MatchStyle() MatchStyle {
+func (l *staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
@@ -107,7 +108,7 @@ type regexLeaf struct {
 	binds  []string       // The list of bind parameters.
 }
 
-func (l *regexLeaf) MatchStyle() MatchStyle {
+func (l *regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
@@ -116,7 +117,7 @@ type placeholderLeaf struct {
 	baseLeaf
 }
 
-func (l *placeholderLeaf) MatchStyle() MatchStyle {
+func (l *placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
@@ -126,7 +127,7 @@ type matchAllLeaf struct {
 	bind string // The name of the bind parameter.
 }
 
-func (l *matchAllLeaf) MatchStyle() MatchStyle {
+func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 

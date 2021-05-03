@@ -221,19 +221,19 @@ func TestTree_AddRoute(t *testing.T) {
 			segment := route.Segments[len(route.Segments)-1]
 			switch test.style {
 			case matchStyleStatic:
-				test.wantLeaf.(*staticLeaf).parent = got.Parent()
+				test.wantLeaf.(*staticLeaf).parent = got.getParent()
 				test.wantLeaf.(*staticLeaf).segment = segment
 				test.wantLeaf.(*staticLeaf).route = route
 			case matchStyleRegex:
-				test.wantLeaf.(*regexLeaf).parent = got.Parent()
+				test.wantLeaf.(*regexLeaf).parent = got.getParent()
 				test.wantLeaf.(*regexLeaf).segment = segment
 				test.wantLeaf.(*regexLeaf).route = route
 			case matchStylePlaceholder:
-				test.wantLeaf.(*placeholderLeaf).parent = got.Parent()
+				test.wantLeaf.(*placeholderLeaf).parent = got.getParent()
 				test.wantLeaf.(*placeholderLeaf).segment = segment
 				test.wantLeaf.(*placeholderLeaf).route = route
 			case matchStyleAll:
-				test.wantLeaf.(*matchAllLeaf).parent = got.Parent()
+				test.wantLeaf.(*matchAllLeaf).parent = got.getParent()
 				test.wantLeaf.(*matchAllLeaf).segment = segment
 				test.wantLeaf.(*matchAllLeaf).route = route
 			}
@@ -241,7 +241,7 @@ func TestTree_AddRoute(t *testing.T) {
 			assert.Equal(t, test.wantLeaf, got)
 
 			depth := 1
-			ancestor := got.Parent()
+			ancestor := got.getParent()
 			for ancestor != nil {
 				ancestor = ancestor.getParent()
 				depth++

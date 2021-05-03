@@ -84,7 +84,7 @@ type Handler func(http.ResponseWriter, *http.Request, Params)
 func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	leaves := t.getLeaves()
 	for _, l := range leaves {
-		if l.Segment().String() == s.String() {
+		if l.getSegment().String() == s.String() {
 			return l, nil
 		}
 	}
@@ -94,8 +94,8 @@ func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) 
 		return nil, errors.Wrap(err, "new leaf")
 	}
 
-	if leaf.Segment().Optional {
-		parent := leaf.Parent()
+	if leaf.getSegment().Optional {
+		parent := leaf.getParent()
 		if parent.getParent() != nil {
 			_, err = parent.getParent().addLeaf(t, r, parent.getSegment(), h)
 			if err != nil {
@@ -112,7 +112,7 @@ func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) 
 	// Determine leaf position by the priority of match styles.
 	i := 0
 	for ; i < len(leaves); i++ {
-		if leaf.MatchStyle() < leaves[i].MatchStyle() {
+		if leaf.getMatchStyle() < leaves[i].getMatchStyle() {
 			break
 		}
 	}
