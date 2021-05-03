@@ -15,6 +15,9 @@ import (
 
 // Tree is a tree derived from a segment.
 type Tree interface {
+	// Match matches a leaf for the given request path, values of bind parameters
+	// are stored in the `Params`. The `Params` may contain extra values that do not
+	// belong to the final leaf due to backtrace.
 	Match(path string) (Leaf, Params, bool)
 
 	// getParent returns the parent tree. The root tree does not have parent.
@@ -37,8 +40,13 @@ type Tree interface {
 	hasMatchAllSubtree() bool
 	// hasMatchAllLeaf returns true if there is on match all style leaf exists.
 	hasMatchAllLeaf() bool
+	// match returns true if the tree matches the segment, values of bind parameters
+	// are stored in the `Params`. The `Params` may contain extra values that do not
+	// belong to the final leaf due to backtrace.
 	match(segment string, params Params) bool
-	matchNextSegment(path string, offset int, params Params) (Leaf, bool)
+	// matchNextSegment advances the `next` cursor for matching next segment in the
+	// request path.
+	matchNextSegment(path string, next int, params Params) (Leaf, bool)
 }
 
 // baseTree contains common fields and methods for any tree.
@@ -286,6 +294,10 @@ func (t *matchAllTree) getBinds() []string {
 	return []string{t.bind}
 }
 
+// matchAll matches all remaining segments up to the capture limit (when
+// defined). The `path` should be original request path, `segment` should be
+// unescaped by the caller. It returns the matched leaf and true if segments are
+// captured within the limit, and the capture result is stored in `params`.
 func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
 	for t.capture <= 0 || t.capture >= captured {
@@ -402,6 +414,8 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	return addNextSegment(t, r, 0, h)
 }
 
+// matchLeaf returns the matched leaf and true if any leaf of the tree matches
+// the given segment.
 func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
 	unescaped, err := url.PathUnescape(segment)
 	if err != nil {
@@ -417,6 +431,8 @@ func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
 	return nil, false
 }
 
+// matchSubtree returns the matched leaf and true if any subtree or leaf of the
+// tree matches the given segment.
 func (t *baseTree) matchSubtree(path string, segment string, next int, params Params) (Leaf, bool) {
 	unescaped, err := url.PathUnescape(segment)
 	if err != nil {

@@ -39,7 +39,8 @@ type Leaf interface {
 	getSegment() *Segment
 	// getMatchStyle returns the match style of the leaf.
 	getMatchStyle() MatchStyle
-	// todo
+	// match returns true if the leaf matches the segment, values of bind parameters
+	// are stored in the `Params`.
 	match(segment string, params Params) bool
 }
 
@@ -162,6 +163,10 @@ func (l *matchAllLeaf) match(segment string, params Params) bool {
 	return true
 }
 
+// matchAll matches all remaining segments up to the capture limit (when
+// defined). The `path` should be original request path, `segment` should be
+// unescaped by the caller. It returns true if segments are captured within the
+// limit, and the capture result is stored in `params`.
 func (l *matchAllLeaf) matchAll(path string, segment string, next int, params Params) bool {
 	// Do `next-1` because "next" starts at the next character of preceding "/"; do
 	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
