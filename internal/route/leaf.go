@@ -119,7 +119,7 @@ func (l *regexLeaf) getMatchStyle() MatchStyle {
 
 func (l *regexLeaf) match(segment string, params Params) bool {
 	submatches := l.regexp.FindStringSubmatch(segment)
-	if len(submatches) != len(l.binds)+1 {
+	if len(submatches) < len(l.binds)+1 {
 		return false
 	}
 

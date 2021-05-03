@@ -7,6 +7,7 @@ package route
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -281,6 +282,9 @@ func TestTree_Match(t *testing.T) {
 		"/webapi/users/?{id}",
 		"/webapi/users/ids/{id: /[0-9]+/}",
 		"/webapi/projects/{name}/hashes/{paths: **}/blob/{lineno: /[0-9]+/}",
+		"/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}/main.go",
+		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
+		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
@@ -294,59 +298,108 @@ func TestTree_Match(t *testing.T) {
 		path         string
 		withOptional bool
 		wantOK       bool
-		wantRoute    string
 		wantParams   Params
 	}{
 		// Match
 		{
 			path:       "/webapi",
 			wantOK:     true,
-			wantRoute:  "/webapi",
 			wantParams: Params{},
 		},
 		{
-			path:       "/webapi/",
+			path:       "/webapi//",
 			wantOK:     true,
-			wantRoute:  "/webapi",
 			wantParams: Params{},
 		},
 		{
 			path:       "/webapi/users",
 			wantOK:     true,
-			wantRoute:  "/webapi/users",
 			wantParams: Params{},
 		},
 		{
 			path:         "/webapi/users/12",
 			withOptional: true,
 			wantOK:       true,
-			wantRoute:    "/webapi/users/12",
 			wantParams: Params{
 				"id": "12",
 			},
 		},
 		{
-			path:      "/webapi/users/ids/123",
-			wantOK:    true,
-			wantRoute: "/webapi/users/ids/123",
+			path:   "/webapi/users/ids/123",
+			wantOK: true,
 			wantParams: Params{
 				"id": "123",
 			},
 		},
 		{
-			path:      "/webapi/projects/flamego/hashes/src/lib/blob/15",
-			wantOK:    true,
-			wantRoute: "/webapi/projects/flamego/hashes/src/lib/blob/15",
+			path:   "/webapi/projects/flamego/hashes/src/lib/blob/15",
+			wantOK: true,
 			wantParams: Params{
 				"name":   "flamego",
 				"paths":  "src/lib",
 				"lineno": "15",
 			},
 		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2/main.go",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+				"ext":  "",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2.patch",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+				"ext":  ".patch",
+			},
+		},
+		{
+			path:   "/webapi/articles/social/2021-05-03.json",
+			wantOK: true,
+			wantParams: Params{
+				"category": "social",
+				"year":     "2021",
+				"month":    "05",
+				"day":      "03",
+			},
+		},
 
 		// No match
 		{
-			path:   "/webapi/users/ids/abc",
+			path:   "/webapi/users/ids/abc", // "abc" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/hashes/src/lib/blob/abc", // "abc" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b/main.go", // "368c7b" is less than 7 chars
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/21-05-03.json", // "21" length is not 4
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/year-05-03.json", // "year" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/2021-05.json", // "day" is missing
 			wantOK: false,
 		},
 	}
@@ -359,7 +412,7 @@ func TestTree_Match(t *testing.T) {
 				return
 			}
 			assert.Equal(t, test.wantParams, params)
-			assert.Equal(t, test.wantRoute, leaf.URLPath(params, test.withOptional))
+			assert.Equal(t, strings.TrimRight(test.path, "/"), leaf.URLPath(params, test.withOptional))
 		})
 	}
 }
