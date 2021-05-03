@@ -300,6 +300,38 @@ func TestAddRoute_DuplicatedBinds(t *testing.T) {
 	}
 }
 
+func TestAddRoute_DuplicatedMatchAll(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	routes := []string{
+		// Leaf
+		"/webapi/{name: **}",
+		"/webapi/{user: **}",
+
+		// Tree
+		"/webapi/{name: **}/events",
+		"/webapi/{user: **}/events",
+	}
+	for i, route := range routes {
+		t.Run(route, func(t *testing.T) {
+			r, err := parser.Parse(route)
+			assert.Nil(t, err)
+
+			_, err = AddRoute(tree, r, nil)
+
+			if i%2 == 0 {
+				assert.Nil(t, err)
+			} else {
+				got := fmt.Sprintf("%v", err)
+				assert.Contains(t, got, "duplicated match all bind parameter")
+			}
+		})
+	}
+}
+
 func TestTree_Match(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)

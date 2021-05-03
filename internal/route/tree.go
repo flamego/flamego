@@ -33,6 +33,10 @@ type Tree interface {
 	setLeaves(leaves []Leaf)
 	// getBinds returns the list of bind parameters.
 	getBinds() []string
+	// hasMatchAllSubtree returns true if there is on match all style subtree exists.
+	hasMatchAllSubtree() bool
+	// hasMatchAllLeaf returns true if there is on match all style leaf exists.
+	hasMatchAllLeaf() bool
 	match(segment string, params Params) bool
 	matchNextSegment(path string, offset int, params Params) (Leaf, bool)
 }
@@ -77,6 +81,16 @@ func (t *baseTree) getBinds() []string {
 	return nil
 }
 
+func (t *baseTree) hasMatchAllSubtree() bool {
+	return len(t.subtrees) > 0 &&
+		t.subtrees[len(t.subtrees)-1].getMatchStyle() == matchStyleAll
+}
+
+func (t *baseTree) hasMatchAllLeaf() bool {
+	return len(t.leaves) > 0 &&
+		t.leaves[len(t.leaves)-1].getMatchStyle() == matchStyleAll
+}
+
 func (t *baseTree) match(_ string, _ Params) bool {
 	panic("unreachable")
 }
@@ -100,6 +114,12 @@ func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	leaf, err := newLeaf(t, r, s, h)
 	if err != nil {
 		return nil, errors.Wrap(err, "new leaf")
+	}
+
+	// At most one match all style leaf can exist in a leaf list.
+	if leaf.getMatchStyle() == matchStyleAll &&
+		t.hasMatchAllLeaf() {
+		return nil, errors.Errorf("duplicated match all bind parameter in position %d", s.Pos.Offset)
 	}
 
 	if leaf.getSegment().Optional {
@@ -137,15 +157,22 @@ func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 
 // addSubtree adds a new subtree from next segment of the route.
 func addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error) {
+	segment := r.Segments[next]
 	for _, st := range t.getSubtrees() {
-		if st.getSegment().String() == r.Segments[next].String() {
+		if st.getSegment().String() == segment.String() {
 			return addNextSegment(st, r, next+1, h)
 		}
 	}
 
-	subtree, err := newTree(t, r.Segments[next])
+	subtree, err := newTree(t, segment)
 	if err != nil {
 		return nil, errors.Wrap(err, "new tree")
+	}
+
+	// At most one match all style subtree can exist in a subtree list.
+	if subtree.getMatchStyle() == matchStyleAll &&
+		t.hasMatchAllSubtree() {
+		return nil, errors.Errorf("duplicated match all bind parameter in position %d", segment.Pos.Offset)
 	}
 
 	// Determine subtree position by the priority of match styles.
