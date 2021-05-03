@@ -6,7 +6,9 @@ package route
 
 import (
 	"bytes"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -27,7 +29,7 @@ const (
 // Leaf is a leaf derived from a segment.
 type Leaf interface {
 	// URLPath fills in bind parameters with given values to build the "path"
-	// portion of the URL. If withOptional is true, the path will include the
+	// portion of the URL. If `withOptional` is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
 
@@ -37,6 +39,9 @@ type Leaf interface {
 	getSegment() *Segment
 	// getMatchStyle returns the match style of the leaf.
 	getMatchStyle() MatchStyle
+	// match returns true if the leaf matches the segment, values of bind parameters
+	// are stored in the `Params`.
+	match(segment string, params Params) bool
 }
 
 // baseLeaf contains common fields for any leaf.
@@ -82,7 +87,6 @@ func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
 			buf.WriteString(e.BindParameters.Parameters[0].Ident)
 			buf.WriteString("}")
 		}
-		s.str = buf.String()
 	}
 
 	pairs := make([]string, 0, len(vals)*2)
@@ -101,6 +105,10 @@ func (l *staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
+func (l *staticLeaf) match(segment string, _ Params) bool {
+	return l.segment.String()[1:] == segment // Skip the leading "/"
+}
+
 // regexLeaf is a leaf with a regex match style.
 type regexLeaf struct {
 	baseLeaf
@@ -112,23 +120,67 @@ func (l *regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
+func (l *regexLeaf) match(segment string, params Params) bool {
+	submatches := l.regexp.FindStringSubmatch(segment)
+	if len(submatches) < len(l.binds)+1 {
+		return false
+	}
+
+	for i, bind := range l.binds {
+		params[bind] = submatches[i+1]
+	}
+	return true
+}
+
 // placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
 	baseLeaf
+	bind string // The name of the bind parameter.
 }
 
 func (l *placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
+func (l *placeholderLeaf) match(segment string, params Params) bool {
+	params[l.bind] = segment
+	return true
+}
+
 // placeholderLeaf is a leaf with a match all style.
 type matchAllLeaf struct {
 	baseLeaf
-	bind string // The name of the bind parameter.
+	bind    string // The name of the bind parameter.
+	capture int    // The capture limit of the bind parameter. Non-positive means unlimited.
 }
 
 func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
+}
+
+func (l *matchAllLeaf) match(segment string, params Params) bool {
+	params[l.bind] = segment
+	return true
+}
+
+// matchAll matches all remaining segments up to the capture limit (when
+// defined). The `path` should be original request path, `segment` should be
+// unescaped by the caller. It returns true if segments are captured within the
+// limit, and the capture result is stored in `params`.
+func (l *matchAllLeaf) matchAll(path string, segment string, next int, params Params) bool {
+	// Do `next-1` because "next" starts at the next character of preceding "/"; do
+	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
+	// "users/events" => 3
+	if l.capture > 0 && l.capture < strings.Count(path[next-1:], "/")+1 {
+		return false
+	}
+
+	nextUnescaped, err := url.PathUnescape(path[next:])
+	if err != nil {
+		return false
+	}
+	params[l.bind] = segment + "/" + nextUnescaped
+	return true
 }
 
 // isMatchStyleStatic returns true if the Segment is static match style.
@@ -136,22 +188,36 @@ func isMatchStyleStatic(s *Segment) bool {
 	return len(s.Elements) == 1 && s.Elements[0].Ident != nil
 }
 
-// isMatchStylePlaceholder returns true if the Segment is placeholder match style.
-func isMatchStylePlaceholder(s *Segment) bool {
-	return len(s.Elements) == 1 && s.Elements[0].BindIdent != nil
+// checkMatchStylePlaceholder returns true if the Segment is placeholder match
+// style, along with // its bind parameter name.
+func checkMatchStylePlaceholder(s *Segment) (bind string, ok bool) {
+	if len(s.Elements) == 1 &&
+		s.Elements[0].BindIdent != nil {
+		return *s.Elements[0].BindIdent, true
+	}
+	return "", false
 }
 
 // checkMatchStyleAll returns true if the Segment is match all style, along with
-// its bind parameter name.
-func checkMatchStyleAll(s *Segment) (bind string, ok bool) {
-	if len(s.Elements) == 1 &&
-		s.Elements[0].BindParameters != nil &&
-		len(s.Elements[0].BindParameters.Parameters) == 1 &&
-		s.Elements[0].BindParameters.Parameters[0].Value.Literal != nil &&
-		*s.Elements[0].BindParameters.Parameters[0].Value.Literal == "**" {
-		return s.Elements[0].BindParameters.Parameters[0].Ident, true
+// its bind parameter name and capture limit. The capture is 0 when undefined.
+func checkMatchStyleAll(s *Segment) (bind string, capture int, ok bool) {
+	if len(s.Elements) == 0 ||
+		s.Elements[0].BindParameters == nil ||
+		len(s.Elements[0].BindParameters.Parameters) == 0 ||
+		s.Elements[0].BindParameters.Parameters[0].Value.Literal == nil ||
+		*s.Elements[0].BindParameters.Parameters[0].Value.Literal != "**" {
+		return "", 0, false
 	}
-	return "", false
+
+	bind = s.Elements[0].BindParameters.Parameters[0].Ident
+
+	if len(s.Elements[0].BindParameters.Parameters) > 1 &&
+		s.Elements[0].BindParameters.Parameters[1].Ident == "capture" &&
+		s.Elements[0].BindParameters.Parameters[1].Value.Literal != nil {
+		capture, _ = strconv.Atoi(*s.Elements[0].BindParameters.Parameters[1].Value.Literal)
+	}
+
+	return bind, capture, true
 }
 
 // constructMatchStyleRegex constructs a regexp from the Segment (having the
@@ -193,6 +259,20 @@ func constructMatchStyleRegex(s *Segment) (*regexp.Regexp, []string, error) {
 	return re, binds, nil
 }
 
+// getParentBindSet returns a set of all bind parameters defined in parent
+// trees.
+func getParentBindSet(parent Tree) map[string]struct{} {
+	bindSet := make(map[string]struct{})
+	ancestor := parent
+	for ancestor != nil {
+		for _, bind := range ancestor.getBinds() {
+			bindSet[bind] = struct{}{}
+		}
+		ancestor = ancestor.getParent()
+	}
+	return bindSet
+}
+
 // newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	if len(s.Elements) == 0 {
@@ -210,19 +290,13 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 		}, nil
 	}
 
-	if isMatchStylePlaceholder(s) {
-		return &placeholderLeaf{
-			baseLeaf: baseLeaf{
-				parent:  parent,
-				route:   r,
-				segment: s,
-				handler: h,
-			},
-		}, nil
-	}
+	parentBindSet := getParentBindSet(parent)
 
-	if bind, ok := checkMatchStyleAll(s); ok {
-		return &matchAllLeaf{
+	if bind, ok := checkMatchStylePlaceholder(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+		return &placeholderLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,
 				route:   r,
@@ -233,11 +307,34 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 		}, nil
 	}
 
+	if bind, capture, ok := checkMatchStyleAll(s); ok {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+		return &matchAllLeaf{
+			baseLeaf: baseLeaf{
+				parent:  parent,
+				route:   r,
+				segment: s,
+				handler: h,
+			},
+			bind:    bind,
+			capture: capture,
+		}, nil
+	}
+
 	// The only remaining style is regex.
 	re, binds, err := constructMatchStyleRegex(s)
 	if err != nil {
 		return nil, err
 	}
+
+	for _, bind := range binds {
+		if _, exists := parentBindSet[bind]; exists {
+			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
+		}
+	}
+
 	return &regexLeaf{
 		baseLeaf: baseLeaf{
 			parent:  parent,

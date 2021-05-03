@@ -7,6 +7,7 @@ package route
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,9 @@ func TestNewTree(t *testing.T) {
 		{
 			route: "/{name}/events",
 			style: matchStylePlaceholder,
-			want:  &placeholderTree{},
+			want: &placeholderTree{
+				bind: "name",
+			},
 		},
 		{
 			route: "/{paths: **}/events",
@@ -129,7 +132,7 @@ func TestNewTree_Regex(t *testing.T) {
 	}
 }
 
-func TestTree_AddRoute(t *testing.T) {
+func TestAddRoute(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
 
@@ -187,6 +190,7 @@ func TestTree_AddRoute(t *testing.T) {
 			wantDepth: 4,
 			wantLeaf: &placeholderLeaf{
 				baseLeaf: baseLeaf{},
+				bind:     "name",
 			},
 		},
 		{
@@ -263,6 +267,255 @@ func TestTree_AddRoute(t *testing.T) {
 				depth++
 			}
 			assert.Equal(t, test.wantDepth, depth)
+		})
+	}
+}
+
+func TestAddRoute_DuplicatedBinds(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	routes := []string{
+		// Leaf
+		"/webapi/{name}/{name}",
+		"/webapi/{name}/{name: /regexp/}",
+		"/webapi/{name}/{name: **}",
+
+		// Tree
+		"/webapi/{name}/{name}/events",
+		"/webapi/{name}/{name: /regexp/}/events",
+		"/webapi/{name}/{name: **}/events",
+	}
+	for _, route := range routes {
+		t.Run(route, func(t *testing.T) {
+			r, err := parser.Parse(route)
+			assert.Nil(t, err)
+
+			_, err = AddRoute(tree, r, nil)
+			got := fmt.Sprintf("%v", err)
+			assert.Contains(t, got, "duplicated bind parameter")
+		})
+	}
+}
+
+func TestAddRoute_DuplicatedMatchAll(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	routes := []string{
+		// Leaf
+		"/webapi/{name: **}",
+		"/webapi/{user: **}",
+
+		// Tree
+		"/webapi/{name: **}/events",
+		"/webapi/{user: **}/events",
+	}
+	for i, route := range routes {
+		t.Run(route, func(t *testing.T) {
+			r, err := parser.Parse(route)
+			assert.Nil(t, err)
+
+			_, err = AddRoute(tree, r, nil)
+
+			if i%2 == 0 {
+				assert.Nil(t, err)
+			} else {
+				got := fmt.Sprintf("%v", err)
+				assert.Contains(t, got, "duplicated match all bind parameter")
+			}
+		})
+	}
+}
+
+func TestTree_Match(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	// NOTE: The order of routes and tests matters, matching for the same priority
+	//  is first in first match.
+	routes := []string{
+		"/webapi",
+		"/webapi/users/?{id}",
+		"/webapi/users/ids/{id: /[0-9]+/}",
+		"/webapi/users/ids/{sha: /[a-z0-9]{7,40}/}",
+		"/webapi/users/sessions/{paths: **}",
+		"/webapi/users/events/{names: **}/feed",
+		"/webapi/projects/{name}/hashes/{paths: **, capture: 2}/blob/{lineno: /[0-9]+/}",
+		"/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}/main.go",
+		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
+		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
+		"/webapi/groups/{name: **, capture: 2}",
+	}
+	for _, route := range routes {
+		r, err := parser.Parse(route)
+		assert.Nil(t, err)
+
+		_, err = AddRoute(tree, r, nil)
+		assert.Nil(t, err)
+	}
+
+	tests := []struct {
+		path         string
+		withOptional bool
+		wantOK       bool
+		wantParams   Params
+	}{
+		// Match
+		{
+			path:       "/webapi",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi//",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/users",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:         "/webapi/users/12",
+			withOptional: true,
+			wantOK:       true,
+			wantParams: Params{
+				"id": "12",
+			},
+		},
+		{
+			path:   "/webapi/users/ids/123", // Matched before "/webapi/users/ids/{sha: /[a-z0-9]{7,40}/}"
+			wantOK: true,
+			wantParams: Params{
+				"id": "123",
+			},
+		},
+		{
+			path:   "/webapi/users/ids/368c7b2d0b1e0b243b2",
+			wantOK: true,
+			wantParams: Params{
+				"sha": "368c7b2d0b1e0b243b2",
+			},
+		},
+		{
+			path:   "/webapi/users/sessions/ab/cd/ef/gh",
+			wantOK: true,
+			wantParams: Params{
+				"paths": "ab/cd/ef/gh",
+			},
+		},
+		{
+			path:   "/webapi/users/events/ab/cd/ef/gh/feed",
+			wantOK: true,
+			wantParams: Params{
+				"names": "ab/cd/ef/gh",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/hashes/src/lib/blob/15",
+			wantOK: true,
+			wantParams: Params{
+				"name":   "flamego",
+				"paths":  "src/lib",
+				"lineno": "15",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2/main.go",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2", // "ext" is optional
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+				"ext":  "",
+			},
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b2d0b1e0b243b2.patch",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego",
+				"sha":  "368c7b2d0b1e0b243b2",
+				"ext":  ".patch",
+			},
+		},
+		{
+			path:   "/webapi/articles/social/2021-05-03.json",
+			wantOK: true,
+			wantParams: Params{
+				"category": "social",
+				"year":     "2021",
+				"month":    "05",
+				"day":      "03",
+			},
+		},
+		{
+			path:   "/webapi/groups/flamego/flamego",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego/flamego",
+			},
+		},
+
+		// No match
+		{
+			path:   "/webapi/users/ids/abc", // "abc" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/hashes/src/lib/blob/abc", // "abc" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/commit/368c7b/main.go", // "368c7b" is less than 7 chars
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/21-05-03.json", // "21" length is not 4
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/year-05-03.json", // "year" are not digits
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/articles/social/2021-05.json", // "day" is missing
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/groups/flamego/flamego/flamego", // capture limit is 2
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/hashes/src/lib/main.c/blob/15", // capture limit is 2
+			wantOK: false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			leaf, params, ok := tree.Match(test.path)
+			assert.Equal(t, test.wantOK, ok)
+
+			if !ok {
+				return
+			}
+			assert.Equal(t, test.wantParams, params)
+			assert.Equal(t, strings.TrimRight(test.path, "/"), leaf.URLPath(params, test.withOptional))
 		})
 	}
 }
