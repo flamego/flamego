@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Parser is BNF-based route syntax parser using stateful lexer.
+// Parser is a BNF-based route syntax parser using stateful lexer.
 type Parser struct {
 	parser *participle.Parser
 }

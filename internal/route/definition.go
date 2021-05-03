@@ -32,8 +32,8 @@ type BindParameters struct {
 }
 
 // SegmentElement is a single segment element containing either identifier, bind
-// identifier or bind parameters. Bind identifier and bind parameters are
-// surrounded by brackets ("{}").
+// identifier or a list of bind parameters. Bind identifier and the list of bind
+// parameters are surrounded by brackets ("{}").
 type SegmentElement struct {
 	Pos            lexer.Position
 	EndPos         lexer.Position

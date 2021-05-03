@@ -103,7 +103,8 @@ func (t *baseTree) match(_ string, _ Params) bool {
 	panic("unreachable")
 }
 
-// Params is a set of bind parameters extracted from the URL.
+// Params is a set of bind parameters with their values that are extracted from
+// the request path.
 type Params map[string]string
 
 // Handler is a function that can be registered to a route for handling HTTP
@@ -406,7 +407,7 @@ func NewTree() Tree {
 	return &baseTree{}
 }
 
-// AddRoute adds a new route to the tree and associates given handler to it.
+// AddRoute adds a new route to the tree and associates the given handler.
 func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	if r == nil || len(r.Segments) == 0 {
 		return nil, errors.New("cannot add empty route")

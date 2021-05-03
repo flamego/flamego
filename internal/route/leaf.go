@@ -29,7 +29,7 @@ const (
 // Leaf is a leaf derived from a segment.
 type Leaf interface {
 	// URLPath fills in bind parameters with given values to build the "path"
-	// portion of the URL. If withOptional is true, the path will include the
+	// portion of the URL. If `withOptional` is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
 
