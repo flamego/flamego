@@ -168,11 +168,11 @@ func TestRouter_DuplicatedRoutes(t *testing.T) {
 	}
 	r := newRouter(contextCreator)
 
+	r.Get("/", func() {})
+
 	defer func() {
 		assert.Contains(t, recover(), "duplicated route")
 	}()
-
-	r.Get("/", func() {})
 	r.Get("/", func() {})
 }
 
