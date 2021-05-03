@@ -12,8 +12,54 @@ import (
 	"github.com/flamego/flamego/internal/route"
 )
 
-// Router is the implementation of the routing middleware.
-type Router struct {
+// Router represents the implementation of the routing middleware.
+type Router interface {
+	// AutoHead sets a boolean value which determines whether to add HEAD method
+	// automatically when GET method is added. Only routes that are added after call
+	// of this method will be affected, existing routes remain unchanged.
+	AutoHead(v bool)
+	// HandlerWrapper sets handlerWrapper for the router. It is used to wrap Handler
+	// and inject logic, and is especially useful for wrapping the Handler to
+	// inject.FastInvoker.
+	HandlerWrapper(f func(Handler) Handler)
+	// Route adds the new route path and its handlers to the router tree.
+	Route(method, routePath string, handlers []Handler) *Route
+	// Group pushes a new group with the given route path and its handlers, it then
+	// pops the group when leaves the scope of `fn`.
+	Group(routePath string, fn func(), handlers ...Handler)
+	// Get is a shortcut for `r.Route("GET", routePath, handlers)`.
+	Get(routePath string, handlers ...Handler) *Route
+	// Patch is a shortcut for `r.Route("PATCH", routePath, handlers)`.
+	Patch(routePath string, handlers ...Handler) *Route
+	// Post is a shortcut for `r.Route("POST", routePath, handlers)`.
+	Post(routePath string, handlers ...Handler) *Route
+	// Put is a shortcut for `r.Route("PUT", routePath, handlers)`.
+	Put(routePath string, handlers ...Handler) *Route
+	// Delete is a shortcut for `r.Route("DELETE", routePath, handlers)`.
+	Delete(routePath string, handlers ...Handler) *Route
+	// Options is a shortcut for `r.Route("OPTIONS", routePath, handlers)`.
+	Options(routePath string, handlers ...Handler) *Route
+	// Head is a shortcut for `r.Route("HEAD", routePath, handlers)`.
+	Head(routePath string, handlers ...Handler) *Route
+	// Any is a shortcut for `r.Route("*", routePath, handlers)`.
+	Any(routePath string, handlers ...Handler) *Route
+	// Routes is a shortcut of adding same handlers for different HTTP methods.
+	//
+	// Example:
+	//	m.Routes("/", "GET,POST", handlers)
+	Routes(routePath, methods string, handlers ...Handler) *Route
+	// NotFound configures a http.HandlerFunc to be called when no matching route is
+	// found. When it is not set, http.NotFound is used. Be sure to set
+	// http.StatusNotFound as the response status code in your last handler.
+	NotFound(handlers ...Handler)
+	// URLPath builds the "path" portion of URL with given pairs of values. To
+	// include the optional segment, pass `"withOptional", "true"`.
+	URLPath(name string, pairs ...string) string
+	// ServeHTTP implements the method of http.Handler.
+	ServeHTTP(w http.ResponseWriter, req *http.Request)
+}
+
+type router struct {
 	parser       *route.Parser         // The route parser.
 	autoHead     bool                  // Whether to automatically attach the same handler of a GET method as HEAD.
 	groups       []group               // The living stack of nested route groups.
@@ -34,13 +80,13 @@ type Router struct {
 var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
 
 // newRouter creates and returns a new Router.
-func newRouter() *Router {
+func newRouter() Router {
 	parser, err := route.NewParser()
 	if err != nil {
 		panic("new parser: " + err.Error())
 	}
 
-	r := &Router{
+	r := &router{
 		parser:       parser,
 		routeTrees:   make(map[string]route.Tree),
 		namedRoutes:  make(map[string]route.Leaf),
@@ -52,23 +98,17 @@ func newRouter() *Router {
 	return r
 }
 
-// AutoHead sets a boolean value which determines whether to add HEAD method
-// automatically when GET method is added. Only routes that are added after call
-// of this method will be affected, existing routes remain unchanged.
-func (r *Router) AutoHead(v bool) {
+func (r *router) AutoHead(v bool) {
 	r.autoHead = v
 }
 
-// HandlerWrapper sets handlerWrapper for the router. It is used to wrap Handler
-// and inject logic, and is especially useful for wrapping the Handler to
-// inject.FastInvoker.
-func (r *Router) HandlerWrapper(f func(Handler) Handler) {
+func (r *router) HandlerWrapper(f func(Handler) Handler) {
 	r.handlerWrapper = f
 }
 
 // Route is a wrapper of the route leaf and its router.
 type Route struct {
-	router *Router
+	router *router
 	leaf   route.Leaf
 }
 
@@ -82,7 +122,7 @@ func (r *Route) Name(name string) {
 	r.router.namedRoutes[name] = r.leaf
 }
 
-func (r *Router) addRoute(method, routePath string, handler route.Handler) *Route {
+func (r *router) addRoute(method, routePath string, handler route.Handler) *Route {
 	method = strings.ToUpper(method)
 
 	var methods []string
@@ -129,8 +169,7 @@ type group struct {
 	handlers []Handler
 }
 
-// Route adds the new route path and its handlers to the router tree.
-func (r *Router) Route(method, routePath string, handlers []Handler) *Route {
+func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 	if len(r.groups) > 0 {
 		groupPath := ""
 		hs := make([]Handler, 0)
@@ -149,9 +188,7 @@ func (r *Router) Route(method, routePath string, handlers []Handler) *Route {
 	})
 }
 
-// Group pushes a new group with the given route path and its handlers, it then
-// pops the group when leaves the scope of `fn`.
-func (r *Router) Group(routePath string, fn func(), handlers ...Handler) {
+func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
 	r.groups = append(r.groups,
 		group{
 			path:     routePath,
@@ -162,8 +199,7 @@ func (r *Router) Group(routePath string, fn func(), handlers ...Handler) {
 	r.groups = r.groups[:len(r.groups)-1]
 }
 
-// Get is a shortcut for `r.Route("GET", routePath, handlers)`.
-func (r *Router) Get(routePath string, handlers ...Handler) *Route {
+func (r *router) Get(routePath string, handlers ...Handler) *Route {
 	route := r.Route("GET", routePath, handlers)
 	if r.autoHead {
 		r.Head(routePath, handlers)
@@ -171,46 +207,35 @@ func (r *Router) Get(routePath string, handlers ...Handler) *Route {
 	return route
 }
 
-// Patch is a shortcut for `r.Route("PATCH", routePath, handlers)`.
-func (r *Router) Patch(routePath string, handlers ...Handler) *Route {
+func (r *router) Patch(routePath string, handlers ...Handler) *Route {
 	return r.Route("PATCH", routePath, handlers)
 }
 
-// Post is a shortcut for `r.Route("POST", routePath, handlers)`.
-func (r *Router) Post(routePath string, handlers ...Handler) *Route {
+func (r *router) Post(routePath string, handlers ...Handler) *Route {
 	return r.Route("POST", routePath, handlers)
 }
 
-// Put is a shortcut for `r.Route("PUT", routePath, handlers)`.
-func (r *Router) Put(routePath string, handlers ...Handler) *Route {
+func (r *router) Put(routePath string, handlers ...Handler) *Route {
 	return r.Route("PUT", routePath, handlers)
 }
 
-// Delete is a shortcut for `r.Route("DELETE", routePath, handlers)`.
-func (r *Router) Delete(routePath string, handlers ...Handler) *Route {
+func (r *router) Delete(routePath string, handlers ...Handler) *Route {
 	return r.Route("DELETE", routePath, handlers)
 }
 
-// Options is a shortcut for `r.Route("OPTIONS", routePath, handlers)`.
-func (r *Router) Options(routePath string, handlers ...Handler) *Route {
+func (r *router) Options(routePath string, handlers ...Handler) *Route {
 	return r.Route("OPTIONS", routePath, handlers)
 }
 
-// Head is a shortcut for `r.Route("HEAD", routePath, handlers)`.
-func (r *Router) Head(routePath string, handlers ...Handler) *Route {
+func (r *router) Head(routePath string, handlers ...Handler) *Route {
 	return r.Route("HEAD", routePath, handlers)
 }
 
-// Any is a shortcut for `r.Route("*", routePath, handlers)`.
-func (r *Router) Any(routePath string, handlers ...Handler) *Route {
+func (r *router) Any(routePath string, handlers ...Handler) *Route {
 	return r.Route("*", routePath, handlers)
 }
 
-// Routes is a shortcut of adding same handlers for different HTTP methods.
-//
-// Example:
-//	m.Routes("/", "GET,POST", handlers)
-func (r *Router) Routes(routePath, methods string, handlers ...Handler) *Route {
+func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 	if methods == "" {
 		panic("empty methods")
 	}
@@ -222,17 +247,14 @@ func (r *Router) Routes(routePath, methods string, handlers ...Handler) *Route {
 	return route
 }
 
-// NotFound configures a http.HandlerFunc to be called when no matching route is
-// found. When it is not set, http.NotFound is used. Be sure to set
-// http.StatusNotFound as the response status code in your last handler.
-func (r *Router) NotFound(handlers ...Handler) {
+func (r *router) NotFound(handlers ...Handler) {
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	r.notFound = func(w http.ResponseWriter, req *http.Request) {
 		r.createContext(w, req, nil, handlers).run()
 	}
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Fast path for static routes
 	leaf, ok := r.staticRoutes[req.URL.Path]
 	if ok {
@@ -252,9 +274,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	leaf.Handler()(w, req, params)
 }
 
-// URLPath builds the "path" portion of URL with given pairs of values. To
-// include the optional segment, pass `"withOptional", "true"`.
-func (r *Router) URLPath(name string, pairs ...string) string {
+func (r *router) URLPath(name string, pairs ...string) string {
 	leaf, ok := r.namedRoutes[name]
 	if !ok {
 		panic("route with given name does not exist: " + name)
