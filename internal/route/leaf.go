@@ -131,15 +131,19 @@ func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
+// isMatchStyleStatic returns true if the Segment is static match style.
 func isMatchStyleStatic(s *Segment) bool {
 	return len(s.Elements) == 1 && s.Elements[0].Ident != nil
 }
 
+// isMatchStylePlaceholder returns true if the Segment is placeholder match style.
 func isMatchStylePlaceholder(s *Segment) bool {
 	return len(s.Elements) == 1 && s.Elements[0].BindIdent != nil
 }
 
-func checkMatchStyleAll(s *Segment) (string, bool) {
+// checkMatchStyleAll returns true if the Segment is match all style, along with
+// its bind parameter name.
+func checkMatchStyleAll(s *Segment) (bind string, ok bool) {
 	if len(s.Elements) == 1 &&
 		s.Elements[0].BindParameters != nil &&
 		len(s.Elements[0].BindParameters.Parameters) == 1 &&
@@ -150,6 +154,9 @@ func checkMatchStyleAll(s *Segment) (string, bool) {
 	return "", false
 }
 
+// constructMatchStyleRegex constructs a regexp from the Segment (having the
+// assumption that it's regex match style), along with bind parameter names in
+// the same order as regexp's sub-matches.
 func constructMatchStyleRegex(s *Segment) (*regexp.Regexp, []string, error) {
 	binds := make([]string, 0, len(s.Elements))
 	buf := bytes.NewBufferString("^")
@@ -226,7 +233,7 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 		}, nil
 	}
 
-	// The only remaining style is regex
+	// The only remaining style is regex.
 	re, binds, err := constructMatchStyleRegex(s)
 	if err != nil {
 		return nil, err

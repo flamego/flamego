@@ -29,7 +29,7 @@ type Tree interface {
 	setLeaves(leaves []Leaf)
 }
 
-// baseTree contains common fields for any tree.
+// baseTree contains common fields and methods for any tree.
 type baseTree struct {
 	parent   Tree     // The parent tree.
 	segment  *Segment // The segment that the tree is derived from.
