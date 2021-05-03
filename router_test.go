@@ -21,6 +21,14 @@ func TestRouter_Route(t *testing.T) {
 	}
 	r := newRouter(contextCreator)
 
+	t.Run("invalid HTTP method", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "unknown HTTP method:")
+		}()
+
+		r.Route("404", "/", nil)
+	})
+
 	tests := []struct {
 		routePath string
 		method    string
@@ -120,13 +128,13 @@ func TestRouter_AutoHead(t *testing.T) {
 
 	t.Run("no auto head", func(t *testing.T) {
 		r := newRouter(contextCreator)
-		r.Get("/get", func() {})
+		r.Get("/", func() {})
 
 		gotRoute := ""
 		ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("HEAD", "/get", nil)
+		req, err := http.NewRequest("HEAD", "/", nil)
 		assert.Nil(t, err)
 
 		r.ServeHTTP(resp, req)
@@ -138,18 +146,46 @@ func TestRouter_AutoHead(t *testing.T) {
 	t.Run("has auto head", func(t *testing.T) {
 		r := newRouter(contextCreator)
 		r.AutoHead(true)
-		r.Get("/get", func() {})
+		r.Get("/", func() {})
 
 		gotRoute := ""
 		ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("HEAD", "/get", nil)
+		req, err := http.NewRequest("HEAD", "/", nil)
 		assert.Nil(t, err)
 
 		r.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Equal(t, "/get", gotRoute)
+		assert.Equal(t, "/", gotRoute)
 	})
+}
+
+func TestRouter_DuplicatedRoutes(t *testing.T) {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
+		return &mockContext{}
+	}
+	r := newRouter(contextCreator)
+
+	defer func() {
+		assert.Contains(t, recover(), "duplicated route")
+	}()
+
+	r.Get("/", func() {})
+	r.Get("/", func() {})
+}
+
+func TestRouter_Name(t *testing.T) {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
+		return &mockContext{}
+	}
+	r := newRouter(contextCreator)
+
+	r.Get("/", func() {}).Name("home")
+
+	defer func() {
+		assert.Contains(t, recover(), "duplicated route name:")
+	}()
+	r.Get("/home", func() {}).Name("home")
 }

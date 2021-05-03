@@ -158,7 +158,7 @@ func TestAddRoute(t *testing.T) {
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "new tree: duplicated match all style in position 25"
+		want := "new tree: duplicated match all style in position 24"
 		assert.Equal(t, want, got)
 	})
 

@@ -45,6 +45,7 @@ type SegmentElement struct {
 // Segment is a single segment containing multiple elements.
 type Segment struct {
 	Pos      lexer.Position
+	Slash    string           `parser:"'/'"`
 	Optional bool             `parser:"@'?'?"`
 	Elements []SegmentElement `parser:"@@*"`
 
@@ -109,7 +110,7 @@ func (s *Segment) String() string {
 // Route is a single route containing segments that are separated by slashes
 // ("/").
 type Route struct {
-	Segments []*Segment `parser:"( '/' @@ )+"`
+	Segments []*Segment `parser:"@@+"`
 
 	strOnce sync.Once `parser:"-"`
 	str     string    `parser:"-"`

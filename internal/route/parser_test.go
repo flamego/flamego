@@ -31,9 +31,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -60,9 +60,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -81,9 +81,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 8,
+								Offset: 7,
 								Line:   1,
-								Column: 9,
+								Column: 8,
 							},
 							Elements: []SegmentElement{
 								{
@@ -110,9 +110,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -131,9 +131,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 8,
+								Offset: 7,
 								Line:   1,
-								Column: 9,
+								Column: 8,
 							},
 							Elements: []SegmentElement{
 								{
@@ -152,9 +152,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 14,
+								Offset: 13,
 								Line:   1,
-								Column: 15,
+								Column: 14,
 							},
 							Optional: true,
 							Elements: []SegmentElement{
@@ -182,9 +182,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -211,9 +211,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -232,9 +232,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 8,
+								Offset: 7,
 								Line:   1,
-								Column: 9,
+								Column: 8,
 							},
 							Elements: []SegmentElement{
 								{
@@ -253,9 +253,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 17,
+								Offset: 16,
 								Line:   1,
-								Column: 18,
+								Column: 17,
 							},
 							Elements: []SegmentElement{
 								{
@@ -289,9 +289,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -310,9 +310,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 8,
+								Offset: 7,
 								Line:   1,
-								Column: 9,
+								Column: 8,
 							},
 							Elements: []SegmentElement{
 								{
@@ -331,9 +331,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 17,
+								Offset: 16,
 								Line:   1,
-								Column: 18,
+								Column: 17,
 							},
 							Elements: []SegmentElement{
 								{
@@ -359,9 +359,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 45,
+								Offset: 44,
 								Line:   1,
-								Column: 46,
+								Column: 45,
 							},
 							Elements: []SegmentElement{
 								{
@@ -422,9 +422,9 @@ func TestParser(t *testing.T) {
 					Segments: []*Segment{
 						{
 							Pos: lexer.Position{
-								Offset: 1,
+								Offset: 0,
 								Line:   1,
-								Column: 2,
+								Column: 1,
 							},
 							Elements: []SegmentElement{
 								{
@@ -443,9 +443,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 8,
+								Offset: 7,
 								Line:   1,
-								Column: 9,
+								Column: 8,
 							},
 							Elements: []SegmentElement{
 								{
@@ -464,9 +464,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 17,
+								Offset: 16,
 								Line:   1,
-								Column: 18,
+								Column: 17,
 							},
 							Elements: []SegmentElement{
 								{
@@ -492,9 +492,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 45,
+								Offset: 44,
 								Line:   1,
-								Column: 46,
+								Column: 45,
 							},
 							Elements: []SegmentElement{
 								{
@@ -546,9 +546,9 @@ func TestParser(t *testing.T) {
 							},
 						}, {
 							Pos: lexer.Position{
-								Offset: 72,
+								Offset: 71,
 								Line:   1,
-								Column: 73,
+								Column: 72,
 							},
 							Elements: []SegmentElement{
 								{

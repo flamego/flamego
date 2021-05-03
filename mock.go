@@ -5,17 +5,11 @@
 package flamego
 
 import (
-	"net/http"
-
 	"github.com/flamego/flamego/internal/route"
 )
 
 type mockContext struct {
-	handlers []Handler
-
-	responseWriter http.ResponseWriter
-	request        *http.Request
-	params         route.Params
+	params route.Params
 
 	run_ func()
 }

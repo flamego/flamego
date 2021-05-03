@@ -312,11 +312,7 @@ func getParentBindSet(parent Tree) map[string]struct{} {
 
 // newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
-	if len(s.Elements) == 0 {
-		return nil, errors.Errorf("empty segment in position %d", s.Pos.Offset)
-	}
-
-	if isMatchStyleStatic(s) {
+	if len(s.Elements) == 0 || isMatchStyleStatic(s) {
 		return &staticLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,
