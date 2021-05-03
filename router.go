@@ -59,6 +59,8 @@ type Router interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
 
+type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler) Context
+
 type router struct {
 	parser       *route.Parser         // The route parser.
 	autoHead     bool                  // Whether to automatically attach the same handler of a GET method as HEAD.
@@ -69,8 +71,8 @@ type router struct {
 
 	notFound http.HandlerFunc // The handler to be called when a route has no match.
 
-	// createContext is used to create new Context for coming requests.
-	createContext func(http.ResponseWriter, *http.Request, route.Params, []Handler) Context
+	// contextCreator is used to create new Context for incoming requests.
+	contextCreator contextCreator
 
 	// handlerWrapper is used to wrap Handler and inject logic, and is especially
 	// useful for wrapping the Handler to inject.FastInvoker.
@@ -80,21 +82,24 @@ type router struct {
 var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
 
 // newRouter creates and returns a new Router.
-func newRouter() Router {
+func newRouter(contextCreator contextCreator) Router {
 	parser, err := route.NewParser()
 	if err != nil {
 		panic("new parser: " + err.Error())
 	}
 
 	r := &router{
-		parser:       parser,
-		routeTrees:   make(map[string]route.Tree),
-		namedRoutes:  make(map[string]route.Leaf),
-		staticRoutes: make(map[string]route.Leaf),
+		parser:         parser,
+		routeTrees:     make(map[string]route.Tree),
+		namedRoutes:    make(map[string]route.Leaf),
+		staticRoutes:   make(map[string]route.Leaf),
+		contextCreator: contextCreator,
 	}
 	for _, m := range httpMethods {
 		r.routeTrees[m] = route.NewTree()
 	}
+
+	r.NotFound(http.NotFound)
 	return r
 }
 
@@ -184,7 +189,7 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params) {
-		r.createContext(w, req, params, handlers).run()
+		r.contextCreator(w, req, params, handlers).run()
 	})
 }
 
@@ -250,7 +255,7 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 func (r *router) NotFound(handlers ...Handler) {
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	r.notFound = func(w http.ResponseWriter, req *http.Request) {
-		r.createContext(w, req, nil, handlers).run()
+		r.contextCreator(w, req, nil, handlers).run()
 	}
 }
 
