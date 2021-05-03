@@ -227,7 +227,8 @@ func (t *placeholderTree) match(segment string, params Params) bool {
 // placeholderTree is a tree with a match all style.
 type matchAllTree struct {
 	baseTree
-	bind string // The name of the bind parameter.
+	bind    string // The name of the bind parameter.
+	capture int    // The capture limit of the bind parameter. Non-positive means unlimited.
 }
 
 func (t *matchAllTree) getMatchStyle() MatchStyle {
@@ -235,7 +236,8 @@ func (t *matchAllTree) getMatchStyle() MatchStyle {
 }
 
 func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
-	for {
+	captured := 1 // Starts with 1 because the segment itself also count.
+	for t.capture <= 0 || t.capture >= captured {
 		leaf, ok := t.matchNextSegment(path, next, params)
 		if ok {
 			params[t.bind] = segment
@@ -249,8 +251,13 @@ func (t *matchAllTree) matchAll(path string, segment string, next int, params Pa
 			break
 		}
 
-		segment += "/" + path[next:next+i]
+		unescaped, err := url.PathUnescape(path[next : next+i])
+		if err != nil {
+			return nil, false
+		}
+		segment += "/" + unescaped
 		next += i + 1
+		captured++
 	}
 	return nil, false
 }
@@ -280,7 +287,7 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		}, nil
 	}
 
-	if bind, ok := checkMatchStyleAll(s); ok {
+	if bind, capture, ok := checkMatchStyleAll(s); ok {
 		// One route can only have at most one match all style for subtree.
 		ancestor := parent
 		for ancestor != nil {
@@ -295,7 +302,8 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 				parent:  parent,
 				segment: s,
 			},
-			bind: bind,
+			bind:    bind,
+			capture: capture,
 		}, nil
 	}
 
@@ -326,6 +334,7 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	}
 	return addNextSegment(t, r, 0, h)
 }
+
 func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
 	unescaped, err := url.PathUnescape(segment)
 	if err != nil {
@@ -379,14 +388,11 @@ func (t *baseTree) matchSubtree(path string, segment string, next int, params Pa
 			return nil, false
 		}
 
-		nextUnescaped, err := url.PathUnescape(path[next:])
-		if err != nil {
-			return nil, false
+		ok := leaf.(*matchAllLeaf).matchAll(path, unescaped, next, params)
+		if ok {
+			return leaf, ok
 		}
-
-		// Match all is guaranteed to match.
-		leaf.match(unescaped+"/"+nextUnescaped, params)
-		return leaf, true
+		return nil, false
 	}
 	return nil, false
 }

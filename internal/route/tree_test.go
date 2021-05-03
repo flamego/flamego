@@ -281,10 +281,13 @@ func TestTree_Match(t *testing.T) {
 		"/webapi",
 		"/webapi/users/?{id}",
 		"/webapi/users/ids/{id: /[0-9]+/}",
-		"/webapi/projects/{name}/hashes/{paths: **}/blob/{lineno: /[0-9]+/}",
+		"/webapi/users/sessions/{paths: **}",
+		"/webapi/users/events/{names: **}/feed",
+		"/webapi/projects/{name}/hashes/{paths: **, capture: 2}/blob/{lineno: /[0-9]+/}",
 		"/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}/main.go",
 		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
 		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
+		"/webapi/groups/{name: **, capture: 2}",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
@@ -332,6 +335,20 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
+			path:   "/webapi/users/sessions/ab/cd/ef/gh",
+			wantOK: true,
+			wantParams: Params{
+				"paths": "ab/cd/ef/gh",
+			},
+		},
+		{
+			path:   "/webapi/users/events/ab/cd/ef/gh/feed",
+			wantOK: true,
+			wantParams: Params{
+				"names": "ab/cd/ef/gh",
+			},
+		},
+		{
 			path:   "/webapi/projects/flamego/hashes/src/lib/blob/15",
 			wantOK: true,
 			wantParams: Params{
@@ -376,6 +393,13 @@ func TestTree_Match(t *testing.T) {
 				"day":      "03",
 			},
 		},
+		{
+			path:   "/webapi/groups/flamego/flamego",
+			wantOK: true,
+			wantParams: Params{
+				"name": "flamego/flamego",
+			},
+		},
 
 		// No match
 		{
@@ -400,6 +424,14 @@ func TestTree_Match(t *testing.T) {
 		},
 		{
 			path:   "/webapi/articles/social/2021-05.json", // "day" is missing
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/groups/flamego/flamego/flamego", // capture limit is 2
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/projects/flamego/hashes/src/lib/main.c/blob/15", // capture limit is 2
 			wantOK: false,
 		},
 	}
