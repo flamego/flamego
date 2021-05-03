@@ -13,21 +13,12 @@ import (
 
 // Tree is a tree derived from a segment.
 type Tree interface {
-	// AddRoute adds a new route to the tree and associates given handler to it.
-	AddRoute(r *Route, h Handler) (Leaf, error)
-
 	// getParent returns the parent tree. The root tree does not have parent.
 	getParent() Tree
 	// getSegment returns the segment that the tree is derived from.
 	getSegment() *Segment
 	// getMatchStyle returns the match style of the tree.
 	getMatchStyle() MatchStyle
-	// addNextSegment adds next segment of the route to the tree.
-	addNextSegment(t Tree, r *Route, next int, h Handler) (Leaf, error)
-	// addLeaf adds a new leaf from the given segment.
-	addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error)
-	// addSubtree adds a new subtree from next segment of the route.
-	addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error)
 	// getSubtrees returns the list of direct subtrees.
 	getSubtrees() []Tree
 	// getLeaves returns the list of direct leaves.
@@ -81,11 +72,12 @@ type Params map[string]string
 // requests.
 type Handler func(http.ResponseWriter, *http.Request, Params)
 
-func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
+// addLeaf adds a new leaf from the given segment.
+func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	leaves := t.getLeaves()
 	for _, l := range leaves {
 		if l.getSegment().String() == s.String() {
-			return l, nil
+			return nil, errors.Errorf("leaf for the route %q already exists", r.String())
 		}
 	}
 
@@ -97,12 +89,12 @@ func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) 
 	if leaf.getSegment().Optional {
 		parent := leaf.getParent()
 		if parent.getParent() != nil {
-			_, err = parent.getParent().addLeaf(t, r, parent.getSegment(), h)
+			_, err = addLeaf(parent.getParent(), r, parent.getSegment(), h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to grandparent")
 			}
 		} else {
-			_, err = parent.addLeaf(t, r, parent.getSegment(), h)
+			_, err = addLeaf(parent, r, parent.getSegment(), h)
 			if err != nil {
 				return nil, errors.Wrap(err, "add optional leaf to parent")
 			}
@@ -127,10 +119,11 @@ func (*baseTree) addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) 
 	return leaf, nil
 }
 
-func (*baseTree) addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error) {
+// addSubtree adds a new subtree from next segment of the route.
+func addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error) {
 	for _, st := range t.getSubtrees() {
 		if st.getSegment().String() == r.Segments[next].String() {
-			return st.addNextSegment(st, r, next+1, h)
+			return addNextSegment(st, r, next+1, h)
 		}
 	}
 
@@ -155,25 +148,19 @@ func (*baseTree) addSubtree(t Tree, r *Route, next int, h Handler) (Leaf, error)
 	}
 	t.setSubtrees(subtrees)
 
-	return subtree.addNextSegment(subtree, r, next+1, h)
+	return addNextSegment(subtree, r, next+1, h)
 }
 
-func (*baseTree) addNextSegment(t Tree, r *Route, next int, h Handler) (Leaf, error) {
+// addNextSegment adds next segment of the route to the tree.
+func addNextSegment(t Tree, r *Route, next int, h Handler) (Leaf, error) {
 	if len(r.Segments) <= next+1 {
-		return t.addLeaf(t, r, r.Segments[next], h)
+		return addLeaf(t, r, r.Segments[next], h)
 	}
 
 	if r.Segments[next].Optional {
 		return nil, errors.New("only the last segment can be optional")
 	}
-	return t.addSubtree(t, r, next, h)
-}
-
-func (t *baseTree) AddRoute(r *Route, h Handler) (Leaf, error) {
-	if r == nil || len(r.Segments) == 0 {
-		return nil, errors.New("cannot add empty route")
-	}
-	return t.addNextSegment(&staticTree{baseTree: *t}, r, 0, h)
+	return addSubtree(t, r, next, h)
 }
 
 // staticTree is a tree with a static match style.
@@ -201,7 +188,7 @@ type placeholderTree struct {
 	baseTree
 }
 
-func (l *placeholderTree) getMatchStyle() MatchStyle {
+func (t *placeholderTree) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
@@ -211,7 +198,7 @@ type matchAllTree struct {
 	bind string // The name of the bind parameter.
 }
 
-func (l *matchAllTree) getMatchStyle() MatchStyle {
+func (t *matchAllTree) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
@@ -275,5 +262,13 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 
 // NewTree creates and returns a root tree.
 func NewTree() Tree {
-	return &baseTree{}
+	return &staticTree{baseTree: baseTree{}}
+}
+
+// AddRoute adds a new route to the tree and associates given handler to it.
+func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
+	if r == nil || len(r.Segments) == 0 {
+		return nil, errors.New("cannot add empty route")
+	}
+	return addNextSegment(t, r, 0, h)
 }

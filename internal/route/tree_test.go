@@ -133,11 +133,27 @@ func TestTree_AddRoute(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
 
-	t.Run("duplicated match all style", func(t *testing.T) {
+	t.Run("duplicated routes", func(t *testing.T) {
+		tree := NewTree()
+
+		r1, err := parser.Parse(`/webapi/users`)
+		assert.Nil(t, err)
+		_, err = AddRoute(tree, r1, nil)
+		assert.Nil(t, err)
+
+		r2, err := parser.Parse(`/webapi/users/?events`)
+		assert.Nil(t, err)
+		_, err = AddRoute(tree, r2, nil)
+		got := fmt.Sprintf("%v", err)
+		want := `add optional leaf to grandparent: leaf for the route "/webapi/users/?events" already exists`
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("duplicated match all styles", func(t *testing.T) {
 		route, err := parser.Parse(`/webapi/tree/{paths: **}/{names: **}/upload`)
 		assert.Nil(t, err)
 
-		_, err = NewTree().AddRoute(route, nil)
+		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
 		want := "new tree: duplicated match all style in position 25"
 		assert.Equal(t, want, got)
@@ -215,7 +231,7 @@ func TestTree_AddRoute(t *testing.T) {
 			route, err := parser.Parse(test.route)
 			assert.Nil(t, err)
 
-			got, err := NewTree().AddRoute(route, nil)
+			got, err := AddRoute(NewTree(), route, nil)
 			assert.Nil(t, err)
 
 			segment := route.Segments[len(route.Segments)-1]
