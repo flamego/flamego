@@ -30,7 +30,7 @@ func NewParser() (*Parser, error) {
 			},
 			"Segment": {
 				stateful.Include("Common"),
-				{Name: "Optional", Pattern: `[?]`, Action: nil},
+				{Name: "Optional", Pattern: `[?]`},
 				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
 				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
 			},
@@ -43,17 +43,16 @@ func NewParser() (*Parser, error) {
 			},
 			"BindParameter": {
 				stateful.Include("Common"),
-				{Name: "BindParameterValue", Pattern: `/`, Action: stateful.Push("BindParameterValue")},
+				{Name: "BindParameterRegexValue", Pattern: `/`, Action: stateful.Push("BindParameterRegexValue")},
 				{Name: "BindParameterEnd", Pattern: `[},]`, Action: stateful.Pop()},
 			},
-			"BindParameterValue": {
-				stateful.Include("Common"),
-				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+.,?()\[\]{} \\]+`, Action: nil},
+			"BindParameterRegexValue": {
+				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+._,?()\[\]{} \\\|]+`},
 				{Name: "RegexEnd", Pattern: `/`, Action: stateful.Pop()},
 			},
 			"Common": {
-				{Name: "Ident", Pattern: `[a-zA-Z0-9*\-]+`, Action: nil},
-				{Name: "Whitespace", Pattern: `\s`, Action: nil},
+				{Name: "Ident", Pattern: `[a-zA-Z0-9*\-._]+`},
+				{Name: "Whitespace", Pattern: `\s`},
 			},
 		},
 	)

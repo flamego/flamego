@@ -6,6 +6,7 @@ package route
 
 import (
 	"bytes"
+	"sync"
 
 	"github.com/alecthomas/participle/v2/lexer"
 )
@@ -46,19 +47,16 @@ type Segment struct {
 	Pos      lexer.Position
 	Optional bool             `parser:"@'?'?"`
 	Elements []SegmentElement `parser:"@@*"`
+
+	strOnce sync.Once `parser:"-"`
+	str     string    `parser:"-"`
 }
 
-// Route is a single route containing segments that are separated by slashes
-// ("/").
-type Route struct {
-	Segments []Segment `parser:"( '/' @@ )+"`
-}
-
-// String returns the string representation of the Route, which basically
-// traverses the Route AST to reconstruct the original route string.
-func (r Route) String() string {
-	var buf bytes.Buffer
-	for _, s := range r.Segments {
+// String returns the string representation of the Segment, which basically
+// traverses the Segment AST to reconstruct the original string.
+func (s *Segment) String() string {
+	s.strOnce.Do(func() {
+		var buf bytes.Buffer
 		buf.WriteString("/")
 
 		if s.Optional {
@@ -103,6 +101,29 @@ func (r Route) String() string {
 			}
 			buf.WriteString("}")
 		}
-	}
-	return buf.String()
+		s.str = buf.String()
+	})
+	return s.str
+}
+
+// Route is a single route containing segments that are separated by slashes
+// ("/").
+type Route struct {
+	Segments []*Segment `parser:"( '/' @@ )+"`
+
+	strOnce sync.Once `parser:"-"`
+	str     string    `parser:"-"`
+}
+
+// String returns the string representation of the Route, which basically
+// traverses the Route AST to reconstruct the original route string.
+func (r *Route) String() string {
+	r.strOnce.Do(func() {
+		var buf bytes.Buffer
+		for _, s := range r.Segments {
+			buf.WriteString(s.String())
+		}
+		r.str = buf.String()
+	})
+	return r.str
 }

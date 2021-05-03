@@ -3,8 +3,8 @@
 Flamego's route syntax is defined using the following BNF:
 
 ```ebnf
-<char> ::= [a-z] | [A-Z] | [0-9] | "*" | "-"
-<any> ::= <char> | "+" | "." | "," | "?" | "(" | ")" | "[" | "]" | "{" | "}" | " " | "\\" | "|"
+<char> ::= [a-z] | [A-Z] | [0-9] | "*" | "-" | "." | "_"
+<any> ::= <char> | "+" | "," | "?" | "(" | ")" | "[" | "]" | "{" | "}" | " " | "\\" | "|"
 
 <ident> ::= <char>+
 
