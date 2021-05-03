@@ -258,7 +258,7 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 		}, nil
 	}
 
-	// The only remaining style is regex
+	// The only remaining style is regex.
 	re, binds, err := constructMatchStyleRegex(s)
 	if err != nil {
 		return nil, err
