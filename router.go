@@ -82,7 +82,8 @@ type router struct {
 	handlerWrapper func(Handler) Handler
 }
 
-var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
+// See IETF RFC 7231 and RFC 5789 for supported methods
+var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "CONNECT", "TRACE"}
 
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
@@ -238,6 +239,14 @@ func (r *router) Options(routePath string, handlers ...Handler) *Route {
 
 func (r *router) Head(routePath string, handlers ...Handler) *Route {
 	return r.Route("HEAD", routePath, handlers)
+}
+
+func (r *router) Connect(routePath string, handlers ...Handler) *Route {
+	return r.Route("CONNECT", routePath, handlers)
+}
+
+func (r *router) Trace(routePath string, handlers ...Handler) *Route {
+	return r.Route("TRACE", routePath, handlers)
 }
 
 func (r *router) Any(routePath string, handlers ...Handler) *Route {
