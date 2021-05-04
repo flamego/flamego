@@ -52,7 +52,7 @@ func NewParser() (*Parser, error) {
 			},
 			"Common": {
 				// all legal URI characters are defined in RFC 3986
-				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~:/[\]@!$&'()*+,;%=]+`},
+				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~:[\]@!$&'()*+,;%=]+`},
 				{Name: "Whitespace", Pattern: `\s`},
 			},
 		},
