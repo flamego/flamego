@@ -5,6 +5,7 @@
 package flamego
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -70,18 +71,6 @@ func (c *context) URLPath(name string, pairs ...string) string {
 	return c.urlPath(name, pairs...)
 }
 
-// handler returns the candidate handler to be invoked.
-func (c *context) handler() Handler {
-	if c.index < len(c.handlers) {
-		return c.handlers[c.index]
-	}
-	if c.index == len(c.handlers) {
-		return c.action
-	}
-
-	panic("invalid index for context handler")
-}
-
 func (c *context) Next() {
 	c.index++
 	c.run()
@@ -93,9 +82,21 @@ func (c *context) Written() bool {
 
 func (c *context) run() {
 	for c.index <= len(c.handlers) {
-		vals, err := c.Invoke(c.handler())
+		var h Handler
+		if c.index == len(c.handlers) {
+			h = c.action
+		} else {
+			h = c.handlers[c.index]
+		}
+
+		if h == nil {
+			c.index++
+			return
+		}
+
+		vals, err := c.Invoke(h)
 		if err != nil {
-			panic("unable to invoke handler: " + err.Error())
+			panic(fmt.Sprintf("unable to invoke %dth handler: %v", c.index, err))
 		}
 		c.index++
 
