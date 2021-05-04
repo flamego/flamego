@@ -17,30 +17,13 @@ import (
 
 // Make sure Run doesn't blow up
 func TestFlame_Run(t *testing.T) {
-	var fs []*Flame
-
-	f1 := NewWithLogger(&bytes.Buffer{})
-	go f1.Run()
-	fs = append(fs, f1)
-
-	f2 := NewWithLogger(&bytes.Buffer{})
-	go f2.Run(4002)
-	fs = append(fs, f2)
-
-	f3 := NewWithLogger(&bytes.Buffer{})
-	go f3.Run("0.0.0.0", 4003)
-	fs = append(fs, f3)
-
-	_ = os.Setenv("FLAMEGO_ADDR", ":4001")
-	f4 := NewWithLogger(&bytes.Buffer{})
-	go f4.Run("0.0.0.0")
-	fs = append(fs, f4)
+	_ = os.Setenv("FLAMEGO_ADDR", "0.0.0.0:4001")
+	f := NewWithLogger(&bytes.Buffer{})
+	go f.Run(4002)
 
 	time.Sleep(1 * time.Second)
 
-	for _, f := range fs {
-		f.Stop()
-	}
+	f.Stop()
 }
 
 func TestFlame_Before(t *testing.T) {
