@@ -15,7 +15,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 19 * * 0'
+    - cron: '0 0'
 
 jobs:
   analyze:
@@ -71,9 +71,3 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: results.sarif
