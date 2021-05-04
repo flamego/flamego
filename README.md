@@ -7,6 +7,14 @@
 
 A fantastic modular Go web framework boiled with black magic.
 
+## Getting started
+
+The minimum requirement of Go is **1.16**.
+
+To install Flamego:
+
+	go get github.com/flamego/flamego
+
 ## License
 
 This project is under the MIT License. See the [LICENSE](LICENSE) file for the full license text.
