@@ -28,6 +28,8 @@ type Context interface {
 	// Next runs the next handler in the context chain.
 	Next()
 
+	// setAction sets the final handler in the context chain.
+	setAction(Handler)
 	// run executes all handlers in the context chain.
 	run()
 }
@@ -72,6 +74,10 @@ func (c *context) URLPath(name string, pairs ...string) string {
 func (c *context) Next() {
 	c.index++
 	c.run()
+}
+
+func (c *context) setAction(h Handler) {
+	c.action = h
 }
 
 func (c *context) run() {

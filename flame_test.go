@@ -68,3 +68,32 @@ func TestFlame_Before(t *testing.T) {
 
 	assert.Equal(t, "foobar", buf.String())
 }
+
+func TestFlame_ServeHTTP(t *testing.T) {
+	var buf bytes.Buffer
+	f := New()
+	f.Use(func(c Context) {
+		buf.WriteString("foo")
+		c.Next()
+		buf.WriteString("ban")
+	})
+	f.Use(func(c Context) {
+		buf.WriteString("bar")
+		c.Next()
+		buf.WriteString("baz")
+	})
+	f.Get("/", func() {})
+	f.Action(func(w http.ResponseWriter, r *http.Request) {
+		buf.WriteString("bat")
+		w.WriteHeader(http.StatusBadRequest)
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, "foobarbatbazban", buf.String())
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}

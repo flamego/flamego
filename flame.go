@@ -43,6 +43,7 @@ func NewWithLogger(w io.Writer) *Flame {
 	f := &Flame{
 		Injector: inject.New(),
 		logger:   log.New(w, "[Flamego] ", 0),
+		stop:     make(chan struct{}),
 	}
 	f.Router = newRouter(f.createContext)
 	f.NotFound(http.NotFound)
@@ -67,6 +68,10 @@ func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params rou
 
 	c := newContext(w, r, params, hs, urlPath)
 	c.SetParent(f)
+
+	if f.action != nil {
+		c.setAction(f.action)
+	}
 	return c
 }
 
@@ -159,7 +164,6 @@ func (f *Flame) Run(args ...interface{}) {
 		}
 	}()
 
-	f.stop = make(chan struct{})
 	<-f.stop
 
 	if err := server.Shutdown(gocontext.Background()); err != nil {
