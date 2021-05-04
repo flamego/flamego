@@ -122,12 +122,12 @@ func (f *Flame) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	f.Router.ServeHTTP(w, r)
 }
 
-// Run starts the HTTP server on "0.0.0.0:4000". The listen address can be
+// Run starts the HTTP server on "0.0.0.0:2830". The listen address can be
 // altered by the environment variable "FLAMEGO_ADDR". The instance can be
 // stopped by calling `Flame.Stop`.
 func (f *Flame) Run(args ...interface{}) {
 	host := "0.0.0.0"
-	port := "4000"
+	port := "2830"
 
 	if addr := os.Getenv("FLAMEGO_ADDR"); addr != "" {
 		fields := strings.SplitN(addr, ":", 2)
