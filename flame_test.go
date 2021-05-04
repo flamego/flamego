@@ -6,7 +6,6 @@ package flamego
 
 import (
 	"bytes"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,20 +19,20 @@ import (
 func TestFlame_Run(t *testing.T) {
 	var fs []*Flame
 
-	f1 := NewWithLogger(io.Discard)
+	f1 := NewWithLogger(&bytes.Buffer{})
 	go f1.Run()
 	fs = append(fs, f1)
 
-	f2 := NewWithLogger(io.Discard)
+	f2 := NewWithLogger(&bytes.Buffer{})
 	go f2.Run(4002)
 	fs = append(fs, f2)
 
-	f3 := NewWithLogger(io.Discard)
+	f3 := NewWithLogger(&bytes.Buffer{})
 	go f3.Run("0.0.0.0", 4003)
 	fs = append(fs, f3)
 
 	_ = os.Setenv("FLAMEGO_ADDR", ":4001")
-	f4 := NewWithLogger(io.Discard)
+	f4 := NewWithLogger(&bytes.Buffer{})
 	go f4.Run("0.0.0.0")
 	fs = append(fs, f4)
 
