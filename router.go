@@ -24,6 +24,9 @@ type Router interface {
 	HandlerWrapper(f func(Handler) Handler)
 	// Route adds the new route path and its handlers to the router tree.
 	Route(method, routePath string, handlers []Handler) *Route
+	// Combo returns a ComboRoute for adding handlers of different HTTP methods to
+	// the same route.
+	Combo(routePath string, handlers ...Handler) *ComboRoute
 	// Group pushes a new group with the given route path and its handlers, it then
 	// pops the group when leaves the scope of `fn`.
 	Group(routePath string, fn func(), handlers ...Handler)
@@ -297,4 +300,79 @@ func (r *router) URLPath(name string, pairs ...string) string {
 		delete(vals, "withOptional")
 	}
 	return leaf.URLPath(vals, withOptional)
+}
+
+// Combo creates and returns new ComboRoute with common handlers for the route.
+func (r *router) Combo(routePath string, handlers ...Handler) *ComboRoute {
+	return &ComboRoute{
+		router:    r,
+		routePath: routePath,
+		handlers:  handlers,
+		added:     make(map[string]struct{}),
+	}
+}
+
+// ComboRoute is a wrapper of the router for adding handlers of different HTTP
+// methods to the same route.
+type ComboRoute struct {
+	router    *router
+	routePath string
+	handlers  []Handler
+
+	added     map[string]struct{}
+	lastRoute *Route
+}
+
+func (r *ComboRoute) route(fn func(string, ...Handler) *Route, method string, handlers ...Handler) *ComboRoute {
+	_, ok := r.added[method]
+	if ok {
+		panic(fmt.Sprintf("duplicated method %q for route %q", method, r.routePath))
+	}
+	r.added[method] = struct{}{}
+
+	r.lastRoute = fn(r.routePath, append(r.handlers, handlers...)...)
+	return r
+}
+
+// Get adds handlers of the GET method to the route.
+func (r *ComboRoute) Get(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Get, "GET", handlers...)
+}
+
+// Patch adds handlers of the PATCH method to the route.
+func (r *ComboRoute) Patch(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Patch, "PATCH", handlers...)
+}
+
+// Post adds handlers of the POST method to the route.
+func (r *ComboRoute) Post(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Post, "POST", handlers...)
+}
+
+// Put adds handlers of the PUT method to the route.
+func (r *ComboRoute) Put(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Put, "PUT", handlers...)
+}
+
+// Delete adds handlers of the DELETE method to the route.
+func (r *ComboRoute) Delete(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Delete, "DELETE", handlers...)
+}
+
+// Options adds handlers of the OPTIONS method to the route.
+func (r *ComboRoute) Options(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Options, "OPTIONS", handlers...)
+}
+
+// Head adds handlers of the HEAD method to the route.
+func (r *ComboRoute) Head(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Head, "HEAD", handlers...)
+}
+
+// Name sets the name for the route.
+func (r *ComboRoute) Name(name string) {
+	if r.lastRoute == nil {
+		panic("no route has been added")
+	}
+	r.lastRoute.Name(name)
 }
