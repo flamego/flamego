@@ -287,8 +287,8 @@ func (r *router) URLPath(name string, pairs ...string) string {
 	}
 
 	vals := make(map[string]string, len(pairs)/2)
-	for i := 1; i <= len(pairs); i += 2 {
-		vals[pairs[i]] = pairs[i+1]
+	for i := 1; i < len(pairs); i += 2 {
+		vals[pairs[i-1]] = pairs[i]
 	}
 
 	withOptional := false

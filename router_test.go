@@ -184,8 +184,60 @@ func TestRouter_Name(t *testing.T) {
 
 	r.Get("/", func() {}).Name("home")
 
-	defer func() {
-		assert.Contains(t, recover(), "duplicated route name:")
-	}()
-	r.Get("/home", func() {}).Name("home")
+	t.Run("duplicated route name", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "duplicated route name:")
+		}()
+		r.Get("/home", func() {}).Name("home")
+	})
+
+	t.Run("empty route name", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "empty route name")
+		}()
+		r.Get("/404", func() {}).Name("")
+	})
+}
+
+func TestRouter_URLPath(t *testing.T) {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
+		return &mockContext{}
+	}
+	r := newRouter(contextCreator)
+
+	t.Run("name not exists", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "route with given name does not exist:")
+		}()
+		r.URLPath("404")
+	})
+
+	r.Get("/{owner}/{repo}/settings/?keys").Name("repo.settings")
+	tests := []struct {
+		name  string
+		pairs []string
+		want  string
+	}{
+		{
+			name:  "good",
+			pairs: []string{"owner", "flamego", "repo", "flamego"},
+			want:  "/flamego/flamego/settings",
+		},
+		{
+			name:  "missing last value",
+			pairs: []string{"owner", "flamego", "repo"},
+			want:  "/flamego/{repo}/settings",
+		},
+		{
+			name:  "withOptional",
+			pairs: []string{"owner", "flamego", "repo", "flamego", "withOptional", "true"},
+			want:  "/flamego/flamego/settings/keys",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := r.URLPath("repo.settings", test.pairs...)
+			assert.Equal(t, test.want, got)
+		})
+	}
 }
