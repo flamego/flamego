@@ -312,6 +312,9 @@ func getParentBindSet(parent Tree) map[string]struct{} {
 
 // newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
+	// Based on the syntax definition, the only possible case to have a leaf with no
+	// segment elements is when the entire route is "/". Therefore, we can safely
+	// treat it as a static match with an empty string.
 	if len(s.Elements) == 0 || isMatchStyleStatic(s) {
 		return &staticLeaf{
 			baseLeaf: baseLeaf{

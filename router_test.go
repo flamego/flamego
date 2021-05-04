@@ -9,8 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/flamego/flamego/internal/route"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flamego/flamego/internal/route"
 )
 
 func TestRouter_Route(t *testing.T) {
