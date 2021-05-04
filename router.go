@@ -384,7 +384,7 @@ func (r *ComboRoute) Head(handlers ...Handler) *ComboRoute {
 
 // Connect adds handlers of the CONNECT method to the route.
 func (r *ComboRoute) Connect(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Options, "OPTIONS", handlers...)
+	return r.route(r.router.Connect, "CONNECT", handlers...)
 }
 
 // Trace adds handlers of the TRACE method to the route.
