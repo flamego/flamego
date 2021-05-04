@@ -6,6 +6,7 @@
 package flamego
 
 import (
+	gocontext "context"
 	"io"
 	"log"
 	"net/http"
@@ -31,6 +32,8 @@ type Flame struct {
 	handlers []Handler
 	action   Handler
 	logger   *log.Logger
+
+	stop chan struct{} // todo:
 }
 
 // NewWithLogger creates and returns a bare bones Flame instance. Use this
@@ -94,13 +97,13 @@ func (f *Flame) Action(h Handler) {
 // instance stops further process when it returns true.
 type BeforeHandler func(rw http.ResponseWriter, req *http.Request) bool
 
+// Before allows for a handler to be called before matching any route. Multiple
+// calls to this method will queue up handlers, and handlers will be called in
+// the FIFO manner.
 func (f *Flame) Before(h BeforeHandler) {
 	f.befores = append(f.befores, h)
 }
 
-// ServeHTTP is the HTTP Entry point for a Macaron instance.
-// Useful if you want to control your own HTTP server.
-// Be aware that none of middleware will run without registering any router.
 func (f *Flame) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if f.urlPrefix != "" {
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, f.urlPrefix)
@@ -114,7 +117,8 @@ func (f *Flame) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Run starts the HTTP server on "0.0.0.0:4000". The listen address can be
-// altered by the environment variable "FLAMEGO_ADDR".
+// altered by the environment variable "FLAMEGO_ADDR". The instance can be
+// stopped by calling `Flame.Stop`.
 func (f *Flame) Run(args ...interface{}) {
 	host := "0.0.0.0"
 	port := "4000"
@@ -144,7 +148,29 @@ func (f *Flame) Run(args ...interface{}) {
 	addr := host + ":" + port
 	logger := f.Value(reflect.TypeOf(f.logger)).Interface().(*log.Logger)
 	logger.Printf("Listening on %s (%s)\n", addr, Env())
-	logger.Fatalln(http.ListenAndServe(addr, f))
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: f,
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Fatalln(err)
+		}
+	}()
+
+	f.stop = make(chan struct{})
+	<-f.stop
+
+	if err := server.Shutdown(gocontext.Background()); err != nil {
+		logger.Fatalln(err)
+	}
+	logger.Println("Server stopped")
+}
+
+// Stop stops the server started by the Flame instance.
+func (f *Flame) Stop() {
+	f.stop <- struct{}{}
 }
 
 // EnvType defines the runtime environment.
