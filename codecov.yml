@@ -1,5 +1,5 @@
 coverage:
-  range: "60...100"
+  range: "60...95"
   status:
     project:
       default:
