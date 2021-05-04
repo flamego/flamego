@@ -9,8 +9,11 @@ import (
 	"github.com/flamego/flamego/internal/route"
 )
 
+var _ Context = (*mockContext)(nil)
+
 type mockContext struct {
 	inject.Injector
+	ResponseWriter
 
 	params route.Params
 
@@ -18,6 +21,7 @@ type mockContext struct {
 	urlPath_   urlPather
 	written_   func() bool
 	next_      func()
+	setAction_ func(Handler)
 	run_       func()
 }
 
@@ -41,6 +45,10 @@ func (c *mockContext) Written() bool {
 
 func (c *mockContext) Next() {
 	c.next_()
+}
+
+func (c *mockContext) setAction(h Handler) {
+	c.setAction_(h)
 }
 
 func (c *mockContext) run() {

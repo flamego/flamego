@@ -17,19 +17,19 @@ import (
 // methods to enhance developer experience.
 type Context interface {
 	inject.Injector
+	ResponseWriter
+
 	// URLPath builds the "path" portion of URL with given pairs of values. To
 	// include the optional segment, pass `"withOptional", "true"`.
 	//
 	// This is a transparent wrapper of Router.URLPath.
 	URLPath(name string, pairs ...string) string
-	// Written returns whether or not the ResponseWriter has been written.
-	//
-	// This is a transparent wrapper of ResponseWriter.Written.
-	Written() bool
 
 	// Next runs the next handler in the context chain.
 	Next()
 
+	// setAction sets the final handler in the context chain.
+	setAction(Handler)
 	// run executes all handlers in the context chain.
 	run()
 }
@@ -76,8 +76,8 @@ func (c *context) Next() {
 	c.run()
 }
 
-func (c *context) Written() bool {
-	return c.responseWriter.Written()
+func (c *context) setAction(h Handler) {
+	c.action = h
 }
 
 func (c *context) run() {
@@ -111,4 +111,40 @@ func (c *context) run() {
 			return
 		}
 	}
+}
+
+func (c *context) Header() http.Header {
+	return c.responseWriter.Header()
+}
+
+func (c *context) Write(bytes []byte) (int, error) {
+	return c.responseWriter.Write(bytes)
+}
+
+func (c *context) WriteHeader(statusCode int) {
+	c.responseWriter.WriteHeader(statusCode)
+}
+
+func (c *context) Flush() {
+	c.responseWriter.Flush()
+}
+
+func (c *context) Push(target string, opts *http.PushOptions) error {
+	return c.responseWriter.Push(target, opts)
+}
+
+func (c *context) Status() int {
+	return c.responseWriter.Status()
+}
+
+func (c *context) Written() bool {
+	return c.responseWriter.Written()
+}
+
+func (c *context) Size() int {
+	return c.responseWriter.Size()
+}
+
+func (c *context) Before(beforeFunc BeforeFunc) {
+	c.responseWriter.Before(beforeFunc)
 }
