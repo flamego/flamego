@@ -44,6 +44,10 @@ type Router interface {
 	Options(routePath string, handlers ...Handler) *Route
 	// Head is a shortcut for `r.Route("HEAD", routePath, handlers)`.
 	Head(routePath string, handlers ...Handler) *Route
+	// Connect is a shortcut for `r.Route("CONNECT", routePath, handlers)`.
+	Connect(routePath string, handlers ...Handler) *Route
+	// Trace is a shortcut for `r.Route("TRACE", routePath, handlers)`.
+	Trace(routePath string, handlers ...Handler) *Route
 	// Any is a shortcut for `r.Route("*", routePath, handlers)`.
 	Any(routePath string, handlers ...Handler) *Route
 	// Routes is a shortcut of adding same handlers for different HTTP methods.
