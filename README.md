@@ -15,6 +15,22 @@ To install Flamego:
 
 	go get github.com/flamego/flamego
 
+To begin with:
+
+```go
+package main
+
+import "github.com/flamego/flamego"
+
+func main() {
+	f := flamego.Classic()
+	f.Get("/", func() string {
+		return "Hello, Flamego!"
+	})
+	f.Run()
+}
+```
+
 ## License
 
 This project is under the MIT License. See the [LICENSE](LICENSE) file for the full license text.

@@ -49,6 +49,7 @@ func NewWithLogger(w io.Writer) *Flame {
 	f.NotFound(http.NotFound)
 
 	f.Map(f.logger)
+	f.Map(defaultReturnHandler())
 	return f
 }
 
