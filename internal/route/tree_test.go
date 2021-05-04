@@ -352,7 +352,8 @@ func TestTree_Match(t *testing.T) {
 		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
 		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
 		"/webapi/groups/{name: **, capture: 2}",
-		"/webapi/{username}/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C/test@$/",
+		"/webapi/test@$",
+		"/webapi/%_",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
@@ -473,11 +474,14 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
-			path:   "/webapi/@mark/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C/test@$/",
-			wantOK: true,
-			wantParams: Params{
-				"username": "@mark",
-			},
+			path:       "/webapi/test@$",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/%_",
+			wantOK:     true,
+			wantParams: Params{},
 		},
 
 		// No match

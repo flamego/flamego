@@ -51,8 +51,9 @@ func NewParser() (*Parser, error) {
 				{Name: "RegexEnd", Pattern: `/`, Action: stateful.Pop()},
 			},
 			"Common": {
-				// all legal URI characters are defined in RFC 3986
-				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~:[\]@!$&'()*+,;%=]+`},
+				// All legal URI characters that are defined in RFC 3986.
+				// FIXME: `[]:,` are not allowed, since it may affect the binding processing
+				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~@!$&'()*+;%=]+`},
 				{Name: "Whitespace", Pattern: `\s`},
 			},
 		},
