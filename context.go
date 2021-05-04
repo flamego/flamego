@@ -17,7 +17,10 @@ import (
 // methods to enhance developer experience.
 type Context interface {
 	inject.Injector
-	ResponseWriter
+	// ResponseWriter returns the ResponseWriter in current context.
+	ResponseWriter() ResponseWriter
+	// Request returns the Request in current context.
+	Request() *Request
 
 	// URLPath builds the "path" portion of URL with given pairs of values. To
 	// include the optional segment, pass `"withOptional", "true"`.
@@ -67,6 +70,14 @@ func newContext(w http.ResponseWriter, r *http.Request, params route.Params, han
 	return c
 }
 
+func (c *context) ResponseWriter() ResponseWriter {
+	return c.responseWriter
+}
+
+func (c *context) Request() *Request {
+	return c.request
+}
+
 func (c *context) URLPath(name string, pairs ...string) string {
 	return c.urlPath(name, pairs...)
 }
@@ -107,44 +118,8 @@ func (c *context) run() {
 			handleReturn(c, vals)
 		}
 
-		if c.Written() {
+		if c.ResponseWriter().Written() {
 			return
 		}
 	}
-}
-
-func (c *context) Header() http.Header {
-	return c.responseWriter.Header()
-}
-
-func (c *context) Write(bytes []byte) (int, error) {
-	return c.responseWriter.Write(bytes)
-}
-
-func (c *context) WriteHeader(statusCode int) {
-	c.responseWriter.WriteHeader(statusCode)
-}
-
-func (c *context) Flush() {
-	c.responseWriter.Flush()
-}
-
-func (c *context) Push(target string, opts *http.PushOptions) error {
-	return c.responseWriter.Push(target, opts)
-}
-
-func (c *context) Status() int {
-	return c.responseWriter.Status()
-}
-
-func (c *context) Written() bool {
-	return c.responseWriter.Written()
-}
-
-func (c *context) Size() int {
-	return c.responseWriter.Size()
-}
-
-func (c *context) Before(beforeFunc BeforeFunc) {
-	c.responseWriter.Before(beforeFunc)
 }
