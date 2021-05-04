@@ -225,6 +225,13 @@ func TestLeaf_URLPath(t *testing.T) {
 			},
 			want: "/webapi/article_123_helloworld.diff",
 		},
+		{
+			route: `/webapi/{username}/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C/test@$`,
+			vals: map[string]string{
+				"username": "@hello",
+			},
+			want: "/webapi/@hello/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C/test@$",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
