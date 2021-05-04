@@ -3,7 +3,7 @@
 Flamego's route syntax is defined using the following BNF:
 
 ```ebnf
-// FIXME: `[]:,` are not allowed, since it may affect the binding processing
+/* FIXME: `[]:,` are not allowed, since it may affect the binding processing */
 <char> ::= [a-z] | [A-Z] | [0-9] | "-" | "." |  "_" |  "~" | "@" | "!" | "&" | "'" | "(" | ")" | "*" | "+" | ";" | "%" | "="
 <any> ::= <char> | "[" | "]" | "+" | "," | "?" | "{" | "}" | " " | "\\" | "|"
 
