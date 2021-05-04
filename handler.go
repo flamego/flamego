@@ -59,7 +59,7 @@ func validateAndWrapHandler(h Handler) Handler {
 func validateAndWrapHandlers(handlers []Handler, wrapper func(Handler) Handler) {
 	for i, h := range handlers {
 		h = validateAndWrapHandler(h)
-		if wrapper != nil && inject.IsFastInvoker(h) {
+		if wrapper != nil && !inject.IsFastInvoker(h) {
 			h = wrapper(h)
 		}
 		handlers[i] = h
