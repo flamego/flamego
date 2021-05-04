@@ -196,3 +196,8 @@ var env = func() atomic.Value {
 func Env() EnvType {
 	return env.Load().(EnvType)
 }
+
+// SetEnv sets the current runtime environment.
+func SetEnv(e EnvType) {
+	env.Store(e)
+}
