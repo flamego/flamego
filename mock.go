@@ -11,6 +11,7 @@ import (
 
 type mockContext struct {
 	inject.Injector
+	ResponseWriter
 
 	params route.Params
 
