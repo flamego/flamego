@@ -71,6 +71,16 @@ func TestRouter_Route(t *testing.T) {
 			add:       r.Head,
 		},
 		{
+			routePath: "/connect",
+			method:    "CONNECT",
+			add:       r.Connect,
+		},
+		{
+			routePath: "/trace",
+			method:    "TRACE",
+			add:       r.Trace,
+		},
+		{
 			routePath: "/any",
 			method:    "HEAD",
 			add:       r.Any,
@@ -298,7 +308,9 @@ func TestComboRoute(t *testing.T) {
 		Put(func() {}).
 		Delete(func() {}).
 		Options(func() {}).
-		Head(func() {})
+		Head(func() {}).
+		Connect(func() {}).
+		Trace(func() {})
 
 	for _, m := range httpMethods {
 		t.Run(m, func(t *testing.T) {

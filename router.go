@@ -44,6 +44,10 @@ type Router interface {
 	Options(routePath string, handlers ...Handler) *Route
 	// Head is a shortcut for `r.Route("HEAD", routePath, handlers)`.
 	Head(routePath string, handlers ...Handler) *Route
+	// Connect is a shortcut for `r.Route("CONNECT", routePath, handlers)`.
+	Connect(routePath string, handlers ...Handler) *Route
+	// Trace is a shortcut for `r.Route("TRACE", routePath, handlers)`.
+	Trace(routePath string, handlers ...Handler) *Route
 	// Any is a shortcut for `r.Route("*", routePath, handlers)`.
 	Any(routePath string, handlers ...Handler) *Route
 	// Routes is a shortcut of adding same handlers for different HTTP methods.
@@ -82,7 +86,8 @@ type router struct {
 	handlerWrapper func(Handler) Handler
 }
 
-var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
+// httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
+var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "CONNECT", "TRACE"}
 
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
@@ -240,6 +245,14 @@ func (r *router) Head(routePath string, handlers ...Handler) *Route {
 	return r.Route("HEAD", routePath, handlers)
 }
 
+func (r *router) Connect(routePath string, handlers ...Handler) *Route {
+	return r.Route("CONNECT", routePath, handlers)
+}
+
+func (r *router) Trace(routePath string, handlers ...Handler) *Route {
+	return r.Route("TRACE", routePath, handlers)
+}
+
 func (r *router) Any(routePath string, handlers ...Handler) *Route {
 	return r.Route("*", routePath, handlers)
 }
@@ -367,6 +380,16 @@ func (r *ComboRoute) Options(handlers ...Handler) *ComboRoute {
 // Head adds handlers of the HEAD method to the route.
 func (r *ComboRoute) Head(handlers ...Handler) *ComboRoute {
 	return r.route(r.router.Head, "HEAD", handlers...)
+}
+
+// Connect adds handlers of the CONNECT method to the route.
+func (r *ComboRoute) Connect(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Connect, "CONNECT", handlers...)
+}
+
+// Trace adds handlers of the TRACE method to the route.
+func (r *ComboRoute) Trace(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Trace, "TRACE", handlers...)
 }
 
 // Name sets the name for the route.
