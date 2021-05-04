@@ -177,7 +177,7 @@ func TestRouter_DuplicatedRoutes(t *testing.T) {
 	r.Get("/", func() {})
 }
 
-func TestRouter_Name(t *testing.T) {
+func TestRoute_Name(t *testing.T) {
 	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
 		return &mockContext{}
 	}
@@ -279,6 +279,40 @@ func TestRouter_Group(t *testing.T) {
 
 			assert.Equal(t, http.StatusOK, resp.Code)
 			assert.Equal(t, route, gotRoute)
+		})
+	}
+}
+
+func TestComboRoute(t *testing.T) {
+	ctx := &mockContext{}
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
+		ctx.params = params
+		return ctx
+	}
+	r := newRouter(contextCreator)
+
+	r.Combo("/").
+		Get(func() {}).
+		Patch(func() {}).
+		Post(func() {}).
+		Put(func() {}).
+		Delete(func() {}).
+		Options(func() {}).
+		Head(func() {})
+
+	for _, m := range httpMethods {
+		t.Run(m, func(t *testing.T) {
+			gotRoute := ""
+			ctx.run_ = func() { gotRoute = ctx.params["route"] }
+
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/", nil)
+			assert.Nil(t, err)
+
+			r.ServeHTTP(resp, req)
+
+			assert.Equal(t, http.StatusOK, resp.Code)
+			assert.Equal(t, "/", gotRoute)
 		})
 	}
 }
