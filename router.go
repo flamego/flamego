@@ -86,7 +86,7 @@ type router struct {
 	handlerWrapper func(Handler) Handler
 }
 
-// See IETF RFC 7231 and RFC 5789 for supported methods
+// httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
 var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "CONNECT", "TRACE"}
 
 // newRouter creates and returns a new Router.
