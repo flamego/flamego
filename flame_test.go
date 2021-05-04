@@ -97,3 +97,92 @@ func TestFlame_ServeHTTP(t *testing.T) {
 	assert.Equal(t, "foobarbatbazban", buf.String())
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
+
+func TestFlame_Handlers(t *testing.T) {
+	var buf bytes.Buffer
+	batman := func() {
+		buf.WriteString("batman!")
+	}
+
+	f := New()
+	f.Use(func(c Context) {
+		buf.WriteString("foo")
+		c.Next()
+		buf.WriteString("ban")
+	})
+	f.Handlers(
+		batman,
+		batman,
+		batman,
+	)
+
+	f.Get("/", func() {})
+	f.Action(func(w http.ResponseWriter, r *http.Request) {
+		buf.WriteString("bat")
+		w.WriteHeader(http.StatusBadRequest)
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, "batman!batman!batman!bat", buf.String())
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestFlame_EarlyWrite(t *testing.T) {
+	var buf bytes.Buffer
+	f := New()
+	f.Use(func(w http.ResponseWriter) {
+		buf.WriteString("foobar")
+		_, _ = w.Write([]byte("Hello world"))
+	})
+	f.Use(func() {
+		buf.WriteString("bat")
+	})
+	f.Get("/", func() {})
+	f.Action(func(w http.ResponseWriter) {
+		buf.WriteString("baz")
+		w.WriteHeader(http.StatusBadRequest)
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, "foobar", buf.String())
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestFlame_NoRace(t *testing.T) {
+	f := New()
+	handlers := []Handler{func() {}, func() {}}
+	// Ensure append will not reallocate alice that triggers the race condition
+	f.handlers = handlers[:1]
+	f.Get("/", func() {})
+	for i := 0; i < 2; i++ {
+		go func() {
+			req, err := http.NewRequest("GET", "/", nil)
+			resp := httptest.NewRecorder()
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+		}()
+	}
+}
+
+func TestEnv(t *testing.T) {
+	envs := []EnvType{
+		EnvTypeDev,
+		EnvTypeProd,
+		EnvTypeTest,
+	}
+	for _, env := range envs {
+		SetEnv(env)
+		assert.Equal(t, env, Env())
+	}
+}
