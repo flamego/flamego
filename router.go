@@ -12,7 +12,7 @@ import (
 	"github.com/flamego/flamego/internal/route"
 )
 
-// Router represents the implementation of the routing middleware.
+// Router is the router for adding routes and their handlers.
 type Router interface {
 	// AutoHead sets a boolean value which determines whether to add HEAD method
 	// automatically when GET method is added. Only routes that are added after call
