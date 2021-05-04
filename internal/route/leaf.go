@@ -32,6 +32,12 @@ type Leaf interface {
 	// portion of the URL. If `withOptional` is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
+	// Route returns the string representation of the original route.
+	Route() string
+	// Handler the Handler that is associated with the leaf.
+	Handler() Handler
+	// Static returns true if the leaf and all ancestors are static routes.
+	Static() bool
 
 	// getParent returns the parent tree the leaf belongs to.
 	getParent() Tree
@@ -96,6 +102,18 @@ func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
 	return strings.NewReplacer(pairs...).Replace(buf.String())
 }
 
+func (l *baseLeaf) Route() string {
+	return l.route.String()
+}
+
+func (l *baseLeaf) Handler() Handler {
+	return l.handler
+}
+
+func (l *baseLeaf) Static() bool {
+	return false
+}
+
 // staticLeaf is a leaf with a static match style.
 type staticLeaf struct {
 	baseLeaf
@@ -107,6 +125,17 @@ func (l *staticLeaf) getMatchStyle() MatchStyle {
 
 func (l *staticLeaf) match(segment string, _ Params) bool {
 	return l.segment.String()[1:] == segment // Skip the leading "/"
+}
+
+func (l *staticLeaf) Static() bool {
+	ancestor := l.parent
+	for ancestor != nil {
+		if ancestor.getMatchStyle() > matchStyleStatic {
+			return false
+		}
+		ancestor = ancestor.getParent()
+	}
+	return true
 }
 
 // regexLeaf is a leaf with a regex match style.
@@ -275,11 +304,10 @@ func getParentBindSet(parent Tree) map[string]struct{} {
 
 // newLeaf creates and returns a new Leaf derived from the given segment.
 func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
-	if len(s.Elements) == 0 {
-		return nil, errors.Errorf("empty segment in position %d", s.Pos.Offset)
-	}
-
-	if isMatchStyleStatic(s) {
+	// Based on the syntax definition, the only possible case to have a leaf with no
+	// segment elements is when the entire route is "/". Therefore, we can safely
+	// treat it as a static match with an empty string.
+	if len(s.Elements) == 0 || isMatchStyleStatic(s) {
 		return &staticLeaf{
 			baseLeaf: baseLeaf{
 				parent:  parent,

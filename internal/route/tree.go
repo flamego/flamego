@@ -116,7 +116,7 @@ func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	leaves := t.getLeaves()
 	for _, l := range leaves {
 		if l.getSegment().String() == s.String() {
-			return nil, errors.Errorf("leaf for the route %q already exists", r.String())
+			return nil, errors.Errorf("duplicated route %q", r.String())
 		}
 	}
 
