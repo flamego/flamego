@@ -241,3 +241,43 @@ func TestRouter_URLPath(t *testing.T) {
 		})
 	}
 }
+
+func TestRouter_Group(t *testing.T) {
+	ctx := &mockContext{}
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler) Context {
+		ctx.params = params
+		return ctx
+	}
+	r := newRouter(contextCreator)
+
+	r.Get("/home")
+	r.Group("/api", func() {
+		r.Group("/v1", func() {
+			r.Get("/users", func() {})
+		})
+		r.Get("/v2/users", func() {})
+	})
+	r.Get("/repos")
+
+	routes := []string{
+		"/home",
+		"/api/v1/users",
+		"/api/v2/users",
+		"/repos",
+	}
+	for _, route := range routes {
+		t.Run(route, func(t *testing.T) {
+			gotRoute := ""
+			ctx.run_ = func() { gotRoute = ctx.params["route"] }
+
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest("GET", route, nil)
+			assert.Nil(t, err)
+
+			r.ServeHTTP(resp, req)
+
+			assert.Equal(t, http.StatusOK, resp.Code)
+			assert.Equal(t, route, gotRoute)
+		})
+	}
+}
