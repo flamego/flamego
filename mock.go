@@ -13,11 +13,11 @@ var _ Context = (*mockContext)(nil)
 
 type mockContext struct {
 	inject.Injector
-	ResponseWriter
+	responseWriter ResponseWriter
+	request        *Request
 
 	params route.Params
 
-	setParent_ func(inject.Injector)
 	urlPath_   urlPather
 	written_   func() bool
 	next_      func()
@@ -31,8 +31,12 @@ func newMockContext() *mockContext {
 	}
 }
 
-func (c *mockContext) SetParent(injector inject.Injector) {
-	c.setParent_(injector)
+func (c *mockContext) ResponseWriter() ResponseWriter {
+	return c.responseWriter
+}
+
+func (c *mockContext) Request() *Request {
+	return c.request
 }
 
 func (c *mockContext) URLPath(name string, pairs ...string) string {

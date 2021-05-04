@@ -37,6 +37,15 @@ func (invoke httpHandlerFuncInvoker) Invoke(args []interface{}) ([]reflect.Value
 	return nil, nil
 }
 
+var _ inject.FastInvoker = (*teapotInvoker)(nil)
+
+type teapotInvoker func() (int, string)
+
+func (invoke teapotInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+	ret1, ret2 := invoke()
+	return []reflect.Value{reflect.ValueOf(ret1), reflect.ValueOf(ret2)}, nil
+}
+
 // validateAndWrapHandler makes sure the handler is a callable function, it
 // panics if not. When the handler is also convertible to any built-in
 // inject.FastInvoker implementations, it wraps the handler automatically to
@@ -57,6 +66,8 @@ func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
 		return httpHandlerFuncInvoker(v)
 	case http.HandlerFunc:
 		return httpHandlerFuncInvoker(v)
+	case func() (int, string):
+		return teapotInvoker(v)
 	}
 
 	if wrapper != nil {
