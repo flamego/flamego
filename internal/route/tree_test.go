@@ -352,6 +352,8 @@ func TestTree_Match(t *testing.T) {
 		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
 		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
 		"/webapi/groups/{name: **, capture: 2}",
+		"/webapi/special/test@$",
+		"/webapi/special/%_",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
@@ -471,6 +473,16 @@ func TestTree_Match(t *testing.T) {
 				"name": "flamego/flamego",
 			},
 		},
+		{
+			path:       "/webapi/special/test@$",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/special/%_",
+			wantOK:     true,
+			wantParams: Params{},
+		},
 
 		// No match
 		{
@@ -516,6 +528,63 @@ func TestTree_Match(t *testing.T) {
 			}
 			assert.Equal(t, test.wantParams, params)
 			assert.Equal(t, strings.TrimRight(test.path, "/"), leaf.URLPath(params, test.withOptional))
+		})
+	}
+}
+
+func TestTree_MatchEscape(t *testing.T) {
+	parser, err := NewParser()
+	assert.Nil(t, err)
+
+	tree := NewTree()
+
+	// NOTE: The order of routes and tests matters, matching for the same priority
+	//  is first in first match.
+	routes := []string{
+		"/webapi/special/vars/{var}",
+	}
+	for _, route := range routes {
+		r, err := parser.Parse(route)
+		assert.Nil(t, err)
+
+		_, err = AddRoute(tree, r, nil)
+		assert.Nil(t, err)
+	}
+
+	tests := []struct {
+		path             string
+		withOptional     bool
+		wantOK           bool
+		wantParams       Params
+		wantUnescapedURL string
+	}{
+		{
+			path:   "/webapi/special/vars/%_",
+			wantOK: true,
+			wantParams: Params{
+				"var": "%_",
+			},
+			wantUnescapedURL: "/webapi/special/vars/%_",
+		},
+		{
+			path:   "/webapi/special/vars/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C",
+			wantOK: true,
+			wantParams: Params{
+				"var": "你好世界",
+			},
+			wantUnescapedURL: "/webapi/special/vars/你好世界",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			leaf, params, ok := tree.Match(test.path)
+			assert.Equal(t, test.wantOK, ok)
+
+			if !ok {
+				return
+			}
+			assert.Equal(t, test.wantParams, params)
+			assert.Equal(t, strings.TrimRight(test.wantUnescapedURL, "/"), leaf.URLPath(params, test.withOptional))
 		})
 	}
 }

@@ -6,7 +6,6 @@ package route
 
 import (
 	"bytes"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -193,7 +192,7 @@ func (l *matchAllLeaf) match(segment string, params Params) bool {
 }
 
 // matchAll matches all remaining segments up to the capture limit (when
-// defined). The `path` should be original request path, `segment` should be
+// defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns true if segments are captured within the
 // limit, and the capture result is stored in `params`.
 func (l *matchAllLeaf) matchAll(path string, segment string, next int, params Params) bool {
@@ -204,11 +203,7 @@ func (l *matchAllLeaf) matchAll(path string, segment string, next int, params Pa
 		return false
 	}
 
-	nextUnescaped, err := url.PathUnescape(path[next:])
-	if err != nil {
-		return false
-	}
-	params[l.bind] = segment + "/" + nextUnescaped
+	params[l.bind] = segment + "/" + path[next:]
 	return true
 }
 

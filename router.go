@@ -286,7 +286,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	leaf, params, ok := r.routeTrees[req.Method].Match(req.URL.EscapedPath())
+	leaf, params, ok := r.routeTrees[req.Method].Match(req.URL.Path)
 	if !ok {
 		r.notFound(w, req)
 		return

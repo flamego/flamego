@@ -296,7 +296,7 @@ func (t *matchAllTree) getBinds() []string {
 }
 
 // matchAll matches all remaining segments up to the capture limit (when
-// defined). The `path` should be original request path, `segment` should be
+// defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns the matched leaf and true if segments are
 // captured within the limit, and the capture result is stored in `params`.
 func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
@@ -315,11 +315,7 @@ func (t *matchAllTree) matchAll(path string, segment string, next int, params Pa
 			break
 		}
 
-		unescaped, err := url.PathUnescape(path[next : next+i])
-		if err != nil {
-			return nil, false
-		}
-		segment += "/" + unescaped
+		segment += "/" + path[next:next+i]
 		next += i + 1
 		captured++
 	}
@@ -418,13 +414,8 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 // matchLeaf returns the matched leaf and true if any leaf of the tree matches
 // the given segment.
 func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
-	unescaped, err := url.PathUnescape(segment)
-	if err != nil {
-		return nil, false
-	}
-
 	for _, l := range t.leaves {
-		ok := l.match(unescaped, params)
+		ok := l.match(segment, params)
 		if ok {
 			return l, true
 		}
@@ -435,11 +426,6 @@ func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
 // matchSubtree returns the matched leaf and true if any subtree or leaf of the
 // tree matches the given segment.
 func (t *baseTree) matchSubtree(path string, segment string, next int, params Params) (Leaf, bool) {
-	unescaped, err := url.PathUnescape(segment)
-	if err != nil {
-		return nil, false
-	}
-
 	for _, st := range t.subtrees {
 		if st.getMatchStyle() == matchStyleAll {
 			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params)
@@ -453,7 +439,7 @@ func (t *baseTree) matchSubtree(path string, segment string, next int, params Pa
 			break
 		}
 
-		ok := st.match(unescaped, params)
+		ok := st.match(segment, params)
 		if !ok {
 			continue
 		}
@@ -472,7 +458,7 @@ func (t *baseTree) matchSubtree(path string, segment string, next int, params Pa
 			return nil, false
 		}
 
-		ok := leaf.(*matchAllLeaf).matchAll(path, unescaped, next, params)
+		ok := leaf.(*matchAllLeaf).matchAll(path, segment, next, params)
 		if ok {
 			return leaf, ok
 		}
@@ -493,5 +479,13 @@ func (t *baseTree) Match(path string) (Leaf, Params, bool) {
 	path = strings.Trim(path, "/")
 	params := make(Params)
 	leaf, ok := t.matchNextSegment(path, 0, params)
+	for k, v := range params {
+		unescaped, err := url.PathUnescape(v)
+		if err != nil {
+			params[k] = v
+		} else {
+			params[k] = unescaped
+		}
+	}
 	return leaf, params, ok
 }
