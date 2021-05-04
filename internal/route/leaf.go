@@ -110,6 +110,10 @@ func (l *baseLeaf) Handler() Handler {
 	return l.handler
 }
 
+func (l *baseLeaf) Static() bool {
+	return false
+}
+
 // staticLeaf is a leaf with a static match style.
 type staticLeaf struct {
 	baseLeaf
@@ -157,10 +161,6 @@ func (l *regexLeaf) match(segment string, params Params) bool {
 	return true
 }
 
-func (l *regexLeaf) Static() bool {
-	return false
-}
-
 // placeholderLeaf is a leaf with a placeholder match style.
 type placeholderLeaf struct {
 	baseLeaf
@@ -174,10 +174,6 @@ func (l *placeholderLeaf) getMatchStyle() MatchStyle {
 func (l *placeholderLeaf) match(segment string, params Params) bool {
 	params[l.bind] = segment
 	return true
-}
-
-func (l *placeholderLeaf) Static() bool {
-	return false
 }
 
 // placeholderLeaf is a leaf with a match all style.
@@ -194,10 +190,6 @@ func (l *matchAllLeaf) getMatchStyle() MatchStyle {
 func (l *matchAllLeaf) match(segment string, params Params) bool {
 	params[l.bind] = segment
 	return true
-}
-
-func (l *matchAllLeaf) Static() bool {
-	return false
 }
 
 // matchAll matches all remaining segments up to the capture limit (when
