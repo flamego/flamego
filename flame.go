@@ -28,12 +28,12 @@ type Flame struct {
 
 	urlPrefix string // The URL prefix to be trimmed for every request.
 
-	befores  []BeforeHandler
-	handlers []Handler
-	action   Handler
-	logger   *log.Logger
+	befores  []BeforeHandler // The list of handlers to be called before matching route.
+	handlers []Handler       // The list of middleware handlers.
+	action   Handler         // The last action handler to be executed.
+	logger   *log.Logger     // The default request logger.
 
-	stop chan struct{} // todo:
+	stop chan struct{} // The signal to stop the HTTP server.
 }
 
 // NewWithLogger creates and returns a bare bones Flame instance. Use this
