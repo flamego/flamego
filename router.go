@@ -382,6 +382,16 @@ func (r *ComboRoute) Head(handlers ...Handler) *ComboRoute {
 	return r.route(r.router.Head, "HEAD", handlers...)
 }
 
+// Connect adds handlers of the CONNECT method to the route.
+func (r *ComboRoute) Connect(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Options, "OPTIONS", handlers...)
+}
+
+// Trace adds handlers of the TRACE method to the route.
+func (r *ComboRoute) Trace(handlers ...Handler) *ComboRoute {
+	return r.route(r.router.Trace, "TRACE", handlers...)
+}
+
 // Name sets the name for the route.
 func (r *ComboRoute) Name(name string) {
 	if r.lastRoute == nil {

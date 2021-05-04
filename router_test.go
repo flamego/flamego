@@ -308,7 +308,9 @@ func TestComboRoute(t *testing.T) {
 		Put(func() {}).
 		Delete(func() {}).
 		Options(func() {}).
-		Head(func() {})
+		Head(func() {}).
+		Connect(func() {}).
+		Trace(func() {})
 
 	for _, m := range httpMethods {
 		t.Run(m, func(t *testing.T) {
