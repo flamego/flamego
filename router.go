@@ -66,7 +66,7 @@ type Router interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
 
-type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler) Context
+type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler, urlPather) Context
 
 type router struct {
 	parser       *route.Parser                    // The route parser.
@@ -198,7 +198,7 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params) {
-		r.contextCreator(w, req, params, handlers).run()
+		r.contextCreator(w, req, params, handlers, r.URLPath).run()
 	})
 }
 
@@ -272,7 +272,7 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 func (r *router) NotFound(handlers ...Handler) {
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	r.notFound = func(w http.ResponseWriter, req *http.Request) {
-		r.contextCreator(w, req, nil, handlers).run()
+		r.contextCreator(w, req, nil, handlers, r.URLPath).run()
 	}
 }
 
