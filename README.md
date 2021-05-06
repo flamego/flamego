@@ -1,4 +1,4 @@
-![Flamego](https://github.com/flamego/brand-kit/raw/main/banners/banner-01.png)
+![Flamego](https://github.com/flamego/brand-kit/raw/main/banner/banner-01.jpg)
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/flamego/flamego/Go?logo=github&style=for-the-badge)](https://github.com/flamego/flamego/actions?query=workflow%3AGo)
 [![Codecov](https://img.shields.io/codecov/c/gh/flamego/flamego?logo=codecov&style=for-the-badge)](https://app.codecov.io/gh/flamego/flamego)
