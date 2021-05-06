@@ -60,6 +60,14 @@ func New() *Flame {
 	return NewWithLogger(os.Stdout)
 }
 
+// Classic creates and returns a classic Flame instance with default middleware:
+// flamego.Logger, flamego.Recovery and flamego.Static.
+func Classic() *Flame {
+	f := New()
+	f.Use(Recovery())
+	return f
+}
+
 func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
 	// Allocate a new slice to avoid mutating the original "handlers" and that could
 	// potentially cause data race.

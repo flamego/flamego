@@ -158,6 +158,7 @@ func TestFlame_NoRace(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
+	defer SetEnv(EnvTypeDev)
 	envs := []EnvType{
 		EnvTypeDev,
 		EnvTypeProd,
