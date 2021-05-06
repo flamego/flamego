@@ -479,13 +479,15 @@ func (t *baseTree) Match(path string) (Leaf, Params, bool) {
 	path = strings.Trim(path, "/")
 	params := make(Params)
 	leaf, ok := t.matchNextSegment(path, 0, params)
+	if !ok {
+		return nil, nil, false
+	}
+
 	for k, v := range params {
 		unescaped, err := url.PathUnescape(v)
-		if err != nil {
-			params[k] = v
-		} else {
+		if err == nil {
 			params[k] = unescaped
 		}
 	}
-	return leaf, params, ok
+	return leaf, params, true
 }
