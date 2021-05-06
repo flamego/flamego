@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/flamego/flamego/internal/inject"
 	"github.com/flamego/flamego/internal/route"
@@ -30,6 +32,16 @@ type Context interface {
 
 	// Next runs the next handler in the context chain.
 	Next()
+	// RemoteAddr extracts and returns the remote IP address from following attempts
+	// in sequence:
+	//  - "X-Real-IP" request header
+	//  - "X-Forwarded-For" request header
+	//  - http.Request.RemoteAddr field
+	RemoteAddr() string
+	// Params returns value of given bind parameter.
+	Params(name string) string
+	// ParamsInt returns value of given bind parameter parsed as int.
+	ParamsInt(name string) int
 
 	// setAction sets the final handler in the context chain.
 	setAction(Handler)
@@ -122,4 +134,31 @@ func (c *context) run() {
 			return
 		}
 	}
+}
+
+func (c *context) RemoteAddr() string {
+	addr := c.Request().Header.Get("X-Real-IP")
+	if addr != "" {
+		return addr
+	}
+
+	addr = c.Request().Header.Get("X-Forwarded-For")
+	if addr != "" {
+		return addr
+	}
+
+	addr = c.Request().RemoteAddr
+	if i := strings.LastIndex(addr, ":"); i > -1 {
+		addr = addr[:i]
+	}
+	return addr
+}
+
+func (c *context) Params(name string) string {
+	return c.params[name]
+}
+
+func (c *context) ParamsInt(name string) int {
+	i, _ := strconv.Atoi(c.Params(name))
+	return i
 }

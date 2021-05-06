@@ -61,9 +61,10 @@ func New() *Flame {
 }
 
 // Classic creates and returns a classic Flame instance with default middleware:
-// flamego.Logger, flamego.Recovery and flamego.Static.
+// flamego.Logger, flamego.Recovery and TODO(unknwon): flamego.Static.
 func Classic() *Flame {
 	f := New()
+	f.Use(Logger())
 	f.Use(Recovery())
 	return f
 }
