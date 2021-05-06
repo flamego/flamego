@@ -12,17 +12,20 @@ import (
 var _ Context = (*mockContext)(nil)
 
 type mockContext struct {
+	*context // Only used to avoid rewriting helper methods based on mock values.
+
 	inject.Injector
 	responseWriter ResponseWriter
 	request        *Request
 
 	params route.Params
 
-	urlPath_   urlPather
-	written_   func() bool
-	next_      func()
-	setAction_ func(Handler)
-	run_       func()
+	urlPath_    urlPather
+	written_    func() bool
+	next_       func()
+	setAction_  func(Handler)
+	run_        func()
+	remoteAddr_ func() string
 }
 
 func newMockContext() *mockContext {
@@ -57,4 +60,12 @@ func (c *mockContext) setAction(h Handler) {
 
 func (c *mockContext) run() {
 	c.run_()
+}
+
+func (c *mockContext) RemoteAddr() string {
+	return c.remoteAddr_()
+}
+
+func (c *mockContext) Params(name string) string {
+	return c.params[name]
 }

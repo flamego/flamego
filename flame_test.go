@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestClassic(t *testing.T) {
+	_ = Classic() // For the sake of code coverage
+}
+
 // Make sure Run doesn't blow up
 func TestFlame_Run(t *testing.T) {
 	_ = os.Setenv("FLAMEGO_ADDR", "0.0.0.0:4001")
@@ -158,6 +162,7 @@ func TestFlame_NoRace(t *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
+	defer SetEnv(EnvTypeDev)
 	envs := []EnvType{
 		EnvTypeDev,
 		EnvTypeProd,
