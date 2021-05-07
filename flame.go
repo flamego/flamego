@@ -64,13 +64,15 @@ func New() *Flame {
 // flamego.Logger, flamego.Recovery and flamego.Static.
 func Classic() *Flame {
 	f := New()
-	f.Use(Logger())
-	f.Use(Recovery())
-	f.Use(Static(
-		StaticOptions{
-			Directory: "public",
-		},
-	))
+	f.Use(
+		Logger(),
+		Recovery(),
+		Static(
+			StaticOptions{
+				Directory: "public",
+			},
+		),
+	)
 	return f
 }
 
@@ -90,16 +92,17 @@ func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params rou
 	return c
 }
 
-// Use adds a handler of a middleware to the Flame instance, and panics if the
-// handler is not a callable func. Middleware handlers are invoked in the same
-// order as they are added.
-func (f *Flame) Use(h Handler) {
-	f.handlers = append(f.handlers, validateAndWrapHandler(h, nil))
+// Use adds handlers of middleware to the Flame instance, and panics if any of
+// the handler is not a callable func. Middleware handlers are invoked in the
+// same order as they are added.
+func (f *Flame) Use(handlers ...Handler) {
+	validateAndWrapHandlers(handlers, nil)
+	f.handlers = append(f.handlers, handlers...)
 }
 
 // Handlers sets the entire middleware stack with the given Handlers. This will
 // clear any current middleware handlers, and panics if any of the handlers is
-// not a callable function
+// not a callable function.
 func (f *Flame) Handlers(handlers ...Handler) {
 	f.handlers = make([]Handler, 0, len(handlers))
 	for _, handler := range handlers {
