@@ -12,8 +12,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/flamego/flamego/internal/inject"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flamego/flamego/internal/inject"
 )
 
 func TestLogger(t *testing.T) {
@@ -38,7 +39,7 @@ func TestLogger(t *testing.T) {
 	for _, code := range codes {
 		t.Run(strconv.Itoa(code), func(t *testing.T) {
 			resp := httptest.NewRecorder()
-			req, err := http.NewRequest("GET", fmt.Sprintf("/%d", code), nil)
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/%d", code), nil)
 			assert.Nil(t, err)
 
 			f.ServeHTTP(resp, req)

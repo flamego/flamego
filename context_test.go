@@ -30,7 +30,7 @@ func TestContext_Next(t *testing.T) {
 	)
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
 
 	r.ServeHTTP(resp, req)
@@ -53,7 +53,7 @@ func TestContext_RemoteAddr(t *testing.T) {
 		{
 			name: "from request field",
 			newRequest: func() *http.Request {
-				req, err := http.NewRequest("GET", "/", nil)
+				req, err := http.NewRequest(http.MethodGet, "/", nil)
 				assert.Nil(t, err)
 
 				req.RemoteAddr = "127.0.0.1:2830"
@@ -64,7 +64,7 @@ func TestContext_RemoteAddr(t *testing.T) {
 		{
 			name: "from X-Forwarded-For",
 			newRequest: func() *http.Request {
-				req, err := http.NewRequest("GET", "/", nil)
+				req, err := http.NewRequest(http.MethodGet, "/", nil)
 				assert.Nil(t, err)
 
 				req.RemoteAddr = "127.0.0.1:2830"
@@ -76,7 +76,7 @@ func TestContext_RemoteAddr(t *testing.T) {
 		{
 			name: "from X-Real-IP",
 			newRequest: func() *http.Request {
-				req, err := http.NewRequest("GET", "/", nil)
+				req, err := http.NewRequest(http.MethodGet, "/", nil)
 				assert.Nil(t, err)
 
 				req.RemoteAddr = "127.0.0.1:2830"
@@ -129,7 +129,7 @@ func TestContext_Params(t *testing.T) {
 			f.Get(test.route, test.handler)
 
 			resp := httptest.NewRecorder()
-			req, err := http.NewRequest("GET", test.url, nil)
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
 			assert.Nil(t, err)
 
 			f.ServeHTTP(resp, req)

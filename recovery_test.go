@@ -21,7 +21,7 @@ func TestRecovery(t *testing.T) {
 		f.Get("/", func() {})
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("GET", "/", nil)
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -41,7 +41,7 @@ func TestRecovery(t *testing.T) {
 		f.Get("/", func() {})
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("GET", "/", nil)
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -63,7 +63,7 @@ func TestRecovery(t *testing.T) {
 		})
 		f.Get("/", func() {})
 
-		req, err := http.NewRequest("GET", "/", nil)
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)

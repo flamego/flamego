@@ -20,7 +20,7 @@ import (
 func TestResponseWriter(t *testing.T) {
 	t.Run("write string", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		w := NewResponseWriter("GET", resp)
+		w := NewResponseWriter(http.MethodGet, resp)
 		assert.False(t, w.Written())
 
 		_, _ = w.Write([]byte("Hello world"))
@@ -34,7 +34,7 @@ func TestResponseWriter(t *testing.T) {
 
 	t.Run("write strings", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		w := NewResponseWriter("GET", resp)
+		w := NewResponseWriter(http.MethodGet, resp)
 		assert.False(t, w.Written())
 
 		_, _ = w.Write([]byte("Hello world"))
@@ -49,7 +49,7 @@ func TestResponseWriter(t *testing.T) {
 
 	t.Run("write header", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		w := NewResponseWriter("GET", resp)
+		w := NewResponseWriter(http.MethodGet, resp)
 		assert.False(t, w.Written())
 
 		w.WriteHeader(http.StatusNotFound)
@@ -63,7 +63,7 @@ func TestResponseWriter(t *testing.T) {
 
 	t.Run("before funcs", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		w := NewResponseWriter("GET", resp)
+		w := NewResponseWriter(http.MethodGet, resp)
 		assert.False(t, w.Written())
 
 		var buf bytes.Buffer
@@ -104,7 +104,7 @@ func (h *hijackableResponse) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 func TestResponseWriter_Hijack(t *testing.T) {
 	t.Run("good", func(t *testing.T) {
 		hijackable := newHijackableResponse()
-		w := NewResponseWriter("GET", hijackable)
+		w := NewResponseWriter(http.MethodGet, hijackable)
 
 		hijacker, ok := w.(http.Hijacker)
 		assert.True(t, ok)
@@ -116,7 +116,7 @@ func TestResponseWriter_Hijack(t *testing.T) {
 
 	t.Run("bad", func(t *testing.T) {
 		hijackable := new(http.ResponseWriter)
-		rw := NewResponseWriter("GET", *hijackable)
+		rw := NewResponseWriter(http.MethodGet, *hijackable)
 
 		hijacker, ok := rw.(http.Hijacker)
 		assert.True(t, ok)
@@ -128,7 +128,7 @@ func TestResponseWriter_Hijack(t *testing.T) {
 
 func TestResponseWriter_Flush(t *testing.T) {
 	resp := httptest.NewRecorder()
-	w := NewResponseWriter("GET", resp)
+	w := NewResponseWriter(http.MethodGet, resp)
 
 	f, ok := w.(http.Flusher)
 	assert.True(t, ok)
@@ -146,7 +146,7 @@ func TestResponseWriter_Flush(t *testing.T) {
 		}
 	})
 
-	req, err := http.NewRequest("GET", "/events", nil)
+	req, err := http.NewRequest(http.MethodGet, "/events", nil)
 	assert.Nil(t, err)
 
 	r.ServeHTTP(resp, req)
@@ -157,7 +157,7 @@ func TestResponseWriter_Flush(t *testing.T) {
 
 func TestResponseWriter_Push(t *testing.T) {
 	resp := httptest.NewRecorder()
-	w := NewResponseWriter("GET", resp)
+	w := NewResponseWriter(http.MethodGet, resp)
 
 	_, ok := w.(http.Pusher)
 	assert.True(t, ok)

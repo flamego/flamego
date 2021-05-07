@@ -47,7 +47,7 @@ func TestFlame_Before(t *testing.T) {
 	})
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
 
 	f.ServeHTTP(resp, req)
@@ -75,7 +75,7 @@ func TestFlame_ServeHTTP(t *testing.T) {
 	})
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
 
 	f.ServeHTTP(resp, req)
@@ -109,7 +109,7 @@ func TestFlame_Handlers(t *testing.T) {
 	})
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
 
 	f.ServeHTTP(resp, req)
@@ -135,7 +135,7 @@ func TestFlame_EarlyWrite(t *testing.T) {
 	})
 
 	resp := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
 
 	f.ServeHTTP(resp, req)
@@ -152,7 +152,7 @@ func TestFlame_NoRace(t *testing.T) {
 	f.Get("/", func() {})
 	for i := 0; i < 2; i++ {
 		go func() {
-			req, err := http.NewRequest("GET", "/", nil)
+			req, err := http.NewRequest(http.MethodGet, "/", nil)
 			resp := httptest.NewRecorder()
 			assert.Nil(t, err)
 

@@ -75,7 +75,7 @@ func TestReturnHandler(t *testing.T) {
 			f.Get("/", test.handler)
 
 			resp := httptest.NewRecorder()
-			req, err := http.NewRequest("GET", "/", nil)
+			req, err := http.NewRequest(http.MethodGet, "/", nil)
 			assert.Nil(t, err)
 
 			f.ServeHTTP(resp, req)
