@@ -115,17 +115,14 @@ func TestStatic_Options(t *testing.T) {
 
 	t.Run("index", func(t *testing.T) {
 		tests := []struct {
-			url            string
 			index          string
 			wantStatusCode int
 		}{
 			{
-				url:            "/",
 				index:          ".editorconfig",
 				wantStatusCode: http.StatusOK,
 			},
 			{
-				url:            "/",
 				index:          "index.html",
 				wantStatusCode: http.StatusNotFound,
 			},
@@ -140,7 +137,7 @@ func TestStatic_Options(t *testing.T) {
 				))
 
 				resp := httptest.NewRecorder()
-				req, err := http.NewRequest("GET", test.url, nil)
+				req, err := http.NewRequest("GET", "/", nil)
 				assert.Nil(t, err)
 
 				f.ServeHTTP(resp, req)

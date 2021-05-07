@@ -106,7 +106,7 @@ func Static(opts ...StaticOptions) Handler {
 
 			// The path.Clean removes the trailing slash, so we need to add it back when the
 			// original path has it.
-			if strings.HasSuffix(c.Request().URL.Path, "/") {
+			if strings.HasSuffix(c.Request().URL.Path, "/") && !strings.HasSuffix(redirPath, "/") {
 				redirPath = redirPath + "/"
 			}
 			// Redirect if missing trailing slash.
@@ -116,16 +116,19 @@ func Static(opts ...StaticOptions) Handler {
 			}
 
 			file = path.Join(file, opt.Index)
-			f, err := opt.FileSystem.Open(file)
+			index, err := opt.FileSystem.Open(file)
 			if err != nil {
 				return
 			}
-			defer func() { _ = f.Close() }()
+			defer func() { _ = index.Close() }()
 
-			fi, err = f.Stat()
+			fi, err = index.Stat()
 			if err != nil || fi.IsDir() {
 				return
 			}
+
+			_ = f.Close()
+			f = index
 		}
 
 		if opt.EnableLogging {
