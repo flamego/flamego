@@ -37,52 +37,52 @@ func TestRouter_Route(t *testing.T) {
 	}{
 		{
 			routePath: "/get",
-			method:    "GET",
+			method:    http.MethodGet,
 			add:       r.Get,
 		},
 		{
 			routePath: "/patch",
-			method:    "PATCH",
+			method:    http.MethodPatch,
 			add:       r.Patch,
 		},
 		{
 			routePath: "/post",
-			method:    "POST",
+			method:    http.MethodPost,
 			add:       r.Post,
 		},
 		{
 			routePath: "/put",
-			method:    "PUT",
+			method:    http.MethodPut,
 			add:       r.Put,
 		},
 		{
 			routePath: "/delete",
-			method:    "DELETE",
+			method:    http.MethodDelete,
 			add:       r.Delete,
 		},
 		{
 			routePath: "/options",
-			method:    "OPTIONS",
+			method:    http.MethodOptions,
 			add:       r.Options,
 		},
 		{
 			routePath: "/head",
-			method:    "HEAD",
+			method:    http.MethodHead,
 			add:       r.Head,
 		},
 		{
 			routePath: "/connect",
-			method:    "CONNECT",
+			method:    http.MethodConnect,
 			add:       r.Connect,
 		},
 		{
 			routePath: "/trace",
-			method:    "TRACE",
+			method:    http.MethodTrace,
 			add:       r.Trace,
 		},
 		{
 			routePath: "/any",
-			method:    "HEAD",
+			method:    http.MethodHead,
 			add:       r.Any,
 		},
 	}
@@ -115,7 +115,7 @@ func TestRouter_Routes(t *testing.T) {
 
 	r.Routes("/routes", "GET,POST", func() {})
 
-	for _, m := range []string{"GET", "POST"} {
+	for _, m := range []string{http.MethodGet, http.MethodPost} {
 		gotRoute := ""
 		ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
@@ -145,7 +145,7 @@ func TestRouter_AutoHead(t *testing.T) {
 		ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("HEAD", "/", nil)
+		req, err := http.NewRequest(http.MethodHead, "/", nil)
 		assert.Nil(t, err)
 
 		r.ServeHTTP(resp, req)
@@ -163,7 +163,7 @@ func TestRouter_AutoHead(t *testing.T) {
 		ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest("HEAD", "/", nil)
+		req, err := http.NewRequest(http.MethodHead, "/", nil)
 		assert.Nil(t, err)
 
 		r.ServeHTTP(resp, req)
@@ -282,7 +282,7 @@ func TestRouter_Group(t *testing.T) {
 			ctx.run_ = func() { gotRoute = ctx.params["route"] }
 
 			resp := httptest.NewRecorder()
-			req, err := http.NewRequest("GET", route, nil)
+			req, err := http.NewRequest(http.MethodGet, route, nil)
 			assert.Nil(t, err)
 
 			r.ServeHTTP(resp, req)

@@ -72,7 +72,7 @@ func Static(opts ...StaticOptions) Handler {
 	opt = parseStaticOptions(opt)
 
 	return loggerInvoker(func(c Context, log *log.Logger) {
-		if c.Request().Method != "GET" && c.Request().Method != "HEAD" {
+		if c.Request().Method != http.MethodGet && c.Request().Method != http.MethodHead {
 			return
 		}
 

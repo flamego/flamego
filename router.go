@@ -30,23 +30,23 @@ type Router interface {
 	// Group pushes a new group with the given route path and its handlers, it then
 	// pops the group when leaves the scope of `fn`.
 	Group(routePath string, fn func(), handlers ...Handler)
-	// Get is a shortcut for `r.Route("GET", routePath, handlers)`.
+	// Get is a shortcut for `r.Route(http.MethodGet, routePath, handlers)`.
 	Get(routePath string, handlers ...Handler) *Route
-	// Patch is a shortcut for `r.Route("PATCH", routePath, handlers)`.
+	// Patch is a shortcut for `r.Route(http.MethodPatch, routePath, handlers)`.
 	Patch(routePath string, handlers ...Handler) *Route
-	// Post is a shortcut for `r.Route("POST", routePath, handlers)`.
+	// Post is a shortcut for `r.Route(http.MethodPost, routePath, handlers)`.
 	Post(routePath string, handlers ...Handler) *Route
-	// Put is a shortcut for `r.Route("PUT", routePath, handlers)`.
+	// Put is a shortcut for `r.Route(http.MethodPut, routePath, handlers)`.
 	Put(routePath string, handlers ...Handler) *Route
-	// Delete is a shortcut for `r.Route("DELETE", routePath, handlers)`.
+	// Delete is a shortcut for `r.Route(http.MethodDelete, routePath, handlers)`.
 	Delete(routePath string, handlers ...Handler) *Route
-	// Options is a shortcut for `r.Route("OPTIONS", routePath, handlers)`.
+	// Options is a shortcut for `r.Route(http.MethodOptions, routePath, handlers)`.
 	Options(routePath string, handlers ...Handler) *Route
-	// Head is a shortcut for `r.Route("HEAD", routePath, handlers)`.
+	// Head is a shortcut for `r.Route(http.MethodHead, routePath, handlers)`.
 	Head(routePath string, handlers ...Handler) *Route
-	// Connect is a shortcut for `r.Route("CONNECT", routePath, handlers)`.
+	// Connect is a shortcut for `r.Route(http.MethodConnect, routePath, handlers)`.
 	Connect(routePath string, handlers ...Handler) *Route
-	// Trace is a shortcut for `r.Route("TRACE", routePath, handlers)`.
+	// Trace is a shortcut for `r.Route(http.MethodTrace, routePath, handlers)`.
 	Trace(routePath string, handlers ...Handler) *Route
 	// Any is a shortcut for `r.Route("*", routePath, handlers)`.
 	Any(routePath string, handlers ...Handler) *Route
@@ -87,7 +87,17 @@ type router struct {
 }
 
 // httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
-var httpMethods = []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "CONNECT", "TRACE"}
+var httpMethods = []string{
+	http.MethodGet,
+	http.MethodPost,
+	http.MethodPut,
+	http.MethodDelete,
+	http.MethodPatch,
+	http.MethodOptions,
+	http.MethodHead,
+	http.MethodConnect,
+	http.MethodTrace,
+}
 
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
@@ -214,7 +224,7 @@ func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
 }
 
 func (r *router) Get(routePath string, handlers ...Handler) *Route {
-	route := r.Route("GET", routePath, handlers)
+	route := r.Route(http.MethodGet, routePath, handlers)
 	if r.autoHead {
 		r.Head(routePath, handlers...)
 	}
@@ -222,35 +232,35 @@ func (r *router) Get(routePath string, handlers ...Handler) *Route {
 }
 
 func (r *router) Patch(routePath string, handlers ...Handler) *Route {
-	return r.Route("PATCH", routePath, handlers)
+	return r.Route(http.MethodPatch, routePath, handlers)
 }
 
 func (r *router) Post(routePath string, handlers ...Handler) *Route {
-	return r.Route("POST", routePath, handlers)
+	return r.Route(http.MethodPost, routePath, handlers)
 }
 
 func (r *router) Put(routePath string, handlers ...Handler) *Route {
-	return r.Route("PUT", routePath, handlers)
+	return r.Route(http.MethodPut, routePath, handlers)
 }
 
 func (r *router) Delete(routePath string, handlers ...Handler) *Route {
-	return r.Route("DELETE", routePath, handlers)
+	return r.Route(http.MethodDelete, routePath, handlers)
 }
 
 func (r *router) Options(routePath string, handlers ...Handler) *Route {
-	return r.Route("OPTIONS", routePath, handlers)
+	return r.Route(http.MethodOptions, routePath, handlers)
 }
 
 func (r *router) Head(routePath string, handlers ...Handler) *Route {
-	return r.Route("HEAD", routePath, handlers)
+	return r.Route(http.MethodHead, routePath, handlers)
 }
 
 func (r *router) Connect(routePath string, handlers ...Handler) *Route {
-	return r.Route("CONNECT", routePath, handlers)
+	return r.Route(http.MethodConnect, routePath, handlers)
 }
 
 func (r *router) Trace(routePath string, handlers ...Handler) *Route {
-	return r.Route("TRACE", routePath, handlers)
+	return r.Route(http.MethodTrace, routePath, handlers)
 }
 
 func (r *router) Any(routePath string, handlers ...Handler) *Route {
@@ -349,47 +359,47 @@ func (r *ComboRoute) route(fn func(string, ...Handler) *Route, method string, ha
 
 // Get adds handlers of the GET method to the route.
 func (r *ComboRoute) Get(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Get, "GET", handlers...)
+	return r.route(r.router.Get, http.MethodGet, handlers...)
 }
 
 // Patch adds handlers of the PATCH method to the route.
 func (r *ComboRoute) Patch(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Patch, "PATCH", handlers...)
+	return r.route(r.router.Patch, http.MethodPatch, handlers...)
 }
 
 // Post adds handlers of the POST method to the route.
 func (r *ComboRoute) Post(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Post, "POST", handlers...)
+	return r.route(r.router.Post, http.MethodPost, handlers...)
 }
 
 // Put adds handlers of the PUT method to the route.
 func (r *ComboRoute) Put(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Put, "PUT", handlers...)
+	return r.route(r.router.Put, http.MethodPut, handlers...)
 }
 
 // Delete adds handlers of the DELETE method to the route.
 func (r *ComboRoute) Delete(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Delete, "DELETE", handlers...)
+	return r.route(r.router.Delete, http.MethodDelete, handlers...)
 }
 
 // Options adds handlers of the OPTIONS method to the route.
 func (r *ComboRoute) Options(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Options, "OPTIONS", handlers...)
+	return r.route(r.router.Options, http.MethodOptions, handlers...)
 }
 
 // Head adds handlers of the HEAD method to the route.
 func (r *ComboRoute) Head(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Head, "HEAD", handlers...)
+	return r.route(r.router.Head, http.MethodHead, handlers...)
 }
 
 // Connect adds handlers of the CONNECT method to the route.
 func (r *ComboRoute) Connect(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Connect, "CONNECT", handlers...)
+	return r.route(r.router.Connect, http.MethodConnect, handlers...)
 }
 
 // Trace adds handlers of the TRACE method to the route.
 func (r *ComboRoute) Trace(handlers ...Handler) *ComboRoute {
-	return r.route(r.router.Trace, "TRACE", handlers...)
+	return r.route(r.router.Trace, http.MethodTrace, handlers...)
 }
 
 // Name sets the name for the route.
