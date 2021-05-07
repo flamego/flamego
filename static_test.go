@@ -139,7 +139,7 @@ func TestStatic_Options(t *testing.T) {
 				))
 
 				resp := httptest.NewRecorder()
-				req, err := http.NewRequest("HEAD", test.url, nil)
+				req, err := http.NewRequest("GET", test.url, nil)
 				assert.Nil(t, err)
 
 				f.ServeHTTP(resp, req)
