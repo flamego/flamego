@@ -77,7 +77,7 @@ func Static(opts ...StaticOptions) Handler {
 		}
 
 		file := c.Request().URL.Path
-		// If we have a prefix set, filter files by stripping the prefix
+		// If we have a prefix set, filter files by stripping the prefix.
 		if opt.Prefix != "" {
 			if !strings.HasPrefix(file, opt.Prefix) {
 				return
@@ -100,14 +100,14 @@ func Static(opts ...StaticOptions) Handler {
 			return // File exists but failed to open.
 		}
 
-		// Try to serve index file
+		// Try to serve index file.
 		if fi.IsDir() {
 			redirPath := path.Clean(c.Request().URL.Path)
 
 			// The path.Clean removes the trailing slash, so we need to add it back when the
 			// original path has it.
 			if strings.HasSuffix(c.Request().URL.Path, "/") && !strings.HasSuffix(redirPath, "/") {
-				redirPath = redirPath + "/"
+				redirPath += "/"
 			}
 			// Redirect if missing trailing slash.
 			if !strings.HasSuffix(redirPath, "/") {
