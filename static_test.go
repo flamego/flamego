@@ -6,7 +6,6 @@ package flamego
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -137,13 +136,12 @@ func TestStatic_Options(t *testing.T) {
 				))
 
 				resp := httptest.NewRecorder()
-				req, err := http.NewRequest("GET", "/", nil)
+				req, err := http.NewRequest("HEAD", "/", nil)
 				assert.Nil(t, err)
 
 				f.ServeHTTP(resp, req)
 
 				assert.Equal(t, test.wantStatusCode, resp.Code)
-				fmt.Println(resp.Body.String())
 			})
 		}
 	})
