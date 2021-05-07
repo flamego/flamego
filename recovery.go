@@ -121,7 +121,7 @@ pre {
 		return buf.Bytes()
 	}
 
-	return func(c Context, log *log.Logger) {
+	return loggerInvoker(func(c Context, log *log.Logger) {
 		defer func() {
 			if err := recover(); err != nil {
 				stack := stack(3)
@@ -147,5 +147,5 @@ pre {
 		}()
 
 		c.Next()
-	}
+	})
 }

@@ -12,7 +12,10 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/flamego/flamego/internal/inject"
 )
+
+var _ inject.FastInvoker = (*loggerInvoker)(nil)
 
 // loggerInvoker is an inject.FastInvoker implementation of
 // `func(ctx Context, log *log.Logger)`.
