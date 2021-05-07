@@ -145,6 +145,7 @@ func TestStatic_Options(t *testing.T) {
 				f.ServeHTTP(resp, req)
 
 				assert.Equal(t, test.wantStatusCode, resp.Code)
+				assert.Empty(t, resp.Body.String())
 			})
 		}
 	})
