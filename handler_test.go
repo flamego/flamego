@@ -9,8 +9,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/flamego/flamego/internal/inject"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flamego/flamego/internal/inject"
 )
 
 var _ inject.FastInvoker = (*testHandlerFastInvoker)(nil)
@@ -30,7 +31,7 @@ func TestValidateAndWrapHandler(t *testing.T) {
 	})
 
 	handlers := []Handler{
-		func(*Context) {},
+		func(Context) {},
 		func(http.ResponseWriter, *http.Request) {},
 		http.HandlerFunc(nil),
 		func() string { return "" },
