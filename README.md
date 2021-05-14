@@ -5,7 +5,9 @@
 [![GoDoc](https://img.shields.io/badge/GoDoc-Reference-blue?style=for-the-badge&logo=go)](https://pkg.go.dev/github.com/flamego/flamego?tab=doc)
 [![Sourcegraph](https://img.shields.io/badge/view%20on-Sourcegraph-brightgreen.svg?style=for-the-badge&logo=sourcegraph)](https://sourcegraph.com/github.com/flamego/flamego)
 
-A fantastic modular Go web framework boiled with black magic.
+Flamego is a fantastic modular Go web framework boiled with black magic.
+
+It is the successor of the [Macaron](https://github.com/go-macaron/macaron), and carries the most powerful routing syntax among all web frameworks within the Go ecosystem.
 
 ## Getting started
 
@@ -30,6 +32,22 @@ func main() {
 	f.Run()
 }
 ```
+
+## Features
+
+TBD
+
+## Middlewares
+
+TBD
+
+## Getting help
+
+TBD
+
+## Use cases
+
+TBD
 
 ## License
 
