@@ -43,7 +43,7 @@ type RenderOptions struct {
 }
 
 func (r *render) JSON(status int, v interface{}) {
-	r.responseWriter.Header().Set("Context-Type", "application/json; charset="+r.opts.Charset)
+	r.responseWriter.Header().Set("Content-Type", "application/json; charset="+r.opts.Charset)
 	r.responseWriter.WriteHeader(status)
 
 	enc := json.NewEncoder(r.responseWriter)
@@ -59,7 +59,7 @@ func (r *render) JSON(status int, v interface{}) {
 }
 
 func (r *render) XML(status int, v interface{}) {
-	r.responseWriter.Header().Set("Context-Type", "text/xml; charset="+r.opts.Charset)
+	r.responseWriter.Header().Set("Content-Type", "text/xml; charset="+r.opts.Charset)
 	r.responseWriter.WriteHeader(status)
 
 	enc := xml.NewEncoder(r.responseWriter)
@@ -75,13 +75,13 @@ func (r *render) XML(status int, v interface{}) {
 }
 
 func (r *render) Binary(status int, v []byte) {
-	r.responseWriter.Header().Set("Context-Type", "application/octet-stream")
+	r.responseWriter.Header().Set("Content-Type", "application/octet-stream")
 	r.responseWriter.WriteHeader(status)
 	_, _ = r.responseWriter.Write(v)
 }
 
 func (r *render) PlainText(status int, s string) {
-	r.responseWriter.Header().Set("Context-Type", "text/plain; charset="+r.opts.Charset)
+	r.responseWriter.Header().Set("Content-Type", "text/plain; charset="+r.opts.Charset)
 	r.responseWriter.WriteHeader(status)
 	_, _ = r.responseWriter.Write([]byte(s))
 }
