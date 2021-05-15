@@ -39,10 +39,11 @@ TBD
 
 ## Middlewares
 
-- [`Logger`](logger.go) - Log requests and response status code.
-- [`Recovery`](recovery.go) - Automatic recovery from panics.
-- [`Static`](static.go) - Serve static files.
-- [template](https://github.com/flamego/template) - Go template rendering.
+- [`Logger`](logger.go) - Log requests and response status code
+- [`Recovery`](recovery.go) - Automatic recovery from panics
+- [`Static`](static.go) - Serve static files
+- [template](https://github.com/flamego/template) - Go template rendering
+- [session](https://github.com/flamego/session) - User session management
 
 ## Getting help
 
