@@ -16,12 +16,12 @@ import (
 // via dependency injection.
 type Handler interface{}
 
-var _ inject.FastInvoker = (*contextInvoker)(nil)
+var _ inject.FastInvoker = (*ContextInvoker)(nil)
 
-// contextInvoker is an inject.FastInvoker implementation of `func(Context)`.
-type contextInvoker func(ctx Context)
+// ContextInvoker is an inject.FastInvoker implementation of `func(Context)`.
+type ContextInvoker func(ctx Context)
 
-func (invoke contextInvoker) Invoke(args []interface{}) ([]reflect.Value, error) {
+func (invoke ContextInvoker) Invoke(args []interface{}) ([]reflect.Value, error) {
 	invoke(args[0].(Context))
 	return nil, nil
 }
@@ -61,7 +61,7 @@ func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
 
 	switch v := h.(type) {
 	case func(Context):
-		return contextInvoker(v)
+		return ContextInvoker(v)
 	case func(http.ResponseWriter, *http.Request):
 		return httpHandlerFuncInvoker(v)
 	case http.HandlerFunc:

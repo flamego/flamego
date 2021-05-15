@@ -103,7 +103,7 @@ func Renderer(opts ...RenderOptions) Handler {
 
 	opt = parseRenderOptions(opt)
 
-	return contextInvoker(func(c Context) {
+	return ContextInvoker(func(c Context) {
 		r := &render{
 			opts:           opt,
 			responseWriter: c.ResponseWriter(),
