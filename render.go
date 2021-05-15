@@ -86,8 +86,8 @@ func (r *render) PlainText(status int, s string) {
 	_, _ = r.responseWriter.Write([]byte(s))
 }
 
-// Renderer returns a middleware handler that renders content to the
-// ResponseWriter.
+// Renderer returns a middleware handler that injects flamego.Render into the
+// request context, which is used for rendering content to the ResponseWriter.
 func Renderer(opts ...RenderOptions) Handler {
 	var opt RenderOptions
 	if len(opts) > 0 {
