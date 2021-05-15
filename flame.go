@@ -210,12 +210,22 @@ var env = func() atomic.Value {
 	return v
 }()
 
-// Env returns the current runtime environment.
+// Env returns the current runtime environment. It can be altered by SetEnv or
+// the environment variable "FLAMEGO_ENV".
 func Env() EnvType {
 	return env.Load().(EnvType)
 }
 
-// SetEnv sets the current runtime environment.
+// SetEnv sets the current runtime environment. Valid values are EnvTypeDev,
+// EnvTypeProd and EnvTypeTest, all else ignored.
 func SetEnv(e EnvType) {
-	env.Store(e)
+	if e == EnvTypeDev ||
+		e == EnvTypeProd ||
+		e == EnvTypeTest {
+		env.Store(e)
+	}
+}
+
+func init() {
+	SetEnv(EnvType(os.Getenv("FLAMEGO_ENV")))
 }

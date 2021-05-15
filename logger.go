@@ -16,13 +16,13 @@ import (
 	"github.com/flamego/flamego/internal/inject"
 )
 
-var _ inject.FastInvoker = (*loggerInvoker)(nil)
+var _ inject.FastInvoker = (*LoggerInvoker)(nil)
 
-// loggerInvoker is an inject.FastInvoker implementation of
+// LoggerInvoker is an inject.FastInvoker implementation of
 // `func(ctx Context, log *log.Logger)`.
-type loggerInvoker func(ctx Context, log *log.Logger)
+type LoggerInvoker func(ctx Context, log *log.Logger)
 
-func (invoke loggerInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
+func (invoke LoggerInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
 	invoke(params[0].(Context), params[1].(*log.Logger))
 	return nil, nil
 }
@@ -60,7 +60,7 @@ func Logger(opts ...LoggerOptions) Handler {
 		color.FgBlue:    color.New(color.FgBlue),
 	}
 
-	return loggerInvoker(func(ctx Context, log *log.Logger) {
+	return LoggerInvoker(func(ctx Context, log *log.Logger) {
 		started := time.Now()
 
 		log.Printf("%s: Started %s %s for %s",

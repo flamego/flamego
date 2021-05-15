@@ -17,7 +17,11 @@ import (
 
 func TestStatic(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
-	f.Use(Static())
+	f.Use(Static(
+		StaticOptions{
+			Directory: ".",
+		},
+	))
 
 	t.Run("serve with GET", func(t *testing.T) {
 		resp := httptest.NewRecorder()
@@ -82,7 +86,8 @@ func TestStatic_Options(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
-				Prefix: "public",
+				Directory: ".",
+				Prefix:    "public",
 			},
 		))
 
@@ -131,7 +136,8 @@ func TestStatic_Options(t *testing.T) {
 				f := NewWithLogger(&bytes.Buffer{})
 				f.Use(Static(
 					StaticOptions{
-						Index: test.index,
+						Directory: ".",
+						Index:     test.index,
 					},
 				))
 
@@ -150,6 +156,7 @@ func TestStatic_Options(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
+				Directory: ".",
 				Expires: func() string {
 					return "2830"
 				},
@@ -170,7 +177,8 @@ func TestStatic_Options(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
-				SetETag: true,
+				Directory: ".",
+				SetETag:   true,
 			},
 		))
 
@@ -193,7 +201,8 @@ func TestStatic_Options(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
-				SetETag: true,
+				Directory: ".",
+				SetETag:   true,
 			},
 		))
 
@@ -241,7 +250,8 @@ func TestStatic_Redirect(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
-				Prefix: "/public",
+				Directory: ".",
+				Prefix:    "/public",
 			},
 		))
 
