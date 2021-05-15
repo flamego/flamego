@@ -17,7 +17,7 @@ import (
 // StaticOptions contains options for the flamego.Static middleware.
 type StaticOptions struct {
 	// Directory is the local directory to be used to serve static file. This value
-	// is ignored when FileSystem is set. Default is the working directory.
+	// is ignored when FileSystem is set. Default is "public".
 	Directory string
 	// FileSystem is the interface for supporting any implementation of the
 	// http.FileSystem.
@@ -53,6 +53,10 @@ func Static(opts ...StaticOptions) Handler {
 	}
 
 	parseStaticOptions := func(opts StaticOptions) StaticOptions {
+		if opts.Directory == "" {
+			opts.Directory = "public"
+		}
+
 		if opts.FileSystem == nil {
 			opts.FileSystem = http.Dir(opts.Directory)
 		}
@@ -71,7 +75,7 @@ func Static(opts ...StaticOptions) Handler {
 
 	opt = parseStaticOptions(opt)
 
-	return loggerInvoker(func(c Context, log *log.Logger) {
+	return LoggerInvoker(func(c Context, log *log.Logger) {
 		if c.Request().Method != http.MethodGet && c.Request().Method != http.MethodHead {
 			return
 		}
