@@ -5,6 +5,8 @@
 package flamego
 
 import (
+	"strconv"
+
 	"github.com/flamego/flamego/internal/inject"
 	"github.com/flamego/flamego/internal/route"
 )
@@ -12,8 +14,6 @@ import (
 var _ Context = (*mockContext)(nil)
 
 type mockContext struct {
-	*context // Only used to avoid rewriting helper methods based on mock values.
-
 	inject.Injector
 	responseWriter ResponseWriter
 	request        *Request
@@ -68,4 +68,9 @@ func (c *mockContext) RemoteAddr() string {
 
 func (c *mockContext) Params(name string) string {
 	return c.params[name]
+}
+
+func (c *mockContext) ParamsInt(name string) int {
+	i, _ := strconv.Atoi(c.Params(name))
+	return i
 }
