@@ -170,7 +170,7 @@ func (c *context) ParamsInt(name string) int {
 }
 
 func (c *context) Cookie(name string) string {
-	cookie, err := c.request.Cookie(name)
+	cookie, err := c.Request().Cookie(name)
 	if err != nil {
 		return ""
 	}
