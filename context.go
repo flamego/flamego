@@ -7,6 +7,7 @@ package flamego
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -42,6 +43,11 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
+	// Cookie returns the named cookie in the request or empty if not found. If
+	// multiple cookies match the given name, only one cookie will be returned. The
+	// returned value is unescaped using `url.QueryUnescape`, original value is
+	// returned instead if unable to unescape.
+	Cookie(name string) string
 
 	// setAction sets the final handler in the context chain.
 	setAction(Handler)
@@ -161,4 +167,17 @@ func (c *context) Params(name string) string {
 func (c *context) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *context) Cookie(name string) string {
+	cookie, err := c.request.Cookie(name)
+	if err != nil {
+		return ""
+	}
+
+	val, err := url.QueryUnescape(cookie.Value)
+	if err != nil {
+		return cookie.Value
+	}
+	return val
 }

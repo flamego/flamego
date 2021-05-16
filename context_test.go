@@ -138,3 +138,65 @@ func TestContext_Params(t *testing.T) {
 		})
 	}
 }
+
+func TestContext_Cookie(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return c.Cookie("fgs")
+	})
+
+	tests := []struct {
+		name   string
+		cookie *http.Cookie
+		want   string
+	}{
+		{
+			name: "normal",
+			cookie: &http.Cookie{
+				Name:  "fgs",
+				Value: "10086",
+				Path:  "/",
+			},
+			want: "10086",
+		},
+		{
+			name: "unescaped",
+			cookie: &http.Cookie{
+				Name:  "fgs",
+				Value: "%E4%B8%AD%E5%9B%BD%20666",
+				Path:  "/",
+			},
+			want: "中国 666",
+		},
+		{
+			name: "not exists",
+			cookie: &http.Cookie{
+				Name:  "bad",
+				Value: "10086",
+				Path:  "/",
+			},
+			want: "",
+		},
+		{
+			name: "unable to escape",
+			cookie: &http.Cookie{
+				Name:  "fgs",
+				Value: "%E4%B%ADE5%9%BD%20666",
+				Path:  "/",
+			},
+			want: "%E4%B%ADE5%9%BD%20666",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, "/", nil)
+			assert.Nil(t, err)
+
+			req.AddCookie(test.cookie)
+			f.ServeHTTP(resp, req)
+
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
