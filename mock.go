@@ -26,6 +26,7 @@ type mockContext struct {
 	setAction_  func(Handler)
 	run_        func()
 	remoteAddr_ func() string
+	cookie_     func(string) string
 }
 
 func newMockContext() *mockContext {
@@ -73,4 +74,8 @@ func (c *mockContext) Params(name string) string {
 func (c *mockContext) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *mockContext) Cookie(name string) string {
+	return c.cookie_(name)
 }
