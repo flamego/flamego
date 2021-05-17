@@ -49,7 +49,7 @@ TBD
 
 TBD
 
-## Use cases
+## Users and projects
 
 TBD
 
