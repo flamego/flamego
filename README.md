@@ -5,17 +5,17 @@
 [![GoDoc](https://img.shields.io/badge/GoDoc-Reference-blue?style=for-the-badge&logo=go)](https://pkg.go.dev/github.com/flamego/flamego?tab=doc)
 [![Sourcegraph](https://img.shields.io/badge/view%20on-Sourcegraph-brightgreen.svg?style=for-the-badge&logo=sourcegraph)](https://sourcegraph.com/github.com/flamego/flamego)
 
-A fantastic modular Go web framework boiled with black magic.
+Flamego is a fantastic modular Go web framework boiled with black magic.
 
-## Getting started
+It is the successor of the [Macaron](https://github.com/go-macaron/macaron), and equips the most powerful routing syntax among all web frameworks within the Go ecosystem.
+
+## Installation
 
 The minimum requirement of Go is **1.16**.
 
-To install Flamego:
-
 	go get github.com/flamego/flamego
 
-To begin with:
+## Getting started
 
 ```go
 package main
@@ -30,6 +30,26 @@ func main() {
 	f.Run()
 }
 ```
+
+## Features
+
+_Stay tuned!_
+
+## Middlewares
+
+- [`Logger`](logger.go) - Log requests and response status code
+- [`Recovery`](recovery.go) - Automatic recovery from panics
+- [`Static`](static.go) - Serve static files
+- [template](https://github.com/flamego/template) - Go template rendering
+- [session](https://github.com/flamego/session) - User session management
+
+## Getting help
+
+_Stay tuned!_
+
+## Users and projects
+
+_Stay tuned!_
 
 ## License
 
