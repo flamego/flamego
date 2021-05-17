@@ -7,7 +7,7 @@
 
 Flamego is a fantastic modular Go web framework boiled with black magic.
 
-It is the successor of the [Macaron](https://github.com/go-macaron/macaron), and carries the most powerful routing syntax among all web frameworks within the Go ecosystem.
+It is the successor of the [Macaron](https://github.com/go-macaron/macaron), and equips the most powerful routing syntax among all web frameworks within the Go ecosystem.
 
 ## Installation
 
@@ -33,7 +33,7 @@ func main() {
 
 ## Features
 
-TBD
+_Stay tuned!_
 
 ## Middlewares
 
@@ -45,11 +45,11 @@ TBD
 
 ## Getting help
 
-TBD
+_Stay tuned!_
 
 ## Users and projects
 
-TBD
+_Stay tuned!_
 
 ## License
 
