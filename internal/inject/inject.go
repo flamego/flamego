@@ -58,9 +58,9 @@ func IsFastInvoker(handler interface{}) bool {
 // TypeMapper represents an interface for mapping `interface{}` values based on
 // type.
 type TypeMapper interface {
-	// Map maps the `interface{}` value based on its immediate type from
+	// Map maps the `interface{}` values based on their immediate type from
 	// reflect.TypeOf.
-	Map(interface{}) TypeMapper
+	Map(...interface{}) TypeMapper
 	// MapTo maps the `interface{}` value based on the pointer of an Interface
 	// provided. This is really only useful for mapping a value as an interface, as
 	// interfaces cannot at this time be referenced directly without a pointer.
@@ -184,8 +184,10 @@ func (inj *injector) Apply(val interface{}) error {
 	return nil
 }
 
-func (inj *injector) Map(val interface{}) TypeMapper {
-	inj.values[reflect.TypeOf(val)] = reflect.ValueOf(val)
+func (inj *injector) Map(values ...interface{}) TypeMapper {
+	for _, val := range values {
+		inj.values[reflect.TypeOf(val)] = reflect.ValueOf(val)
+	}
 	return inj
 }
 
