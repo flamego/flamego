@@ -44,7 +44,7 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
-	// Query queries form parameter.
+	// Query queries URL parameter.
 	Query(name string) string
 	// QueryTrim queries and trims spaces form parameter.
 	QueryTrim(name string) string
