@@ -5,8 +5,6 @@
 package flamego
 
 import (
-	"strconv"
-
 	"github.com/flamego/flamego/internal/inject"
 	"github.com/flamego/flamego/internal/route"
 )
@@ -15,18 +13,28 @@ var _ Context = (*mockContext)(nil)
 
 type mockContext struct {
 	inject.Injector
-	responseWriter ResponseWriter
-	request        *Request
+	responseWriter_ func() ResponseWriter
+	request_        func() *Request
 
 	params route.Params
 
-	urlPath_    urlPather
-	written_    func() bool
-	next_       func()
-	setAction_  func(Handler)
-	run_        func()
-	remoteAddr_ func() string
-	cookie_     func(string) string
+	urlPath_      urlPather
+	written_      func() bool
+	next_         func()
+	setAction_    func(Handler)
+	run_          func()
+	remoteAddr_   func() string
+	params_       func(string) string
+	paramsInt_    func(string) int
+	query_        func(string) string
+	queryTrim_    func(string) string
+	queryStrings_ func(string) []string
+	queryEscape_  func(string) string
+	queryBool_    func(string) bool
+	queryInt_     func(string) int
+	queryInt64_   func(string) int64
+	queryFloat64_ func(string) float64
+	cookie_       func(string) string
 }
 
 func newMockContext() *mockContext {
@@ -36,11 +44,11 @@ func newMockContext() *mockContext {
 }
 
 func (c *mockContext) ResponseWriter() ResponseWriter {
-	return c.responseWriter
+	return c.responseWriter_()
 }
 
 func (c *mockContext) Request() *Request {
-	return c.request
+	return c.request_()
 }
 
 func (c *mockContext) URLPath(name string, pairs ...string) string {
@@ -68,12 +76,43 @@ func (c *mockContext) RemoteAddr() string {
 }
 
 func (c *mockContext) Params(name string) string {
-	return c.params[name]
+	return c.params_(name)
 }
 
 func (c *mockContext) ParamsInt(name string) int {
-	i, _ := strconv.Atoi(c.Params(name))
-	return i
+	return c.paramsInt_(name)
+}
+
+func (c *mockContext) Query(name string) string {
+	return c.query_(name)
+}
+
+func (c *mockContext) QueryTrim(name string) string {
+	return c.queryTrim_(name)
+}
+
+func (c *mockContext) QueryStrings(name string) []string {
+	return c.queryStrings_(name)
+}
+
+func (c *mockContext) QueryEscape(name string) string {
+	return c.queryEscape_(name)
+}
+
+func (c *mockContext) QueryBool(name string) bool {
+	return c.queryBool_(name)
+}
+
+func (c *mockContext) QueryInt(name string) int {
+	return c.queryInt_(name)
+}
+
+func (c *mockContext) QueryInt64(name string) int64 {
+	return c.queryInt64_(name)
+}
+
+func (c *mockContext) QueryFloat64(name string) float64 {
+	return c.queryFloat64_(name)
 }
 
 func (c *mockContext) Cookie(name string) string {
