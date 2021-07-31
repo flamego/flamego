@@ -128,7 +128,7 @@ func (c *context) run() {
 
 		vals, err := c.Invoke(h)
 		if err != nil {
-			panic(fmt.Sprintf("unable to invoke %dth handler: %v", c.index, err))
+			panic(fmt.Sprintf("unable to invoke %dth handler [%T]: %v", c.index, h, err))
 		}
 		c.index++
 
