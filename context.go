@@ -6,7 +6,6 @@ package flamego
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -207,7 +206,8 @@ func (c *context) QueryStrings(name string) []string {
 }
 
 func (c *context) QueryUnescape(name string) string {
-	return template.HTMLEscapeString(c.Query(name))
+	v, _ := url.QueryUnescape(c.Query(name))
+	return v
 }
 
 func (c *context) QueryBool(name string) bool {
