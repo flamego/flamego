@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 )
 
 func TestLogger(t *testing.T) {

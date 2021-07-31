@@ -16,7 +16,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 	"github.com/flamego/flamego/internal/route"
 )
 

@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 	"github.com/flamego/flamego/internal/route"
 )
 

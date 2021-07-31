@@ -13,7 +13,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 )
 
 var _ inject.FastInvoker = (*LoggerInvoker)(nil)
