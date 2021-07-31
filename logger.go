@@ -70,7 +70,7 @@ func Logger(opts ...LoggerOptions) Handler {
 			ctx.RemoteAddr(),
 		)
 
-		w := ctx.ResponseWriter().(ResponseWriter)
+		w := ctx.ResponseWriter()
 		ctx.Next()
 
 		content := fmt.Sprintf("%s: Completed %s %s %v %s in %v",
