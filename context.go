@@ -43,6 +43,9 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
+
+	// SetCookie escapes the cookie value and sets it to the current response.
+	SetCookie(cookie http.Cookie)
 	// Cookie returns the named cookie in the request or empty if not found. If
 	// multiple cookies match the given name, only one cookie will be returned. The
 	// returned value is unescaped using `url.QueryUnescape`, original value is
@@ -167,6 +170,11 @@ func (c *context) Params(name string) string {
 func (c *context) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *context) SetCookie(cookie http.Cookie) {
+	cookie.Value = url.QueryEscape(cookie.Value)
+	c.ResponseWriter().Header().Add("Set-Cookie", cookie.String())
 }
 
 func (c *context) Cookie(name string) string {
