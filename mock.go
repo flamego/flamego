@@ -6,7 +6,6 @@ package flamego
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/flamego/flamego/internal/inject"
 	"github.com/flamego/flamego/internal/route"
@@ -37,15 +36,8 @@ type mockContext struct {
 	queryInt_     func(string) int
 	queryInt64_   func(string) int64
 	queryFloat64_ func(string) float64
+	setCookie_    func(cookie http.Cookie)
 	cookie_       func(string) string
-	urlPath_    urlPather
-	written_    func() bool
-	next_       func()
-	setAction_  func(Handler)
-	run_        func()
-	remoteAddr_ func() string
-	setCookie_  func(cookie http.Cookie)
-	cookie_     func(string) string
 }
 
 func newMockContext() *mockContext {
