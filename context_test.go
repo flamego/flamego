@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -135,6 +137,318 @@ func TestContext_Params(t *testing.T) {
 			f.ServeHTTP(resp, req)
 
 			assert.Equal(t, test.wantBody, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_Query(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return c.Query("fgq")
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=Flamego&language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=&language=Go",
+			want: "",
+		},
+		{
+			name: "multiple value",
+			url:  "/?fgq=value1&fgq=value2",
+			want: "value1",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryTrim(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return c.QueryTrim("fgq")
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=  Flamego  &language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=&language=Go",
+			want: "",
+		},
+		{
+			name: "multiple value",
+			url:  "/?fgq=  value1&fgq=value2",
+			want: "value1",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryStrings(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return strings.Join(c.QueryStrings("fgq"), "|")
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=value1&fgq=value2",
+			want: "value1|value2",
+		},
+		{
+			name: "single value",
+			url:  "/?fgq=Flamego&language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=&language=Go",
+			want: "",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryUnescape(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return c.QueryUnescape("fgq")
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=%E4%B8%AD%E5%9B%BD%20666",
+			want: "中国 666",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=&language=Go",
+			want: "",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryBool(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return strconv.FormatBool(c.QueryBool("fgq"))
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=true",
+			want: "true",
+		},
+		{
+			name: "normal",
+			url:  "/?fgq=False",
+			want: "false",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=",
+			want: "false",
+		},
+		{
+			name: "single char",
+			url:  "/?fgq=T",
+			want: "true",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryInt(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return strconv.FormatInt(int64(c.QueryInt("fgq")), 10)
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=123",
+			want: "123",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=",
+			want: "0",
+		},
+		{
+			name: "negative value",
+			url:  "/?fgq=-123",
+			want: "-123",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryInt64(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return strconv.FormatInt(c.QueryInt64("fgq"), 10)
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=123",
+			want: "123",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=",
+			want: "0",
+		},
+		{
+			name: "negative value",
+			url:  "/?fgq=-123",
+			want: "-123",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_QueryFloat64(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) string {
+		return fmt.Sprintf("%v", c.QueryFloat64("fgq"))
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/?fgq=3.1415926",
+			want: "3.1415926",
+		},
+		{
+			name: "empty value",
+			url:  "/?fgq=",
+			want: "0",
+		},
+		{
+			name: "negative value",
+			url:  "/?fgq=-3.1415926",
+			want: "-3.1415926",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
 		})
 	}
 }

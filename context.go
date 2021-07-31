@@ -43,6 +43,22 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
+	// Query queries URL parameter with given name.
+	Query(name string) string
+	// QueryTrim queries and trims spaces from the value.
+	QueryTrim(name string) string
+	// QueryStrings returns a list of results with given name.
+	QueryStrings(name string) []string
+	// QueryUnescape returns unescaped query result.
+	QueryUnescape(name string) string
+	// QueryBool returns query result in bool type.
+	QueryBool(name string) bool
+	// QueryInt returns query result in int type.
+	QueryInt(name string) int
+	// QueryInt64 returns query result in int64 type.
+	QueryInt64(name string) int64
+	// QueryFloat64 returns query result in float64 type.
+	QueryFloat64(name string) float64
 
 	// SetCookie escapes the cookie value and sets it to the current response.
 	SetCookie(cookie http.Cookie)
@@ -170,6 +186,48 @@ func (c *context) Params(name string) string {
 func (c *context) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *context) Query(name string) string {
+	return c.Request().URL.Query().Get(name)
+}
+
+func (c *context) QueryTrim(name string) string {
+	return strings.TrimSpace(c.Query(name))
+}
+
+func (c *context) QueryStrings(name string) []string {
+	for k, v := range c.Request().URL.Query() {
+		if k == name {
+			return v
+		}
+	}
+	return []string{}
+}
+
+func (c *context) QueryUnescape(name string) string {
+	v, _ := url.QueryUnescape(c.Query(name))
+	return v
+}
+
+func (c *context) QueryBool(name string) bool {
+	v, _ := strconv.ParseBool(c.Query(name))
+	return v
+}
+
+func (c *context) QueryInt(name string) int {
+	v, _ := strconv.ParseInt(c.Query(name), 10, 0)
+	return int(v)
+}
+
+func (c *context) QueryInt64(name string) int64 {
+	v, _ := strconv.ParseInt(c.Query(name), 10, 64)
+	return v
+}
+
+func (c *context) QueryFloat64(name string) float64 {
+	v, _ := strconv.ParseFloat(c.Query(name), 64)
+	return v
 }
 
 func (c *context) SetCookie(cookie http.Cookie) {
