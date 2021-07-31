@@ -44,14 +44,14 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
-	// Query queries URL parameter.
+	// Query queries URL parameter with given name.
 	Query(name string) string
-	// QueryTrim queries and trims spaces form parameter.
+	// QueryTrim queries and trims spaces from the value.
 	QueryTrim(name string) string
-	// QueryStrings returns a list of results by given query name.
+	// QueryStrings returns a list of results with given name.
 	QueryStrings(name string) []string
-	// QueryEscape returns escaped query result.
-	QueryEscape(name string) string
+	// QueryUnescape returns unescaped query result.
+	QueryUnescape(name string) string
 	// QueryBool returns query result in bool type.
 	QueryBool(name string) bool
 	// QueryInt returns query result in int type.
