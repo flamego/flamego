@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 )
 
 // ReturnHandler is a service that is called when a route handler returns

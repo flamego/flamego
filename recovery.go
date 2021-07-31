@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 )
 
 // Recovery returns a middleware handler that recovers from any panics and

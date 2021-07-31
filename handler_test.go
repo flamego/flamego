@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flamego/flamego/internal/inject"
+	"github.com/flamego/flamego/inject"
 )
 
 var _ inject.FastInvoker = (*testHandlerFastInvoker)(nil)
