@@ -60,6 +60,9 @@ type Context interface {
 	QueryInt64(name string) int64
 	// QueryFloat64 returns query result in float64 type.
 	QueryFloat64(name string) float64
+
+	// SetCookie escapes the cookie value and sets it to the current response.
+	SetCookie(cookie http.Cookie)
 	// Cookie returns the named cookie in the request or empty if not found. If
 	// multiple cookies match the given name, only one cookie will be returned. The
 	// returned value is unescaped using `url.QueryUnescape`, original value is
@@ -142,7 +145,7 @@ func (c *context) run() {
 
 		vals, err := c.Invoke(h)
 		if err != nil {
-			panic(fmt.Sprintf("unable to invoke %dth handler: %v", c.index, err))
+			panic(fmt.Sprintf("unable to invoke %dth handler [%T]: %v", c.index, h, err))
 		}
 		c.index++
 
@@ -225,6 +228,11 @@ func (c *context) QueryInt64(name string) int64 {
 func (c *context) QueryFloat64(name string) float64 {
 	v, _ := strconv.ParseFloat(c.Query(name), 64)
 	return v
+}
+
+func (c *context) SetCookie(cookie http.Cookie) {
+	cookie.Value = url.QueryEscape(cookie.Value)
+	c.ResponseWriter().Header().Add("Set-Cookie", cookie.String())
 }
 
 func (c *context) Cookie(name string) string {

@@ -453,6 +453,27 @@ func TestContext_QueryFloat64(t *testing.T) {
 	}
 }
 
+func TestContext_SetCookie(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/", func(c Context) {
+		c.SetCookie(
+			http.Cookie{
+				Name:  "country",
+				Value: "中国",
+				Path:  "/",
+			},
+		)
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, "country=%E4%B8%AD%E5%9B%BD; Path=/", resp.Header().Get("Set-Cookie"))
+}
+
 func TestContext_Cookie(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
