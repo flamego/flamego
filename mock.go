@@ -20,24 +20,24 @@ type mockContext struct {
 
 	params route.Params
 
-	urlPath_      urlPather
-	written_      func() bool
-	next_         func()
-	setAction_    func(Handler)
-	run_          func()
-	remoteAddr_   func() string
-	params_       func(string) string
-	paramsInt_    func(string) int
-	query_        func(string) string
-	queryTrim_    func(string) string
-	queryStrings_ func(string) []string
-	queryEscape_  func(string) string
-	queryBool_    func(string) bool
-	queryInt_     func(string) int
-	queryInt64_   func(string) int64
-	queryFloat64_ func(string) float64
-	setCookie_    func(cookie http.Cookie)
-	cookie_       func(string) string
+	urlPath_       urlPather
+	written_       func() bool
+	next_          func()
+	setAction_     func(Handler)
+	run_           func()
+	remoteAddr_    func() string
+	params_        func(string) string
+	paramsInt_     func(string) int
+	query_         func(string) string
+	queryTrim_     func(string) string
+	queryStrings_  func(string) []string
+	queryUnescape_ func(string) string
+	queryBool_     func(string) bool
+	queryInt_      func(string) int
+	queryInt64_    func(string) int64
+	queryFloat64_  func(string) float64
+	setCookie_     func(cookie http.Cookie)
+	cookie_        func(string) string
 }
 
 func newMockContext() *mockContext {
@@ -98,8 +98,8 @@ func (c *mockContext) QueryStrings(name string) []string {
 	return c.queryStrings_(name)
 }
 
-func (c *mockContext) QueryEscape(name string) string {
-	return c.queryEscape_(name)
+func (c *mockContext) QueryUnescape(name string) string {
+	return c.queryUnescape_(name)
 }
 
 func (c *mockContext) QueryBool(name string) bool {

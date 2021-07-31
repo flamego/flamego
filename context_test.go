@@ -258,10 +258,10 @@ func TestContext_QueryStrings(t *testing.T) {
 	}
 }
 
-func TestContext_QueryEscape(t *testing.T) {
+func TestContext_QueryUnescape(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
-		return c.QueryEscape("fgq")
+		return c.QueryUnescape("fgq")
 	})
 
 	tests := []struct {

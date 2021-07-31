@@ -206,7 +206,7 @@ func (c *context) QueryStrings(name string) []string {
 	return []string{}
 }
 
-func (c *context) QueryEscape(name string) string {
+func (c *context) QueryUnescape(name string) string {
 	return template.HTMLEscapeString(c.Query(name))
 }
 
