@@ -5,6 +5,7 @@
 package flamego
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/flamego/flamego/internal/inject"
@@ -26,6 +27,7 @@ type mockContext struct {
 	setAction_  func(Handler)
 	run_        func()
 	remoteAddr_ func() string
+	setCookie_  func(cookie http.Cookie)
 	cookie_     func(string) string
 }
 
@@ -74,6 +76,10 @@ func (c *mockContext) Params(name string) string {
 func (c *mockContext) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *mockContext) SetCookie(cookie http.Cookie) {
+	c.setCookie_(cookie)
 }
 
 func (c *mockContext) Cookie(name string) string {
