@@ -42,7 +42,7 @@ _Stay tuned!_
 - [`Static`](static.go) - Serve static files
 - [template](https://github.com/flamego/template) - Go template rendering
 - [session](https://github.com/flamego/session) - User session management
-- [recaptcha](https://github.com/flamego/recaptcha) - Verifying of recaptcha
+- [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
 
 ## Getting help
 
