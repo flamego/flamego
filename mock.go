@@ -26,6 +26,7 @@ type mockContext struct {
 	setAction_     func(Handler)
 	run_           func()
 	remoteAddr_    func() string
+	redirect_      func(string, ...int)
 	params_        func(string) string
 	paramsInt_     func(string) int
 	query_         func(string) string
@@ -76,6 +77,10 @@ func (c *mockContext) run() {
 
 func (c *mockContext) RemoteAddr() string {
 	return c.remoteAddr_()
+}
+
+func (c *mockContext) Redirect(location string, status ...int) {
+	c.redirect_(location, status...)
 }
 
 func (c *mockContext) Params(name string) string {

@@ -39,10 +39,15 @@ type Context interface {
 	//  - "X-Forwarded-For" request header
 	//  - http.Request.RemoteAddr field
 	RemoteAddr() string
+	// Redirect sends a redirection to the response to the given location. If the
+	// `status` is not given, the http.StatusFound is used.
+	Redirect(location string, status ...int)
+
 	// Params returns value of given bind parameter.
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
+
 	// Query queries URL parameter with given name.
 	Query(name string) string
 	// QueryTrim queries and trims spaces from the value.
@@ -177,6 +182,15 @@ func (c *context) RemoteAddr() string {
 		addr = addr[:i]
 	}
 	return addr
+}
+
+func (c *context) Redirect(location string, status ...int) {
+	code := http.StatusFound
+	if len(status) == 1 {
+		code = status[0]
+	}
+
+	http.Redirect(c.ResponseWriter(), c.Request().Request, location, code)
 }
 
 func (c *context) Params(name string) string {
