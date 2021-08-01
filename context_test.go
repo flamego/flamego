@@ -101,6 +101,50 @@ func TestContext_RemoteAddr(t *testing.T) {
 	}
 }
 
+func TestContext_Redirect(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	tests := []struct {
+		name         string
+		url          string
+		location     string
+		status       []int
+		wantCode     int
+		wantLocation string
+	}{
+		{
+			name:         "default status",
+			url:          "/default-status",
+			location:     "/new-location",
+			wantCode:     http.StatusFound,
+			wantLocation: "/new-location",
+		},
+		{
+			name:         "custom status",
+			url:          "/custom-status",
+			location:     "/new-location",
+			status:       []int{http.StatusTemporaryRedirect},
+			wantCode:     http.StatusTemporaryRedirect,
+			wantLocation: "/new-location",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			f.Get(test.url, func(c Context) {
+				c.Redirect(test.location, test.status...)
+			})
+
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+
+			assert.Equal(t, test.wantCode, resp.Code)
+			assert.Equal(t, test.wantLocation, resp.Header()["Location"][0])
+		})
+	}
+}
+
 func TestContext_Params(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	tests := []struct {
