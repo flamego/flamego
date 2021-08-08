@@ -43,6 +43,7 @@ _Stay tuned!_
 - [template](https://github.com/flamego/template) - Go template rendering
 - [session](https://github.com/flamego/session) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
+- [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
 
 ## Getting help
 
