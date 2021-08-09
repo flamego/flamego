@@ -173,7 +173,7 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	for _, m := range methods {
 		leaf, err = route.AddRoute(r.routeTrees[m], ast, handler)
 		if err != nil {
-			panic(fmt.Sprintf("unable to add route %q: %v", routePath, err))
+			panic(fmt.Sprintf("unable to add route %q with method %s: %v", routePath, m, err))
 		}
 
 		if leaf.Static() {
