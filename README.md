@@ -35,7 +35,7 @@ func main() {
 
 _Stay tuned!_
 
-## Middlewares
+## Middleware
 
 - [`Logger`](logger.go) - Log requests and response status code
 - [`Recovery`](recovery.go) - Automatic recovery from panics
@@ -44,6 +44,7 @@ _Stay tuned!_
 - [session](https://github.com/flamego/session) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
 - [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
+- [cors](https://github.com/flamego/cors) - Cross-Origin Resource Sharing
 
 ## Getting help
 
