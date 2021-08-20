@@ -45,6 +45,7 @@ _Stay tuned!_
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
 - [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
 - [cors](https://github.com/flamego/cors) - Cross-Origin Resource Sharing
+- [binding](https://github.com/flamego/binding) - Request data binding and validation
 
 ## Getting help
 
