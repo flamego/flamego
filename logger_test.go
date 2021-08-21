@@ -25,7 +25,7 @@ func TestLogger(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Use(Logger())
 	f.Get("/{code}", func(c Context) (int, string) {
-		code := c.ParamsInt("code")
+		code := c.ParamInt("code")
 		return code, http.StatusText(code)
 	})
 	codes := []int{

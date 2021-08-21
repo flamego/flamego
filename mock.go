@@ -27,9 +27,9 @@ type mockContext struct {
 	remoteAddr_ func() string
 	redirect_   func(string, ...int)
 
-	params_      func(string) string
-	paramsInt_   func(string) int
-	paramsInt64_ func(string) int64
+	param_      func(string) string
+	paramInt_   func(string) int
+	paramInt64_ func(string) int64
 
 	query_         func(string) string
 	queryTrim_     func(string) string
@@ -89,16 +89,16 @@ func (c *mockContext) Redirect(location string, status ...int) {
 	c.redirect_(location, status...)
 }
 
-func (c *mockContext) Params(name string) string {
-	return c.params_(name)
+func (c *mockContext) Param(name string) string {
+	return c.param_(name)
 }
 
-func (c *mockContext) ParamsInt(name string) int {
-	return c.paramsInt_(name)
+func (c *mockContext) ParamInt(name string) int {
+	return c.paramInt_(name)
 }
 
-func (c *mockContext) ParamsInt64(name string) int64 {
-	return c.paramsInt64_(name)
+func (c *mockContext) ParamInt64(name string) int64 {
+	return c.paramInt64_(name)
 }
 
 func (c *mockContext) Query(name string) string {

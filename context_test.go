@@ -145,7 +145,7 @@ func TestContext_Redirect(t *testing.T) {
 	}
 }
 
-func TestContext_Params(t *testing.T) {
+func TestContext_Param(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	tests := []struct {
 		route    string
@@ -157,7 +157,7 @@ func TestContext_Params(t *testing.T) {
 			route: "/params/{string}/{int}",
 			url:   "/params/hello/123",
 			handler: func(c Context) string {
-				return fmt.Sprintf("%s %s", c.Params("string"), c.Params("int"))
+				return fmt.Sprintf("%s %s", c.Param("string"), c.Param("int"))
 			},
 			wantBody: "hello 123",
 		},
@@ -165,7 +165,7 @@ func TestContext_Params(t *testing.T) {
 			route: "/params-int/{string}/{int}",
 			url:   "/params-int/hello/123",
 			handler: func(c Context) string {
-				return fmt.Sprintf("%d %d", c.ParamsInt("string"), c.ParamsInt("int"))
+				return fmt.Sprintf("%d %d", c.ParamInt("string"), c.ParamInt("int"))
 			},
 			wantBody: "0 123",
 		},
@@ -185,10 +185,44 @@ func TestContext_Params(t *testing.T) {
 	}
 }
 
-func TestContext_ParamsInt64(t *testing.T) {
+func TestContext_ParamInt(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/{uid}", func(c Context) string {
-		return strconv.FormatInt(c.ParamsInt64("uid"), 10)
+		return strconv.Itoa(c.ParamInt("uid"))
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/123",
+			want: "123",
+		},
+		{
+			name: "negative value",
+			url:  "/-123",
+			want: "-123",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
+func TestContext_ParamInt64(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/{uid}", func(c Context) string {
+		return strconv.FormatInt(c.ParamInt64("uid"), 10)
 	})
 
 	tests := []struct {
