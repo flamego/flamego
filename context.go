@@ -43,28 +43,28 @@ type Context interface {
 	// `status` is not given, the http.StatusFound is used.
 	Redirect(location string, status ...int)
 
-	// Params returns value of given bind parameter.
+	// Params returns value of the given bind parameter.
 	Params(name string) string
-	// ParamsInt returns value of given bind parameter parsed as int.
+	// ParamsInt returns value of the given bind parameter parsed as int.
 	ParamsInt(name string) int
-	// ParamsInt64 returns value of given bind parameter parsed as int64.
+	// ParamsInt64 returns value of the given bind parameter parsed as int64.
 	ParamsInt64(name string) int64
 
-	// Query returns value of given URL parameter.
+	// Query returns value of the given URL parameter.
 	Query(name string) string
-	// QueryTrim trims spaces and returns value of given URL parameter.
+	// QueryTrim trims spaces and returns value of the given URL parameter.
 	QueryTrim(name string) string
-	// QueryStrings returns a list of strings of given URL parameter.
+	// QueryStrings returns a list of strings of the given URL parameter.
 	QueryStrings(name string) []string
-	// QueryUnescape returns unescaped query result of given URL parameter.
+	// QueryUnescape returns unescaped query result of the given URL parameter.
 	QueryUnescape(name string) string
-	// QueryBool returns value of given URL parameter parsed as bool.
+	// QueryBool returns value of the given URL parameter parsed as bool.
 	QueryBool(name string) bool
-	// QueryInt returns value of given URL parameter parsed as int.
+	// QueryInt returns value of the given URL parameter parsed as int.
 	QueryInt(name string) int
-	// QueryInt64 returns value of given URL parameter parsed as int64.
+	// QueryInt64 returns value of the given URL parameter parsed as int64.
 	QueryInt64(name string) int64
-	// QueryFloat64 returns value of given URL parameter parsed as float64.
+	// QueryFloat64 returns value of the given URL parameter parsed as float64.
 	QueryFloat64(name string) float64
 
 	// SetCookie escapes the cookie value and sets it to the current response.
