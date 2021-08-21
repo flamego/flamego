@@ -185,6 +185,40 @@ func TestContext_Params(t *testing.T) {
 	}
 }
 
+func TestContext_ParamsInt64(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/{uid}", func(c Context) string {
+		return strconv.FormatInt(c.ParamsInt64("uid"), 10)
+	})
+
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{
+			name: "normal",
+			url:  "/123",
+			want: "123",
+		},
+		{
+			name: "negative value",
+			url:  "/-123",
+			want: "-123",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.url, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, test.want, resp.Body.String())
+		})
+	}
+}
+
 func TestContext_Query(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
