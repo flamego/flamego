@@ -6,6 +6,7 @@ package flamego
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -133,6 +134,28 @@ func (c *context) setAction(h Handler) {
 	c.action = h
 }
 
+// ordinalize ordinalizes the number by adding the ordinal to the number.
+func ordinalize(number int) string {
+	absNumber := int(math.Abs(float64(number)))
+
+	nstr := strconv.Itoa(number)
+	i := absNumber % 100
+	if i == 11 || i == 12 || i == 13 {
+		return nstr + "th"
+	}
+
+	switch absNumber % 10 {
+	case 1:
+		return nstr + "st"
+	case 2:
+		return nstr + "nd"
+	case 3:
+		return nstr + "rd"
+	default:
+		return nstr + "th"
+	}
+}
+
 func (c *context) run() {
 	for c.index <= len(c.handlers) {
 		var h Handler
@@ -149,7 +172,7 @@ func (c *context) run() {
 
 		vals, err := c.Invoke(h)
 		if err != nil {
-			panic(fmt.Sprintf("unable to invoke %dth handler [%T]: %v", c.index, h, err))
+			panic(fmt.Sprintf("unable to invoke the %s handler [%T]: %v", ordinalize(c.index), h, err))
 		}
 		c.index++
 

@@ -579,3 +579,14 @@ func TestContext_Cookie(t *testing.T) {
 		})
 	}
 }
+
+func TestOrdinalize(t *testing.T) {
+	assert.Equal(t, "1st", ordinalize(1))
+	assert.Equal(t, "2nd", ordinalize(2))
+	assert.Equal(t, "12th", ordinalize(12))
+	assert.Equal(t, "13th", ordinalize(13))
+	assert.Equal(t, "23rd", ordinalize(23))
+	assert.Equal(t, "1002nd", ordinalize(1002))
+	assert.Equal(t, "-111th", ordinalize(-111))
+	assert.Equal(t, "5th", ordinalize(5))
+}
