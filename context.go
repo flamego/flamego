@@ -47,22 +47,24 @@ type Context interface {
 	Params(name string) string
 	// ParamsInt returns value of given bind parameter parsed as int.
 	ParamsInt(name string) int
+	// ParamsInt64 returns value of given bind parameter parsed as int64.
+	ParamsInt64(name string) int64
 
-	// Query queries URL parameter with given name.
+	// Query returns value of given URL parameter.
 	Query(name string) string
-	// QueryTrim queries and trims spaces from the value.
+	// QueryTrim trims spaces and returns value of given URL parameter.
 	QueryTrim(name string) string
-	// QueryStrings returns a list of results with given name.
+	// QueryStrings returns a list of strings of given URL parameter.
 	QueryStrings(name string) []string
-	// QueryUnescape returns unescaped query result.
+	// QueryUnescape returns unescaped query result of given URL parameter.
 	QueryUnescape(name string) string
-	// QueryBool returns query result in bool type.
+	// QueryBool returns value of given URL parameter parsed as bool.
 	QueryBool(name string) bool
-	// QueryInt returns query result in int type.
+	// QueryInt returns value of given URL parameter parsed as int.
 	QueryInt(name string) int
-	// QueryInt64 returns query result in int64 type.
+	// QueryInt64 returns value of given URL parameter parsed as int64.
 	QueryInt64(name string) int64
-	// QueryFloat64 returns query result in float64 type.
+	// QueryFloat64 returns value of given URL parameter parsed as float64.
 	QueryFloat64(name string) float64
 
 	// SetCookie escapes the cookie value and sets it to the current response.
@@ -200,6 +202,11 @@ func (c *context) Params(name string) string {
 func (c *context) ParamsInt(name string) int {
 	i, _ := strconv.Atoi(c.Params(name))
 	return i
+}
+
+func (c *context) ParamsInt64(name string) int64 {
+	v, _ := strconv.ParseInt(c.Params(name), 10, 64)
+	return v
 }
 
 func (c *context) Query(name string) string {

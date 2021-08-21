@@ -20,15 +20,17 @@ type mockContext struct {
 
 	params route.Params
 
-	urlPath_       urlPather
-	written_       func() bool
-	next_          func()
-	setAction_     func(Handler)
-	run_           func()
-	remoteAddr_    func() string
-	redirect_      func(string, ...int)
-	params_        func(string) string
-	paramsInt_     func(string) int
+	urlPath_ urlPather
+	written_ func() bool
+
+	next_       func()
+	remoteAddr_ func() string
+	redirect_   func(string, ...int)
+
+	params_      func(string) string
+	paramsInt_   func(string) int
+	paramsInt64_ func(string) int64
+
 	query_         func(string) string
 	queryTrim_     func(string) string
 	queryStrings_  func(string) []string
@@ -37,8 +39,12 @@ type mockContext struct {
 	queryInt_      func(string) int
 	queryInt64_    func(string) int64
 	queryFloat64_  func(string) float64
-	setCookie_     func(cookie http.Cookie)
-	cookie_        func(string) string
+
+	setCookie_ func(cookie http.Cookie)
+	cookie_    func(string) string
+
+	setAction_ func(Handler)
+	run_       func()
 }
 
 func newMockContext() *mockContext {
@@ -89,6 +95,10 @@ func (c *mockContext) Params(name string) string {
 
 func (c *mockContext) ParamsInt(name string) int {
 	return c.paramsInt_(name)
+}
+
+func (c *mockContext) ParamsInt64(name string) int64 {
+	return c.paramsInt64_(name)
 }
 
 func (c *mockContext) Query(name string) string {
