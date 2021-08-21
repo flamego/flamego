@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/flamego/flamego/inject"
-	"github.com/flamego/flamego/internal/route"
 )
 
 var _ Context = (*mockContext)(nil)
@@ -18,7 +17,7 @@ type mockContext struct {
 	responseWriter_ func() ResponseWriter
 	request_        func() *Request
 
-	params route.Params
+	params Params
 
 	urlPath_ urlPather
 	written_ func() bool
@@ -27,6 +26,7 @@ type mockContext struct {
 	remoteAddr_ func() string
 	redirect_   func(string, ...int)
 
+	params_     func() Params
 	param_      func(string) string
 	paramInt_   func(string) int
 	paramInt64_ func(string) int64
@@ -87,6 +87,10 @@ func (c *mockContext) RemoteAddr() string {
 
 func (c *mockContext) Redirect(location string, status ...int) {
 	c.redirect_(location, status...)
+}
+
+func (c *mockContext) Params() Params {
+	return c.params_()
 }
 
 func (c *mockContext) Param(name string) string {
