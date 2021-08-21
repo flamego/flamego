@@ -136,15 +136,15 @@ func (c *context) setAction(h Handler) {
 
 // ordinalize ordinalizes the number by adding the ordinal to the number.
 func ordinalize(number int) string {
-	absNumber := int(math.Abs(float64(number)))
+	abs := int(math.Abs(float64(number)))
 
 	nstr := strconv.Itoa(number)
-	i := absNumber % 100
+	i := abs % 100
 	if i == 11 || i == 12 || i == 13 {
 		return nstr + "th"
 	}
 
-	switch absNumber % 10 {
+	switch abs % 10 {
 	case 1:
 		return nstr + "st"
 	case 2:
