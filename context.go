@@ -44,12 +44,14 @@ type Context interface {
 	// `status` is not given, the http.StatusFound is used.
 	Redirect(location string, status ...int)
 
-	// Params returns value of the given bind parameter.
-	Params(name string) string
-	// ParamsInt returns value of the given bind parameter parsed as int.
-	ParamsInt(name string) int
-	// ParamsInt64 returns value of the given bind parameter parsed as int64.
-	ParamsInt64(name string) int64
+	// Params returns all bind parameters.
+	Params() Params
+	// Param returns value of the given bind parameter.
+	Param(name string) string
+	// ParamInt returns value of the given bind parameter parsed as int.
+	ParamInt(name string) int
+	// ParamInt64 returns value of the given bind parameter parsed as int64.
+	ParamInt64(name string) int64
 
 	// Query returns value of the given URL parameter.
 	Query(name string) string
@@ -82,6 +84,10 @@ type Context interface {
 	run()
 }
 
+// Params is a set of bind parameters with their values that are extracted from
+// the request path.
+type Params map[string]string
+
 type context struct {
 	inject.Injector
 
@@ -91,7 +97,7 @@ type context struct {
 
 	responseWriter ResponseWriter // The http.ResponseWriter wrapper for the coming request.
 	request        *Request       // The http.Request wrapper for the coming request.
-	params         route.Params   // The values of bind parameters for the coming request.
+	params         Params         // The values of bind parameters for the coming request.
 
 	// urlPath is used to build URL path for a route.
 	urlPath urlPather
@@ -106,7 +112,7 @@ func newContext(w http.ResponseWriter, r *http.Request, params route.Params, han
 		handlers:       handlers,
 		responseWriter: NewResponseWriter(r.Method, w),
 		request:        &Request{Request: r},
-		params:         params,
+		params:         Params(params),
 		urlPath:        urlPath,
 	}
 	c.Map(c)
@@ -218,17 +224,21 @@ func (c *context) Redirect(location string, status ...int) {
 	http.Redirect(c.ResponseWriter(), c.Request().Request, location, code)
 }
 
-func (c *context) Params(name string) string {
+func (c *context) Params() Params {
+	return c.params
+}
+
+func (c *context) Param(name string) string {
 	return c.params[name]
 }
 
-func (c *context) ParamsInt(name string) int {
-	i, _ := strconv.Atoi(c.Params(name))
+func (c *context) ParamInt(name string) int {
+	i, _ := strconv.Atoi(c.Param(name))
 	return i
 }
 
-func (c *context) ParamsInt64(name string) int64 {
-	v, _ := strconv.ParseInt(c.Params(name), 10, 64)
+func (c *context) ParamInt64(name string) int64 {
+	v, _ := strconv.ParseInt(c.Param(name), 10, 64)
 	return v
 }
 
