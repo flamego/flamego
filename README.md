@@ -46,6 +46,7 @@ _Stay tuned!_
 - [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
 - [cors](https://github.com/flamego/cors) - Cross-Origin Resource Sharing
 - [binding](https://github.com/flamego/binding) - Request data binding and validation
+- [gzip](https://github.com/flamego/gzip) - Gzip compression to responses
 
 ## Getting help
 
