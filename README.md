@@ -54,7 +54,8 @@ _Stay tuned!_
 
 ## Users and projects
 
-_Stay tuned!_
+* [Cardinal](https://github.com/vidar-team/Cardinal): Attack-defence CTF platform.
+* [mebeats](https://github.com/wuhan005/mebeats): Realtime heartbeat monitor service based on Mi band.
 
 ## License
 
