@@ -166,6 +166,13 @@ func ordinalize(number int) string {
 
 func (c *context) run() {
 	for c.index <= len(c.handlers) {
+		// Break out when the request context has been cancelled
+		select {
+		case <-c.Request().Context().Done():
+			return
+		default:
+		}
+
 		var h Handler
 		if c.index == len(c.handlers) {
 			h = c.action

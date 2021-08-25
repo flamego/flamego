@@ -6,6 +6,7 @@ package flamego
 
 import (
 	"bytes"
+	gocontext "context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -16,6 +17,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestContext_RequestContextCancel(t *testing.T) {
+	ctx, cancel := gocontext.WithCancel(gocontext.Background())
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+	assert.Nil(t, err)
+
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/",
+		func() { cancel() },
+		func() { assert.Fail(t, "should not be called") },
+	)
+
+	f.ServeHTTP(resp, req)
+}
 
 func TestContext_URLPath(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
