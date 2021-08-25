@@ -166,7 +166,7 @@ func ordinalize(number int) string {
 
 func (c *context) run() {
 	for c.index <= len(c.handlers) {
-		// Break out when the request context has been cancelled
+		// Break out when the request context has been cancelled.
 		select {
 		case <-c.Request().Context().Done():
 			return
