@@ -47,6 +47,7 @@ _Stay tuned!_
 - [cors](https://github.com/flamego/cors) - Cross-Origin Resource Sharing
 - [binding](https://github.com/flamego/binding) - Request data binding and validation
 - [gzip](https://github.com/flamego/gzip) - Gzip compression to responses
+- [cache](https://github.com/flamego/cache) - Cache management
 
 ## Getting help
 
