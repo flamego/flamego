@@ -48,6 +48,7 @@ _Stay tuned!_
 - [binding](https://github.com/flamego/binding) - Request data binding and validation
 - [gzip](https://github.com/flamego/gzip) - Gzip compression to responses
 - [cache](https://github.com/flamego/cache) - Cache management
+- [brotli](https://github.com/flamego/brotli) - Brotli compression to responses
 
 ## Getting help
 
