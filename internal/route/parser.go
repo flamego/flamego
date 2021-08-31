@@ -6,7 +6,7 @@ package route
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/alecthomas/participle/v2/lexer/stateful"
+	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/pkg/errors"
 )
 
@@ -23,32 +23,32 @@ func (p *Parser) Parse(s string) (*Route, error) {
 
 // NewParser creates and returns a new Parser.
 func NewParser() (*Parser, error) {
-	lexer, err := stateful.New(
-		stateful.Rules{
+	l, err := lexer.New(
+		lexer.Rules{
 			"Root": {
-				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
+				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
 			},
 			"Segment": {
-				stateful.Include("Common"),
+				lexer.Include("Common"),
 				{Name: "Optional", Pattern: `[?]`},
-				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
-				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
+				{Name: "Bind", Pattern: `{`, Action: lexer.Push("Bind")},
+				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
 			},
 			"Bind": {
-				stateful.Include("Common"),
-				{Name: "BindParameter", Pattern: `:`, Action: stateful.Push("BindParameter")},
-				{Name: "Bind", Pattern: `{`, Action: stateful.Push("Bind")},
-				{Name: "BindEnd", Pattern: `}`, Action: stateful.Pop()},
-				{Name: "Segment", Pattern: `/`, Action: stateful.Push("Segment")},
+				lexer.Include("Common"),
+				{Name: "BindParameter", Pattern: `:`, Action: lexer.Push("BindParameter")},
+				{Name: "Bind", Pattern: `{`, Action: lexer.Push("Bind")},
+				{Name: "BindEnd", Pattern: `}`, Action: lexer.Pop()},
+				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
 			},
 			"BindParameter": {
-				stateful.Include("Common"),
-				{Name: "BindParameterRegexValue", Pattern: `/`, Action: stateful.Push("BindParameterRegexValue")},
-				{Name: "BindParameterEnd", Pattern: `[},]`, Action: stateful.Pop()},
+				lexer.Include("Common"),
+				{Name: "BindParameterRegexValue", Pattern: `/`, Action: lexer.Push("BindParameterRegexValue")},
+				{Name: "BindParameterEnd", Pattern: `[},]`, Action: lexer.Pop()},
 			},
 			"BindParameterRegexValue": {
 				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+._,?()\[\]{} \\\|]+`},
-				{Name: "RegexEnd", Pattern: `/`, Action: stateful.Pop()},
+				{Name: "RegexEnd", Pattern: `/`, Action: lexer.Pop()},
 			},
 			"Common": {
 				// All legal URI characters that are defined in RFC 3986.
@@ -64,7 +64,7 @@ func NewParser() (*Parser, error) {
 
 	parser, err := participle.Build(
 		&Route{},
-		participle.Lexer(lexer),
+		participle.Lexer(l),
 		participle.UseLookahead(2),
 	)
 	if err != nil {
