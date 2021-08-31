@@ -33,7 +33,11 @@ func main() {
 
 ## Features
 
-_Stay tuned!_
+- The most powerful routing syntax among all web frameworks within the Go ecosystem.
+- Limitless routes nesting and grouping.
+- Inject middleware at wherever you want.
+- Integrate with any existing Go web application non-intrusively.
+- Cooked with dependency injection to write testable and maintainable code.
 
 ## Middleware
 
