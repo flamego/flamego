@@ -37,7 +37,7 @@ func main() {
 - Limitless routes nesting and grouping.
 - Inject middleware at wherever you want.
 - Integrate with any existing Go web application non-intrusively.
-- Cooked with dependency injection to write testable and maintainable code.
+- Dependency injection via function signature to write testable and maintainable code.
 
 ## Middleware
 
