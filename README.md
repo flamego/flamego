@@ -54,6 +54,7 @@ func main() {
 - [cache](https://github.com/flamego/cache) - Cache management
 - [brotli](https://github.com/flamego/brotli) - Brotli compression to responses
 - [auth](https://github.com/flamego/auth) - Basic and bearer authentication
+- [i18n](https://github.com/flamego/i18n) - Internationalization and localization
 
 ## Getting help
 
