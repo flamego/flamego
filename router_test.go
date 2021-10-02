@@ -22,12 +22,22 @@ func TestRouter_Route(t *testing.T) {
 	}
 	r := newRouter(contextCreator)
 
-	t.Run("invalid HTTP method", func(t *testing.T) {
+	t.Run("register invalid HTTP method", func(t *testing.T) {
 		defer func() {
 			assert.Contains(t, recover(), "unknown HTTP method:")
 		}()
 
 		r.Route("404", "/", nil)
+	})
+
+	t.Run("request with invalid HTTP method", func(t *testing.T) {
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest("UNEXPECTED", "/", nil)
+		assert.Nil(t, err)
+
+		ctx.run_ = func() {}
+		r.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
 	})
 
 	tests := []struct {
