@@ -1,8 +1,6 @@
 name: Bug report
 description: File a bug report to help us improve
-title: ""
 labels: ["\U0001F48A bug"]
-assignees:
 body:
   - type: markdown
     attributes:
