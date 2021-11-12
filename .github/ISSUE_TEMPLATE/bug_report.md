@@ -1,26 +1,59 @@
----
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: "\U0001F48A bug"
-assignees: ''
+description: File a bug report to help us improve
+title: ""
+labels: ["\U0001F48A bug"]
+assignees:
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    attributes:
+      label: Component
+      description: Please specify which component you're reporting for.
+      options:
+        - Core framework
+        - Middleware
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Version
+      description: Please specify the exact Go module version you're reporting for.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: To reproduce
+      description: A code snippet to reproduce the problem described above.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: |
+        Links? References? Suggestions? Anything that will give us more context about the issue you are encountering!
 
----
-
-**Version**
-Please specify the exact version you're using.
-
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To reproduce**
-A code snippet to reproduce the problem described above.
-
-**Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Additional context**
-Add any other context about the problem here, or any suggestion to fix the problem.
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+    validations:
+      required: false
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://golang.org/conduct)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
