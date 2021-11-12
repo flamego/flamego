@@ -17,6 +17,13 @@ body:
       required: true
   - type: input
     attributes:
+      label: Middleware
+      description: If this is for a middleware, please specify the repository name, e.g. "flamego/template".
+      value: "flamego/"
+    validations:
+      required: false
+  - type: input
+    attributes:
       label: Version
       description: Please specify the exact Go module version you're reporting for.
     validations:
