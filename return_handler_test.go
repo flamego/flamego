@@ -23,7 +23,7 @@ func TestReturnHandler(t *testing.T) {
 		{
 			name: "(int, string)",
 			handler: func() (int, string) {
-				return 418, "i'm a teapot"
+				return http.StatusTeapot, "i'm a teapot"
 			},
 			wantCode: http.StatusTeapot,
 			wantBody: "i'm a teapot",
@@ -31,10 +31,18 @@ func TestReturnHandler(t *testing.T) {
 		{
 			name: "(int, []byte)",
 			handler: func() (int, []byte) {
-				return 418, []byte("i'm a teapot")
+				return http.StatusTeapot, []byte("i'm a teapot")
 			},
 			wantCode: http.StatusTeapot,
 			wantBody: "i'm a teapot",
+		},
+		{
+			name: "(int, error)",
+			handler: func() (int, error) {
+				return http.StatusForbidden, errors.New("teapot on the phone")
+			},
+			wantCode: http.StatusForbidden,
+			wantBody: "teapot on the phone",
 		},
 		{
 			name: "string",

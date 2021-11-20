@@ -21,11 +21,6 @@ func defaultReturnHandler() ReturnHandler {
 		return val.Kind() == reflect.Interface || val.Kind() == reflect.Ptr
 	}
 
-	checkError := func(val reflect.Value) (error, bool) {
-		err, ok := val.Interface().(error)
-		return err, ok
-	}
-
 	isByteSlice := func(val reflect.Value) bool {
 		return val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8
 	}
@@ -39,19 +34,19 @@ func defaultReturnHandler() ReturnHandler {
 		case 1: // string, []byte, error
 			respVal = vals[0]
 
-			if err, ok := checkError(respVal); ok && err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-
-		case 2: // (int, string), (int, []byte)
+		case 2: // (int, string), (int, []byte), (int, error)
 			if vals[0].Kind() != reflect.Int {
-				break
+				return
 			}
 
 			w.WriteHeader(int(vals[0].Int()))
 			respVal = vals[1]
+		}
+
+		if err, ok := respVal.Interface().(error); ok && err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(err.Error()))
+			return
 		}
 
 		if respVal.IsZero() {

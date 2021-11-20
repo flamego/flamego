@@ -23,7 +23,7 @@ type ResponseWriter interface {
 	// Status returns the status code of the response or 0 if the response has not
 	// been written.
 	Status() int
-	// Written returns whether or not the ResponseWriter has been written.
+	// Written returns whether the ResponseWriter has been written.
 	Written() bool
 	// Size returns the written size of the response body.
 	Size() int
@@ -61,6 +61,10 @@ func (w *responseWriter) callBefore() {
 }
 
 func (w *responseWriter) WriteHeader(s int) {
+	if w.Written() {
+		return
+	}
+
 	w.callBefore()
 	w.ResponseWriter.WriteHeader(s)
 	w.status = s
