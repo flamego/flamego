@@ -18,8 +18,8 @@ body:
   - type: input
     attributes:
       label: Middleware
-      description: If this is for middleware, please specify the repository name, e.g. "flamego/template".
-      value: "flamego/"
+      description: If this is for middleware, please specify the repository URL, e.g. "https://github.com/flamego/template".
+      value: "https://github.com/flamego/"
     validations:
       required: false
   - type: input
