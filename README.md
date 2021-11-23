@@ -41,9 +41,9 @@ func main() {
 
 ## Middleware
 
-- [`Logger`](logger.go) - Log requests and response status code
-- [`Recovery`](recovery.go) - Automatic recovery from panics
-- [`Static`](static.go) - Serve static files
+- [`Logger`](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
+- [`Recovery`](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
+- [`Static`](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
 - [template](https://github.com/flamego/template) - Go template rendering
 - [session](https://github.com/flamego/session) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
