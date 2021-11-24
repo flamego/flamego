@@ -35,7 +35,7 @@ func main() {
 
 - The most powerful routing syntax among all web frameworks within the Go ecosystem.
 - Limitless routes nesting and grouping.
-- Inject middleware at wherever you want.
+- [Inject middleware at wherever you want](https://flamego.dev/core-concepts.html#middleware).
 - Integrate with any existing Go web application non-intrusively.
 - Dependency injection via function signature to write testable and maintainable code.
 
@@ -59,7 +59,11 @@ func main() {
 
 ## Getting help
 
-_Stay tuned!_
+- New to Flamego? Check out the [Starter guide](https://flamego.dev/starter-guide.html)!
+- Have any questions? Answers may be found in our [FAQs](https://flamego.dev/faqs.html).
+- Please [file an issue](https://github.com/flamego/flamego/issues) or [start a discussion](https://github.com/flamego/flamego/discussions) if you want to reach out.
+- Follow our [Twitter](https://twitter.com/flamego_dev) to stay up to the latest news.
+- Our [brand kit](https://github.com/flamego/brand-kit) is also available on GitHub!
 
 ## Users and projects
 
