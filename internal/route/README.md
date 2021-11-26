@@ -1,6 +1,6 @@
 # Route definition and parser
 
-Flamego's route syntax is defined using the following BNF:
+Flamego's routing syntax is defined using the following BNF:
 
 ```ebnf
 /* FIXME: `[]:,` are not allowed, since it may affect the binding processing */
@@ -32,16 +32,3 @@ BindParameters = (BindParameter ("," " "* BindParameter)*)+ .
 BindParameter = <ident> ":" " "* BindParameterValue .
 BindParameterValue = <ident> | ("/" <regex> "/") .
 ```
-
-## Syntax illustration
-
-Syntax examples | Description
--- | --
-`{name}` | Captures anything but a forward slash. Capture is named _name_. Capture behavior can be modified with `capture` option.
-`{year}-{month}-{day}` | Captures anything but a forward slash. Captures are named _year_, _month_, _day_.
-`{name: /<regexp>/}` | Captures anything matching the regexp regular expression. Capture is named _name_. Capture behavior can be modified with capture.
-`{name: **}` | Captures anything including any forward slashes. Capture is named _name_.
-`{names: **}/events` | Captures anything including any forward slashes until `/events`. Capture is named _names_, e.g. `"/owner/repo/events"` -> `"names" => ["owner", "repo"]`
-`{name: **, capture: 3}` | Captures exactly three segments. Capture is named _name_.
-`/` | Matches forward slash. Does not match URI encoded version of forward slash.
-any other character | Matches exactly that character or a URI encoded version of it.
