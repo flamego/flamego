@@ -34,11 +34,11 @@ func main() {
 
 ## Features
 
-- The most powerful routing syntax among all web frameworks within the Go ecosystem.
-- Limitless routes nesting and grouping.
+- [The most powerful routing syntax](https://flamego.dev/routing.html) among all web frameworks within the Go ecosystem.
+- [Limitless routes nesting and grouping](https://flamego.dev/routing.html#group-routes).
 - [Inject middleware at wherever you want](https://flamego.dev/core-concepts.html#middleware).
-- Integrate with any existing Go web application non-intrusively.
-- Dependency injection via function signature to write testable and maintainable code.
+- [Integrate with any existing Go web application non-intrusively](https://flamego.dev/faqs.html#how-do-i-integrate-into-existing-applications).
+- [Dependency injection via function signature](https://flamego.dev/core-concepts.html#service-injection) to write testable and maintainable code.
 
 ## Middleware
 
