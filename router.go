@@ -53,7 +53,7 @@ type Router interface {
 	// Routes is a shortcut of adding same handlers for different HTTP methods.
 	//
 	// Example:
-	//	m.Routes("/", "GET,POST", handlers)
+	//	f.Routes("/", "GET,POST", handlers)
 	Routes(routePath, methods string, handlers ...Handler) *Route
 	// NotFound configures a http.HandlerFunc to be called when no matching route is
 	// found. When it is not set, http.NotFound is used. Be sure to set
