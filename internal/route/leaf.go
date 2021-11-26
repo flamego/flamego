@@ -116,6 +116,7 @@ func (l *baseLeaf) Static() bool {
 // staticLeaf is a leaf with a static match style.
 type staticLeaf struct {
 	baseLeaf
+	literals string
 }
 
 func (l *staticLeaf) getMatchStyle() MatchStyle {
@@ -123,7 +124,7 @@ func (l *staticLeaf) getMatchStyle() MatchStyle {
 }
 
 func (l *staticLeaf) match(segment string, _ Params) bool {
-	return l.segment.String()[1:] == segment // Skip the leading "/"
+	return l.literals == segment
 }
 
 func (l *staticLeaf) Static() bool {
@@ -310,6 +311,7 @@ func newLeaf(parent Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 				segment: s,
 				handler: h,
 			},
+			literals: strings.TrimLeft(s.String(), "/?"),
 		}, nil
 	}
 
