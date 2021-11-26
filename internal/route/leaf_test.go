@@ -31,7 +31,9 @@ func TestNewLeaf(t *testing.T) {
 		{
 			route: "/webapi",
 			style: matchStyleStatic,
-			want:  &staticLeaf{},
+			want: &staticLeaf{
+				literals: "webapi",
+			},
 		},
 		{
 			route: "/{name}",

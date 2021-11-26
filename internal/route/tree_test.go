@@ -174,6 +174,7 @@ func TestAddRoute(t *testing.T) {
 			wantDepth: 2,
 			wantLeaf: &staticLeaf{
 				baseLeaf: baseLeaf{},
+				literals: "webapi",
 			},
 		},
 		{
@@ -182,6 +183,7 @@ func TestAddRoute(t *testing.T) {
 			wantDepth: 3,
 			wantLeaf: &staticLeaf{
 				baseLeaf: baseLeaf{},
+				literals: "name",
 			},
 		},
 		{
@@ -208,6 +210,7 @@ func TestAddRoute(t *testing.T) {
 			wantDepth: 5,
 			wantLeaf: &staticLeaf{
 				baseLeaf: baseLeaf{},
+				literals: "edit",
 			},
 		},
 		{
@@ -347,6 +350,7 @@ func TestTree_Match(t *testing.T) {
 		"/webapi/users/ids/{sha: /[a-z0-9]{7,40}/}",
 		"/webapi/users/sessions/{paths: **}",
 		"/webapi/users/events/{names: **}/feed",
+		"/webapi/users/settings/?profile",
 		"/webapi/projects/{name}/hashes/{paths: **, capture: 2}/blob/{lineno: /[0-9]+/}",
 		"/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}/main.go",
 		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
@@ -482,6 +486,17 @@ func TestTree_Match(t *testing.T) {
 			path:       "/webapi/special/%_",
 			wantOK:     true,
 			wantParams: Params{},
+		},
+		{
+			path:       "/webapi/users/settings",
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path:         "/webapi/users/settings/profile",
+			withOptional: true,
+			wantOK:       true,
+			wantParams:   Params{},
 		},
 
 		// No match
