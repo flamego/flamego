@@ -6,6 +6,6 @@ updates:
     schedule:
       interval: "weekly"
     reviewers:
-      - "unknwon"
+      - "flamego/core"
     commit-message:
       prefix: "mod:"
