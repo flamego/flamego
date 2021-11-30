@@ -47,11 +47,10 @@ Contributing to another codebase is not as simple as code changes, it is also ab
 - Please be expecting code review to be strict and may have multiple rounds.
 - Please make self-contained incremental changes, pull requests with huge diff may be rejected for review.
 
-### Implement new middleware
+### Add middleware to the Flamego organization
 
-TODO
-
-Once your proposal and implementation for new middleware are both accpeted and merged, you are eligible to ask for joining the `@flamego/community` team as part of the Flamego organization!
+- New middleware require proposals before we may be able to accept any contribution. This is not relevant for middleware living outside the Flamego organization.
+- Transfer middleware to the Flamego organization is currently not encouraged.
 
 ## Your PR is merged!
 
