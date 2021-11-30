@@ -49,7 +49,7 @@ Contributing to another codebase is not as simple as code changes, it is also ab
 
 ### Add middleware to the Flamego organization
 
-- New middleware require proposals before we may be able to accept any contribution. This is not relevant for middleware living outside the Flamego organization.
+- New middleware require proposals before we may be able to accept any contribution.
 - Transfer middleware to the Flamego organization is currently not encouraged.
 
 ## Your PR is merged!
