@@ -26,6 +26,10 @@ In addition to the general guides with open source contributions, you would also
 
 ### Create a new issue
 
+- For questions, ask in [Discussions](https://github.com/flamego/flamego/discussions).
+- Check to make sure someone hasn't already opened a similar [issue](https://github.com/flamego/flamego/issues).
+- [Choose an issue form](https://github.com/flamego/flamego/issues/new/choose) and follow the guide within the each form.
+        
 TODO
 
 ### Pick up an issue to solve
