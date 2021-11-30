@@ -43,8 +43,9 @@ When you're finished with the changes, create a pull request, or a series of pul
 
 Contributing to another codebase is not as simple as code changes, it is also about contributing influence to the design. Therefore, we kindly ask you that:
 
+- Please acknowledge that no pull request is guaranteed to be merged.
 - Please always do a self-review before requesting reviews from others.
-- Please be expecting code review to be strict and may have multiple rounds.
+- Please expect code review to be strict and may have multiple rounds.
 - Please make self-contained incremental changes, pull requests with huge diff may be rejected for review.
 
 ### Add middleware to the Flamego organization
