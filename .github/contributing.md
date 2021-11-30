@@ -27,14 +27,12 @@ In addition to the general guides with open source contributions, you would also
 ### Create a new issue
 
 - For questions, ask in [Discussions](https://github.com/flamego/flamego/discussions).
-- Check to make sure someone hasn't already opened a similar [issue](https://github.com/flamego/flamego/issues).
-- [Choose an issue form](https://github.com/flamego/flamego/issues/new/choose) and follow the guide within the each form.
-        
-TODO
+- [Check to make sure](https://docs.github.com/en/github/searching-for-information-on-github/searching-on-github/searching-issues-and-pull-requests#search-by-the-title-body-or-comments) someone hasn't already opened a similar [issue](https://github.com/flamego/flamego/issues).
+- If a similar issue doesn't exist, open a new issue using a relevant [issue form](https://github.com/flamego/flamego/issues/new/choose).
 
 ### Pick up an issue to solve
 
-TODO: good first issue
+Scan through our [existing issues](https://github.com/flamego/flamego/issues) to find one that interests you. The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers.
 
 ## Pull requests
 
