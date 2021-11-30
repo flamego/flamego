@@ -34,7 +34,8 @@ In addition to the general guides with open source contributions, you would also
 
 - Scan through our [existing issues](https://github.com/flamego/flamego/issues) to find one that interests you.
 - The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers
-- Please do not hesitate to ask for more details or clarifying questions on the issue!.
+- Do not hesitate to ask for more details or clarifying questions on the issue!
+- Communicate on the issue you are intended to pick up _before_ starting working on it.
 - Every issue that gets picked up will have an expected timeline for the implementation, the issue may be reassigned after the expected timeline. Please be responsible and proactive on the communication 🙇‍♂️
 
 ## Pull requests
@@ -47,6 +48,7 @@ Contributing to another codebase is not as simple as code changes, it is also ab
 - Please always do a self-review before requesting reviews from others.
 - Please expect code review to be strict and may have multiple rounds.
 - Please make self-contained incremental changes, pull requests with huge diff may be rejected for review.
+- Please use English in code comments and docstring.
 
 ### Add middleware to the Flamego organization
 
