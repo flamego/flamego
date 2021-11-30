@@ -22,4 +22,28 @@ In addition to the general guides with open source contributions, you would also
 - Have basic knowledge about HTTP, web applications development and programming in [Go](https://go.dev/).
 - Have a working local development setup with a reasonable good IDE or editor like [Visual Studio Code](https://code.visualstudio.com/docs/languages/go), [GoLand](https://www.jetbrains.com/go/) or [Vim](https://github.com/fatih/vim-go).
 
-TBD
+## Issues
+
+### Create a new issue
+
+### Pick up an issue to solve
+
+TODO: good first issue
+
+## Pull requests
+
+TODO:
+- Feel free to ask more details or clarification questions!
+- General timeline and responsiveness
+- Expecting code review to be strict and may have multiple rounds.
+- Make incremental changes
+- Best practices
+- Contributing to another codebase is not as simple as code changes, it is also about contributing influence to the design.
+
+### Implement new middleware
+
+## Your PR is merged!
+
+Congratulations 🎉🎉 Thanks again for taking the effort to have this journey with us 🌟
+
+Once your proposal and implementation for new middleware are both accpeted and merged, you are eligible to ask for joining the @flamego/community team as part of the Flamego organization!
