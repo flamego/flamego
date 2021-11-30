@@ -45,6 +45,7 @@ func main() {
 - [`Logger`](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
 - [`Recovery`](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
 - [`Static`](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
+- [`Renderer`](https://flamego.dev/core-services.html#rendering-content) - Render content
 - [template](https://github.com/flamego/template) - Go template rendering
 - [session](https://github.com/flamego/session) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
@@ -60,7 +61,7 @@ func main() {
 
 ## Getting help
 
-- New to Flamego? Check out the [Starter guide](https://flamego.dev/starter-guide.html)!
+- New to Flamego? Check out the [starter guide](https://flamego.dev/starter-guide.html)!
 - Have any questions? Answers may be found in our [FAQs](https://flamego.dev/faqs.html).
 - Please [file an issue](https://github.com/flamego/flamego/issues) or [start a discussion](https://github.com/flamego/flamego/discussions) if you want to reach out.
 - Follow our [Twitter](https://twitter.com/flamego_dev) to stay up to the latest news.
