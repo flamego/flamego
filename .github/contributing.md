@@ -26,6 +26,8 @@ In addition to the general guides with open source contributions, you would also
 
 ### Create a new issue
 
+TODO
+
 ### Pick up an issue to solve
 
 TODO: good first issue
@@ -42,8 +44,10 @@ TODO:
 
 ### Implement new middleware
 
+TODO
+
+Once your proposal and implementation for new middleware are both accpeted and merged, you are eligible to ask for joining the `@flamego/community` team as part of the Flamego organization!
+
 ## Your PR is merged!
 
 Congratulations 🎉🎉 Thanks again for taking the effort to have this journey with us 🌟
-
-Once your proposal and implementation for new middleware are both accpeted and merged, you are eligible to ask for joining the @flamego/community team as part of the Flamego organization!
