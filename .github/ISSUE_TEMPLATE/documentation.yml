@@ -6,6 +6,10 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this form!
+        
+        - For questions, ask in [Discussions](https://github.com/flamego/flamego/discussions).
+        - Before you file an issue read the [Contributing guide](https://github.com/flamego/flamego/blob/main/.github/contributing.md).
+        - Check to make sure someone hasn't already opened a similar [issue](https://github.com/flamego/flamego/issues).
   - type: textarea
     attributes:
       label: What needs to improved? Please describe

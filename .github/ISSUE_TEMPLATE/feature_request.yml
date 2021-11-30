@@ -6,6 +6,10 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this form!
+        
+        - For questions, ask in [Discussions](https://github.com/flamego/flamego/discussions).
+        - Before you file an issue read the [Contributing guide](https://github.com/flamego/flamego/blob/main/.github/contributing.md).
+        - Check to make sure someone hasn't already opened a similar [issue](https://github.com/flamego/flamego/issues).
   - type: dropdown
     attributes:
       label: Component
@@ -18,7 +22,7 @@ body:
   - type: input
     attributes:
       label: Middleware
-      description: If this is for middleware, please specify the repository URL, e.g. "https://github.com/flamego/template".
+      description: If this is for middleware, please specify the repository URL, e.g. "https://github.com/flamego/template". Otherwise, put "n/a".
       value: "https://github.com/flamego/"
     validations:
       required: false
