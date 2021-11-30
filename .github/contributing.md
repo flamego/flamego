@@ -32,17 +32,20 @@ In addition to the general guides with open source contributions, you would also
 
 ### Pick up an issue to solve
 
-Scan through our [existing issues](https://github.com/flamego/flamego/issues) to find one that interests you. The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers.
+- Scan through our [existing issues](https://github.com/flamego/flamego/issues) to find one that interests you.
+- The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers
+- Please do not hesitate to ask for more details or clarifying questions on the issue!.
+- Every issue that gets picked up will have an expected timeline for the implementation, the issue may be reassigned after the expected timeline. Please be responsible and proactive on the communication 🙇‍♂️
 
 ## Pull requests
 
-TODO:
-- Feel free to ask more details or clarification questions!
-- General timeline and responsiveness
-- Expecting code review to be strict and may have multiple rounds.
-- Make incremental changes
-- Best practices
-- Contributing to another codebase is not as simple as code changes, it is also about contributing influence to the design.
+When you're finished with the changes, create a pull request, or a series of pull requests if necessary.
+
+Contributing to another codebase is not as simple as code changes, it is also about contributing influence to the design. Therefore, we kindly ask you that:
+
+- Please always do a self-review before requesting reviews from others.
+- Please be expecting code review to be strict and may have multiple rounds.
+- Please make self-contained incremental changes, pull requests with huge diff may be rejected for review.
 
 ### Implement new middleware
 
