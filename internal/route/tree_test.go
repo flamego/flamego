@@ -381,7 +381,7 @@ func TestTree_Match(t *testing.T) {
 		},
 		{
 			path:       "/webapi//",
-			wantOK:     true,
+			wantOK:     false,
 			wantParams: Params{},
 		},
 		{

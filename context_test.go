@@ -234,6 +234,22 @@ func TestContext_Param(t *testing.T) {
 			},
 			wantBody: "hello 123",
 		},
+		{
+			route: "/params/{**: **}",
+			url:   "/params/hello/123/",
+			handler: func(c Context) string {
+				return fmt.Sprintf("%s", c.Param("**"))
+			},
+			wantBody: "hello/123/",
+		},
+		{
+			route: "/{**: **}",
+			url:   "///////hello/123//////////////",
+			handler: func(c Context) string {
+				return fmt.Sprintf("%s", c.Param("**"))
+			},
+			wantBody: "hello/123//////////////",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
