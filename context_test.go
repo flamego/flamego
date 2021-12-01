@@ -238,7 +238,7 @@ func TestContext_Param(t *testing.T) {
 			route: "/params/{**: **}",
 			url:   "/params/hello/123/",
 			handler: func(c Context) string {
-				return fmt.Sprintf("%s", c.Param("**"))
+				return c.Param("**")
 			},
 			wantBody: "hello/123/",
 		},
@@ -246,7 +246,7 @@ func TestContext_Param(t *testing.T) {
 			route: "/{**: **}",
 			url:   "///////hello/123//////////////",
 			handler: func(c Context) string {
-				return fmt.Sprintf("%s", c.Param("**"))
+				return c.Param("**")
 			},
 			wantBody: "hello/123//////////////",
 		},
