@@ -476,7 +476,7 @@ func (t *baseTree) matchNextSegment(path string, next int, params Params) (Leaf,
 }
 
 func (t *baseTree) Match(path string) (Leaf, Params, bool) {
-	path = strings.Trim(path, "/")
+	path = strings.TrimLeft(path, "/")
 	params := make(Params)
 	leaf, ok := t.matchNextSegment(path, 0, params)
 	if !ok {

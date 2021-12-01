@@ -380,11 +380,6 @@ func TestTree_Match(t *testing.T) {
 			wantParams: Params{},
 		},
 		{
-			path:       "/webapi//",
-			wantOK:     true,
-			wantParams: Params{},
-		},
-		{
 			path:       "/webapi/users",
 			wantOK:     true,
 			wantParams: Params{},
@@ -500,6 +495,10 @@ func TestTree_Match(t *testing.T) {
 		},
 
 		// No match
+		{
+			path:   "/webapi//", // the last slash is a new route segment
+			wantOK: false,
+		},
 		{
 			path:   "/webapi/users/ids/abc", // "abc" are not digits
 			wantOK: false,
