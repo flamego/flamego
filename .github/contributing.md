@@ -49,6 +49,7 @@ Contributing to another codebase is not as simple as code changes, it is also ab
 - Please expect code review to be strict and may have multiple rounds.
 - Please make self-contained incremental changes, pull requests with huge diff may be rejected for review.
 - Please use English in code comments and docstring.
+- Please do not force push unless absolutely necessary. Force pushes make review much harder in multiple rounds, and we use [Squash and merge](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squash-and-merge-your-pull-request-commits) so you don't need to worry about messy commits and just focus on the changes.
 
 ### Add middleware to the Flamego organization
 
