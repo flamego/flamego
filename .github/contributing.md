@@ -33,7 +33,7 @@ In addition to the general guides with open source contributions, you would also
 ### Pick up an issue to solve
 
 - Scan through our [existing issues](https://github.com/flamego/flamego/issues) to find one that interests you.
-- The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers
+- The [👋 good first issue](https://github.com/flamego/flamego/issues?q=is%3Aissue+is%3Aopen+label%3A%22%F0%9F%91%8B+good+first+issue%22) is a good place to start exploring issues that are well-groomed for newcomers.
 - Do not hesitate to ask for more details or clarifying questions on the issue!
 - Communicate on the issue you are intended to pick up _before_ starting working on it.
 - Every issue that gets picked up will have an expected timeline for the implementation, the issue may be reassigned after the expected timeline. Please be responsible and proactive on the communication 🙇‍♂️
