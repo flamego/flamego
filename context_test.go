@@ -243,6 +243,14 @@ func TestContext_Param(t *testing.T) {
 			wantBody: "hello/123/",
 		},
 		{
+			route: "/apps/{**}",
+			url:   "/apps/hello/123/",
+			handler: func(c Context) string {
+				return c.Param("**")
+			},
+			wantBody: "hello/123/",
+		},
+		{
 			route: "/{**: **}",
 			url:   "///////hello/123//////////////",
 			handler: func(c Context) string {

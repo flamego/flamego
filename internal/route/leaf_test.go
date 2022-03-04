@@ -49,6 +49,13 @@ func TestNewLeaf(t *testing.T) {
 				bind: "paths",
 			},
 		},
+		{
+			route: "/{**}",
+			style: matchStyleAll,
+			want: &matchAllLeaf{
+				bind: "**",
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {

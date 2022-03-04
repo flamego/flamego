@@ -19,10 +19,10 @@ type MatchStyle int8
 // NOTE: The order of types matters, which determines the matching priority.
 const (
 	matchStyleNone        MatchStyle = iota
-	matchStyleStatic                 // e.g. /webapi
-	matchStyleRegex                  // e.g. /webapi/{name: /[0-9]+/}
-	matchStylePlaceholder            // e.g. /webapi/{name}
-	matchStyleAll                    // e.g. /webapi/{name: **}
+	matchStyleStatic                 // e.g. "/webapi"
+	matchStyleRegex                  // e.g. "/webapi/{name: /[0-9]+/}"
+	matchStylePlaceholder            // e.g. "/webapi/{name}"
+	matchStyleAll                    // e.g. "/webapi/{name: **}", "/webapi/{**}"
 )
 
 // Leaf is a leaf derived from a segment.
@@ -214,10 +214,12 @@ func isMatchStyleStatic(s *Segment) bool {
 }
 
 // checkMatchStylePlaceholder returns true if the Segment is placeholder match
-// style, along with // its bind parameter name.
+// style, along with its bind parameter name. The BindIdent "**" is ignored as a
+// special case of matchStyleAll.
 func checkMatchStylePlaceholder(s *Segment) (bind string, ok bool) {
 	if len(s.Elements) == 1 &&
-		s.Elements[0].BindIdent != nil {
+		s.Elements[0].BindIdent != nil &&
+		*s.Elements[0].BindIdent != "**" {
 		return *s.Elements[0].BindIdent, true
 	}
 	return "", false
@@ -225,7 +227,17 @@ func checkMatchStylePlaceholder(s *Segment) (bind string, ok bool) {
 
 // checkMatchStyleAll returns true if the Segment is match all style, along with
 // its bind parameter name and capture limit. The capture is 0 when undefined.
+// The BindIdent "**" is treated as a special case for "{**: **}".
 func checkMatchStyleAll(s *Segment) (bind string, capture int, ok bool) {
+	// Special case for "{**}"
+	if len(s.Elements) == 1 &&
+		s.Elements[0].BindIdent != nil &&
+		*s.Elements[0].BindIdent == "**" &&
+		s.Elements[0].BindParameters == nil {
+		return "**", 0, true
+	}
+
+	// Check for "{<BindIdent>: **}"
 	if len(s.Elements) == 0 ||
 		s.Elements[0].BindParameters == nil ||
 		len(s.Elements[0].BindParameters.Parameters) == 0 ||
