@@ -299,7 +299,7 @@ func (t *matchAllTree) getBinds() []string {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns the matched leaf and true if segments are
 // captured within the limit, and the capture result is stored in `params`.
-func (t *matchAllTree) matchAll(path string, segment string, next int, params Params) (Leaf, bool) {
+func (t *matchAllTree) matchAll(path, segment string, next int, params Params) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
 	for t.capture <= 0 || t.capture >= captured {
 		leaf, ok := t.matchNextSegment(path, next, params)
@@ -425,7 +425,7 @@ func (t *baseTree) matchLeaf(segment string, params Params) (Leaf, bool) {
 
 // matchSubtree returns the matched leaf and true if any subtree or leaf of the
 // tree matches the given segment.
-func (t *baseTree) matchSubtree(path string, segment string, next int, params Params) (Leaf, bool) {
+func (t *baseTree) matchSubtree(path, segment string, next int, params Params) (Leaf, bool) {
 	for _, st := range t.subtrees {
 		if st.getMatchStyle() == matchStyleAll {
 			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params)

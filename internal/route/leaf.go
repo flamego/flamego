@@ -196,7 +196,7 @@ func (l *matchAllLeaf) match(segment string, params Params) bool {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns true if segments are captured within the
 // limit, and the capture result is stored in `params`.
-func (l *matchAllLeaf) matchAll(path string, segment string, next int, params Params) bool {
+func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params) bool {
 	// Do `next-1` because "next" starts at the next character of preceding "/"; do
 	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
 	// "users/events" => 3
