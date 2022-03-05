@@ -1,7 +1,7 @@
 ![Flamego](https://github.com/flamego/brand-kit/raw/main/banner/banner-01.jpg#gh-light-mode-only)
 ![Flamego](https://github.com/flamego/brand-kit/raw/main/banner/banner-02.jpg#gh-dark-mode-only)
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/flamego/flamego/Go?logo=github&style=for-the-badge)](https://github.com/flamego/flamego/actions?query=workflow%3AGo)
+[![GitHub Workflow Status](https://img.shields.io/github/checks-status/flamego/flamego/main?logo=github&style=for-the-badge)](https://github.com/flamego/flamego/actions?query=branch%3Amain)
 [![Codecov](https://img.shields.io/codecov/c/gh/flamego/flamego?logo=codecov&style=for-the-badge)](https://app.codecov.io/gh/flamego/flamego)
 [![GoDoc](https://img.shields.io/badge/GoDoc-Reference-blue?style=for-the-badge&logo=go)](https://pkg.go.dev/github.com/flamego/flamego?tab=doc)
 [![Sourcegraph](https://img.shields.io/badge/view%20on-Sourcegraph-brightgreen.svg?style=for-the-badge&logo=sourcegraph)](https://sourcegraph.com/github.com/flamego/flamego)
