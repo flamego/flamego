@@ -65,7 +65,7 @@ func (t *baseTree) getSegment() *Segment {
 	return t.segment
 }
 
-func (t *baseTree) getMatchStyle() MatchStyle {
+func (*baseTree) getMatchStyle() MatchStyle {
 	return matchStyleNone
 }
 
@@ -85,7 +85,7 @@ func (t *baseTree) setLeaves(leaves []Leaf) {
 	t.leaves = leaves
 }
 
-func (t *baseTree) getBinds() []string {
+func (*baseTree) getBinds() []string {
 	return nil
 }
 
@@ -99,7 +99,7 @@ func (t *baseTree) hasMatchAllLeaf() bool {
 		t.leaves[len(t.leaves)-1].getMatchStyle() == matchStyleAll
 }
 
-func (t *baseTree) match(_ string, _ Params) bool {
+func (*baseTree) match(_ string, _ Params) bool {
 	panic("unreachable")
 }
 
@@ -220,11 +220,11 @@ type staticTree struct {
 	baseTree
 }
 
-func (t *staticTree) getMatchStyle() MatchStyle {
+func (*staticTree) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
-func (t *staticTree) getBinds() []string {
+func (*staticTree) getBinds() []string {
 	return nil
 }
 
@@ -239,7 +239,7 @@ type regexTree struct {
 	binds  []string       // The list of bind parameters.
 }
 
-func (t *regexTree) getMatchStyle() MatchStyle {
+func (*regexTree) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
@@ -267,7 +267,7 @@ type placeholderTree struct {
 	bind string // The name of the bind parameter.
 }
 
-func (t *placeholderTree) getMatchStyle() MatchStyle {
+func (*placeholderTree) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
@@ -287,7 +287,7 @@ type matchAllTree struct {
 	capture int    // The capture limit of the bind parameter. Non-positive means unlimited.
 }
 
-func (t *matchAllTree) getMatchStyle() MatchStyle {
+func (*matchAllTree) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
