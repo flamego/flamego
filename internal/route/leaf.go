@@ -109,7 +109,7 @@ func (l *baseLeaf) Handler() Handler {
 	return l.handler
 }
 
-func (l *baseLeaf) Static() bool {
+func (*baseLeaf) Static() bool {
 	return false
 }
 
@@ -119,7 +119,7 @@ type staticLeaf struct {
 	literals string
 }
 
-func (l *staticLeaf) getMatchStyle() MatchStyle {
+func (*staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
@@ -145,7 +145,7 @@ type regexLeaf struct {
 	binds  []string       // The list of bind parameters.
 }
 
-func (l *regexLeaf) getMatchStyle() MatchStyle {
+func (*regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
@@ -167,7 +167,7 @@ type placeholderLeaf struct {
 	bind string // The name of the bind parameter.
 }
 
-func (l *placeholderLeaf) getMatchStyle() MatchStyle {
+func (*placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
@@ -183,7 +183,7 @@ type matchAllLeaf struct {
 	capture int    // The capture limit of the bind parameter. Non-positive means unlimited.
 }
 
-func (l *matchAllLeaf) getMatchStyle() MatchStyle {
+func (*matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 

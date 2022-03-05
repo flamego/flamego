@@ -30,7 +30,7 @@ func (g *greeter) String() string {
 
 type myFastInvoker func(string)
 
-func (f myFastInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+func (myFastInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
 	return nil, nil
 }
 
