@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClassic(t *testing.T) {
+func TestClassic(_ *testing.T) {
 	_ = Classic() // For the sake of code coverage
 }
 
 // Make sure Run doesn't blow up
-func TestFlame_Run(t *testing.T) {
+func TestFlame_Run(_ *testing.T) {
 	_ = os.Setenv("FLAMEGO_ADDR", "0.0.0.0:4001")
 	f := NewWithLogger(&bytes.Buffer{})
 	go f.Run(4002)
