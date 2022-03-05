@@ -59,3 +59,9 @@ jobs:
         with:
           file: ./coverage
           flags: unittests
+      - name: Report test coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: go
+          coverage-file: coverage
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
