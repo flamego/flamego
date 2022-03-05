@@ -7,6 +7,10 @@ enabled = true
   [analyzers.meta]
   import_root = "github.com/flamego/flamego"
 
+[[analyzers]]
+name = "test-coverage"
+enabled = true
+
 [[transformers]]
 name = "gofmt"
 enabled = true
