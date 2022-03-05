@@ -142,7 +142,7 @@ func TestRouter_Routes(t *testing.T) {
 
 func TestRouter_AutoHead(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) Context {
 		ctx.params = Params(params)
 		return ctx
 	}
