@@ -224,7 +224,6 @@ func (inj *injector) Value(t reflect.Type) reflect.Value {
 	}
 
 	return val
-
 }
 
 func (inj *injector) SetParent(parent Injector) {
