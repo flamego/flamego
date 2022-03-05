@@ -42,8 +42,8 @@ func TestValidateAndWrapHandler(t *testing.T) {
 
 			h = validateAndWrapHandler(h,
 				func(handler Handler) Handler {
-					switch v := h.(type) {
-					case func() string:
+					v, ok := h.(func() string)
+					if ok {
 						return testHandlerFastInvoker(v)
 					}
 					return h
