@@ -191,7 +191,7 @@ func (inj *injector) Map(values ...interface{}) TypeMapper {
 	return inj
 }
 
-func (inj *injector) MapTo(val interface{}, ifacePtr interface{}) TypeMapper {
+func (inj *injector) MapTo(val, ifacePtr interface{}) TypeMapper {
 	inj.values[InterfaceOf(ifacePtr)] = reflect.ValueOf(val)
 	return inj
 }
