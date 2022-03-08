@@ -58,6 +58,7 @@ func main() {
 - [auth](https://github.com/flamego/auth) - Basic and bearer authentication
 - [i18n](https://github.com/flamego/i18n) - Internationalization and localization
 - [captcha](https://github.com/flamego/captcha) - Captcha service
+- [hcaptcha](https://github.com/flamego/hcaptcha) - hCaptcha verification
 
 ## Getting help
 
