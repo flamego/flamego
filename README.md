@@ -55,7 +55,7 @@ func main() {
 - [gzip](https://github.com/flamego/gzip) - Gzip compression to responses
 - [cache](https://github.com/flamego/cache) - Cache management
 - [brotli](https://github.com/flamego/brotli) - Brotli compression to responses
-- [auth](https://github.com/flamego/auth) - Basic and bearer authentication
+- [auth](https://flamego.dev/middleware/auth.html) - Basic and bearer authentication
 - [i18n](https://github.com/flamego/i18n) - Internationalization and localization
 - [captcha](https://github.com/flamego/captcha) - Captcha service
 - [hcaptcha](https://github.com/flamego/hcaptcha) - hCaptcha verification
