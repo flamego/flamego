@@ -50,11 +50,11 @@ func main() {
 - [session](https://github.com/flamego/session) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
 - [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
-- [cors](https://github.com/flamego/cors) - Cross-Origin Resource Sharing
+- [cors](https://flamego.dev/middleware/cors.html) - Cross-Origin Resource Sharing
 - [binding](https://github.com/flamego/binding) - Request data binding and validation
-- [gzip](https://github.com/flamego/gzip) - Gzip compression to responses
+- [gzip](https://flamego.dev/middleware/gzip.html) - Gzip compression to responses
 - [cache](https://github.com/flamego/cache) - Cache management
-- [brotli](https://github.com/flamego/brotli) - Brotli compression to responses
+- [brotli](https://flamego.dev/middleware/brotli.html) - Brotli compression to responses
 - [auth](https://flamego.dev/middleware/auth.html) - Basic and bearer authentication
 - [i18n](https://github.com/flamego/i18n) - Internationalization and localization
 - [captcha](https://github.com/flamego/captcha) - Captcha service
