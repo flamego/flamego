@@ -47,17 +47,17 @@ func main() {
 - [`Static`](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
 - [`Renderer`](https://flamego.dev/core-services.html#rendering-content) - Render content
 - [template](https://github.com/flamego/template) - Go template rendering
-- [session](https://github.com/flamego/session) - User session management
+- [session](https://flamego.dev/middleware/session.html) - User session management
 - [recaptcha](https://github.com/flamego/recaptcha) - Google reCAPTCHA verification
-- [csrf](https://github.com/flamego/csrf) - Generate and validate CSRF tokens
+- [csrf](https://flamego.dev/middleware/csrf.html) - Generate and validate CSRF tokens
 - [cors](https://flamego.dev/middleware/cors.html) - Cross-Origin Resource Sharing
 - [binding](https://github.com/flamego/binding) - Request data binding and validation
 - [gzip](https://flamego.dev/middleware/gzip.html) - Gzip compression to responses
-- [cache](https://github.com/flamego/cache) - Cache management
+- [cache](https://flamego.dev/middleware/cache.html) - Cache management
 - [brotli](https://flamego.dev/middleware/brotli.html) - Brotli compression to responses
 - [auth](https://flamego.dev/middleware/auth.html) - Basic and bearer authentication
-- [i18n](https://github.com/flamego/i18n) - Internationalization and localization
-- [captcha](https://github.com/flamego/captcha) - Captcha service
+- [i18n](https://flamego.dev/middleware/i18n.html) - Internationalization and localization
+- [captcha](https://flamego.dev/middleware/captcha.html) - Captcha service
 - [hcaptcha](https://github.com/flamego/hcaptcha) - hCaptcha verification
 
 ## Getting help
