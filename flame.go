@@ -2,7 +2,7 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-// Package flamego is a fantastic modular Go web framework boiled with black magic.
+// Package flamego is a fantastic modular Go web framework with a slim core but limitless extensibility.
 package flamego
 
 import (
