@@ -16,7 +16,7 @@ on:
     branches: [ main ]
   pull_request:
     paths:
-      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/codeql.yml'
   schedule:
     - cron: '0 19 * * 0'
 
