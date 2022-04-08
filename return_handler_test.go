@@ -44,6 +44,40 @@ func TestReturnHandler(t *testing.T) {
 			wantCode: http.StatusForbidden,
 			wantBody: "teapot on the phone",
 		},
+
+		{
+			name: "(string, error)",
+			handler: func() (string, error) {
+				return "", errors.New("teapot on the phone")
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: "teapot on the phone",
+		},
+		{
+			name: "(string, nil-error)",
+			handler: func() (string, error) {
+				return "i'm a teapot", nil
+			},
+			wantCode: http.StatusOK,
+			wantBody: "i'm a teapot",
+		},
+		{
+			name: "([]byte, error)",
+			handler: func() ([]byte, error) {
+				return []byte(""), errors.New("teapot on the phone")
+			},
+			wantCode: http.StatusInternalServerError,
+			wantBody: "teapot on the phone",
+		},
+		{
+			name: "([]byte, nil-error)",
+			handler: func() ([]byte, error) {
+				return []byte("i'm a teapot"), nil
+			},
+			wantCode: http.StatusOK,
+			wantBody: "i'm a teapot",
+		},
+
 		{
 			name: "string",
 			handler: func() string {

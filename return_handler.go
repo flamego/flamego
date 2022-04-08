@@ -34,13 +34,26 @@ func defaultReturnHandler() ReturnHandler {
 		case 1: // string, []byte, error
 			respVal = vals[0]
 
-		case 2: // (int, string), (int, []byte), (int, error)
-			if vals[0].Kind() != reflect.Int {
-				return
+		case 2:
+			// (int, string), (int, []byte), (int, error)
+			if vals[0].Kind() == reflect.Int {
+				w.WriteHeader(int(vals[0].Int()))
+				respVal = vals[1]
+				break
 			}
 
-			w.WriteHeader(int(vals[0].Int()))
-			respVal = vals[1]
+			// (string, error), ([]byte, error)
+			if vals[0].Kind() == reflect.String || isByteSlice(vals[0]) {
+				respVal = vals[0]
+				if _, ok := vals[1].Interface().(error); ok {
+					respVal = vals[1]
+				}
+				break
+			}
+		}
+
+		if !respVal.IsValid() {
+			return
 		}
 
 		if err, ok := respVal.Interface().(error); ok && err != nil {
