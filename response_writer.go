@@ -8,6 +8,8 @@ import (
 	"bufio"
 	"net"
 	"net/http"
+	"sync"
+	"sync/atomic"
 
 	"github.com/pkg/errors"
 )
@@ -38,9 +40,11 @@ type responseWriter struct {
 	http.ResponseWriter
 
 	method      string       // The HTTP method of the coming request.
-	status      int          // The written status of the response.
+	status      int32        // The written status of the response.
 	size        int          // The written size of the response.
 	beforeFuncs []BeforeFunc // The list of functions to be called before written to the response.
+
+	writeHeaderOnce sync.Once
 }
 
 // BeforeFunc is a function that is called before the ResponseWriter is written.
@@ -61,13 +65,15 @@ func (w *responseWriter) callBefore() {
 }
 
 func (w *responseWriter) WriteHeader(s int) {
-	if w.Written() {
-		return
-	}
+	w.writeHeaderOnce.Do(func() {
+		if w.Written() {
+			return
+		}
 
-	w.callBefore()
-	w.ResponseWriter.WriteHeader(s)
-	w.status = s
+		w.callBefore()
+		w.ResponseWriter.WriteHeader(s)
+		atomic.StoreInt32(&w.status, int32(s))
+	})
 }
 
 func (w *responseWriter) Write(b []byte) (size int, err error) {
@@ -83,7 +89,7 @@ func (w *responseWriter) Write(b []byte) (size int, err error) {
 }
 
 func (w *responseWriter) Status() int {
-	return w.status
+	return int(atomic.LoadInt32(&w.status))
 }
 
 func (w *responseWriter) Size() int {
@@ -91,7 +97,7 @@ func (w *responseWriter) Size() int {
 }
 
 func (w *responseWriter) Written() bool {
-	return w.status != 0
+	return w.Status() != 0
 }
 
 func (w *responseWriter) Before(before BeforeFunc) {
