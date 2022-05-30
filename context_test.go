@@ -347,6 +347,9 @@ func TestContext_Query(t *testing.T) {
 	f.Get("/", func(c Context) string {
 		return c.Query("fgq")
 	})
+	f.Get("/default", func(c Context) string {
+		return c.Query("fgq", "default")
+	})
 
 	tests := []struct {
 		name string
@@ -368,6 +371,27 @@ func TestContext_Query(t *testing.T) {
 			url:  "/?fgq=value1&fgq=value2",
 			want: "value1",
 		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=Flamego&language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=&language=Go",
+			want: "default",
+		},
+		{
+			name: "multiple value with default",
+			url:  "/default?fgq=value1&fgq=value2",
+			want: "value1",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "default",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -385,6 +409,9 @@ func TestContext_QueryTrim(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
 		return c.QueryTrim("fgq")
+	})
+	f.Get("/default", func(c Context) string {
+		return c.QueryTrim("fgq", "default")
 	})
 
 	tests := []struct {
@@ -407,6 +434,27 @@ func TestContext_QueryTrim(t *testing.T) {
 			url:  "/?fgq=  value1&fgq=value2",
 			want: "value1",
 		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=  Flamego  &language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=&language=Go",
+			want: "default",
+		},
+		{
+			name: "multiple value with default",
+			url:  "/default?fgq=  value1&fgq=value2",
+			want: "value1",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "default",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -423,7 +471,10 @@ func TestContext_QueryTrim(t *testing.T) {
 func TestContext_QueryStrings(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
-		return strings.Join(c.QueryStrings("fgq"), "|")
+		return strings.Join(c.QueryStrings("fgq"), ",")
+	})
+	f.Get("/default", func(c Context) string {
+		return strings.Join(c.QueryStrings("fgq", []string{"default"}), ",")
 	})
 
 	tests := []struct {
@@ -434,7 +485,7 @@ func TestContext_QueryStrings(t *testing.T) {
 		{
 			name: "normal",
 			url:  "/?fgq=value1&fgq=value2",
-			want: "value1|value2",
+			want: "value1,value2",
 		},
 		{
 			name: "single value",
@@ -445,6 +496,27 @@ func TestContext_QueryStrings(t *testing.T) {
 			name: "empty value",
 			url:  "/?fgq=&language=Go",
 			want: "",
+		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=value1&fgq=value2",
+			want: "value1,value2",
+		},
+		{
+			name: "single value with default",
+			url:  "/default?fgq=Flamego&language=Go",
+			want: "Flamego",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=&language=Go",
+			want: "",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "default",
 		},
 	}
 	for _, test := range tests {
@@ -464,6 +536,9 @@ func TestContext_QueryUnescape(t *testing.T) {
 	f.Get("/", func(c Context) string {
 		return c.QueryUnescape("fgq")
 	})
+	f.Get("/default", func(c Context) string {
+		return c.QueryUnescape("fgq", "default")
+	})
 
 	tests := []struct {
 		name string
@@ -479,6 +554,22 @@ func TestContext_QueryUnescape(t *testing.T) {
 			name: "empty value",
 			url:  "/?fgq=&language=Go",
 			want: "",
+		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=%E4%B8%AD%E5%9B%BD%20666",
+			want: "中国 666",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=&language=Go",
+			want: "default",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "default",
 		},
 	}
 	for _, test := range tests {
@@ -497,6 +588,9 @@ func TestContext_QueryBool(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
 		return strconv.FormatBool(c.QueryBool("fgq"))
+	})
+	f.Get("/default", func(c Context) string {
+		return strconv.FormatBool(c.QueryBool("fgq", true))
 	})
 
 	tests := []struct {
@@ -524,6 +618,32 @@ func TestContext_QueryBool(t *testing.T) {
 			url:  "/?fgq=T",
 			want: "true",
 		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=true",
+			want: "true",
+		},
+		{
+			name: "normal with default",
+			url:  "/default?fgq=False",
+			want: "false",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=",
+			want: "true",
+		},
+		{
+			name: "single char with default",
+			url:  "/default?fgq=T",
+			want: "true",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "true",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -541,6 +661,9 @@ func TestContext_QueryInt(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
 		return strconv.FormatInt(int64(c.QueryInt("fgq")), 10)
+	})
+	f.Get("/default", func(c Context) string {
+		return strconv.FormatInt(int64(c.QueryInt("fgq", 404)), 10)
 	})
 
 	tests := []struct {
@@ -562,6 +685,27 @@ func TestContext_QueryInt(t *testing.T) {
 			name: "negative value",
 			url:  "/?fgq=-123",
 			want: "-123",
+		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=123",
+			want: "123",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=",
+			want: "404",
+		},
+		{
+			name: "negative value with default",
+			url:  "/default?fgq=-123",
+			want: "-123",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "404",
 		},
 	}
 	for _, test := range tests {
@@ -581,6 +725,9 @@ func TestContext_QueryInt64(t *testing.T) {
 	f.Get("/", func(c Context) string {
 		return strconv.FormatInt(c.QueryInt64("fgq"), 10)
 	})
+	f.Get("/default", func(c Context) string {
+		return strconv.FormatInt(c.QueryInt64("fgq", 500), 10)
+	})
 
 	tests := []struct {
 		name string
@@ -602,6 +749,27 @@ func TestContext_QueryInt64(t *testing.T) {
 			url:  "/?fgq=-123",
 			want: "-123",
 		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=123",
+			want: "123",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=",
+			want: "500",
+		},
+		{
+			name: "negative value with default",
+			url:  "/default?fgq=-123",
+			want: "-123",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "500",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -619,6 +787,9 @@ func TestContext_QueryFloat64(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/", func(c Context) string {
 		return fmt.Sprintf("%v", c.QueryFloat64("fgq"))
+	})
+	f.Get("/default", func(c Context) string {
+		return fmt.Sprintf("%v", c.QueryFloat64("fgq", 3.14))
 	})
 
 	tests := []struct {
@@ -640,6 +811,27 @@ func TestContext_QueryFloat64(t *testing.T) {
 			name: "negative value",
 			url:  "/?fgq=-3.1415926",
 			want: "-3.1415926",
+		},
+
+		{
+			name: "normal with default",
+			url:  "/default?fgq=3.1415926",
+			want: "3.1415926",
+		},
+		{
+			name: "empty value with default",
+			url:  "/default?fgq=",
+			want: "3.14",
+		},
+		{
+			name: "negative value with default",
+			url:  "/default?fgq=-3.1415926",
+			want: "-3.1415926",
+		},
+		{
+			name: "missing value with default",
+			url:  "/default?language=Go",
+			want: "3.14",
 		},
 	}
 	for _, test := range tests {
