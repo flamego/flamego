@@ -19,6 +19,8 @@ import (
 
 // Context is the runtime context of the coming request, and provide handy
 // methods to enhance developer experience.
+//
+//go:generate go-mockgen -f github.com/flamego/flamego -i Context -o mock_context.go
 type Context interface {
 	inject.Injector
 	// ResponseWriter returns the ResponseWriter in current context.
@@ -53,22 +55,37 @@ type Context interface {
 	// ParamInt64 returns value of the given bind parameter parsed as int64.
 	ParamInt64(name string) int64
 
-	// Query returns value of the given URL parameter.
-	Query(name string) string
-	// QueryTrim trims spaces and returns value of the given URL parameter.
-	QueryTrim(name string) string
-	// QueryStrings returns a list of strings of the given URL parameter.
-	QueryStrings(name string) []string
-	// QueryUnescape returns unescaped query result of the given URL parameter.
-	QueryUnescape(name string) string
-	// QueryBool returns value of the given URL parameter parsed as bool.
-	QueryBool(name string) bool
-	// QueryInt returns value of the given URL parameter parsed as int.
-	QueryInt(name string) int
-	// QueryInt64 returns value of the given URL parameter parsed as int64.
-	QueryInt64(name string) int64
-	// QueryFloat64 returns value of the given URL parameter parsed as float64.
-	QueryFloat64(name string) float64
+	// Query returns value of the given URL parameter. The `defaultVal` (when set)
+	// or zero value is returned when the given parameter is absent.
+	Query(name string, defaultVal ...string) string
+	// QueryTrim trims spaces and returns value of the given URL parameter. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryTrim(name string, defaultVal ...string) string
+	// QueryStrings returns a list of strings of the given URL parameter. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryStrings(name string, defaultVal ...[]string) []string
+	// QueryUnescape returns unescaped query result of the given URL parameter. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryUnescape(name string, defaultVal ...string) string
+	// QueryBool returns value of the given URL parameter parsed as bool. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryBool(name string, defaultVal ...bool) bool
+	// QueryInt returns value of the given URL parameter parsed as int. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryInt(name string, defaultVal ...int) int
+	// QueryInt64 returns value of the given URL parameter parsed as int64. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryInt64(name string, defaultVal ...int64) int64
+	// QueryFloat64 returns value of the given URL parameter parsed as float64. The
+	// `defaultVal` (when set) or zero value is returned when the given parameter is
+	// absent.
+	QueryFloat64(name string, defaultVal ...float64) float64
 
 	// SetCookie escapes the cookie value and sets it to the current response.
 	SetCookie(cookie http.Cookie)
@@ -77,6 +94,11 @@ type Context interface {
 	// returned value is unescaped using `url.QueryUnescape`, original value is
 	// returned instead if unable to unescape.
 	Cookie(name string) string
+}
+
+// internalContext is the wrapper of the Context with private methods.
+type internalContext interface {
+	Context
 
 	// setAction sets the final handler in the context chain.
 	setAction(Handler)
@@ -106,7 +128,7 @@ type context struct {
 type urlPather func(name string, pairs ...string) string
 
 // newContext creates and returns a new Context.
-func newContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+func newContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
 	c := &context{
 		Injector:       inject.New(),
 		handlers:       handlers,
@@ -115,7 +137,7 @@ func newContext(w http.ResponseWriter, r *http.Request, params route.Params, han
 		params:         Params(params),
 		urlPath:        urlPath,
 	}
-	c.Map(c)
+	c.MapTo(c, (*Context)(nil))
 	c.MapTo(c.responseWriter, (*http.ResponseWriter)(nil))
 	c.Map(r)
 	return c
@@ -249,46 +271,73 @@ func (c *context) ParamInt64(name string) int64 {
 	return v
 }
 
-func (c *context) Query(name string) string {
-	return c.Request().URL.Query().Get(name)
+func (c *context) Query(name string, defaultVal ...string) string {
+	v := c.Request().URL.Query().Get(name)
+	if v == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+	return v
 }
 
-func (c *context) QueryTrim(name string) string {
-	return strings.TrimSpace(c.Query(name))
+func (c *context) QueryTrim(name string, defaultVal ...string) string {
+	return strings.TrimSpace(c.Query(name, defaultVal...))
 }
 
-func (c *context) QueryStrings(name string) []string {
+func (c *context) QueryStrings(name string, defaultVal ...[]string) []string {
 	for k, v := range c.Request().URL.Query() {
 		if k == name {
 			return v
 		}
 	}
+
+	if len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
 	return []string{}
 }
 
-func (c *context) QueryUnescape(name string) string {
-	v, _ := url.QueryUnescape(c.Query(name))
+func (c *context) QueryUnescape(name string, defaultVal ...string) string {
+	v, _ := url.QueryUnescape(c.Query(name, defaultVal...))
 	return v
 }
 
-func (c *context) QueryBool(name string) bool {
-	v, _ := strconv.ParseBool(c.Query(name))
-	return v
+func (c *context) QueryBool(name string, defaultVal ...bool) bool {
+	v := c.Query(name)
+	if v == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+	b, _ := strconv.ParseBool(v)
+	return b
 }
 
-func (c *context) QueryInt(name string) int {
-	v, _ := strconv.ParseInt(c.Query(name), 10, 0)
-	return int(v)
+func (c *context) QueryInt(name string, defaultVal ...int) int {
+	v := c.Query(name)
+	if v == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	i, _ := strconv.ParseInt(v, 10, 0)
+	return int(i)
 }
 
-func (c *context) QueryInt64(name string) int64 {
-	v, _ := strconv.ParseInt(c.Query(name), 10, 64)
-	return v
+func (c *context) QueryInt64(name string, defaultVal ...int64) int64 {
+	v := c.Query(name)
+	if v == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	i, _ := strconv.ParseInt(v, 10, 64)
+	return i
 }
 
-func (c *context) QueryFloat64(name string) float64 {
-	v, _ := strconv.ParseFloat(c.Query(name), 64)
-	return v
+func (c *context) QueryFloat64(name string, defaultVal ...float64) float64 {
+	v := c.Query(name)
+	if v == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	f, _ := strconv.ParseFloat(v, 64)
+	return f
 }
 
 func (c *context) SetCookie(cookie http.Cookie) {
