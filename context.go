@@ -20,7 +20,7 @@ import (
 // Context is the runtime context of the coming request, and provide handy
 // methods to enhance developer experience.
 //
-//go:generate go-mockgen -f github.com/flamego/flamego -i Context -o mock_context.go
+//go:generate go-mockgen -f github.com/flamego/flamego -i Context -o mock_context_test.go
 type Context interface {
 	inject.Injector
 	// ResponseWriter returns the ResponseWriter in current context.
