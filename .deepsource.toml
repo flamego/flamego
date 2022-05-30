@@ -1,5 +1,7 @@
 version = 1
 
+exclude_patterns = ["mock_*.go"]
+
 [[analyzers]]
 name = "go"
 enabled = true

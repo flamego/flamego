@@ -75,6 +75,17 @@ func main() {
 - [ASoulDocs](https://github.com/asoul-sig/asouldocs): Ellien's documentation server.
 - _Just send a PR to add yours!_
 
+## Development
+
+Install "go-mockgen" and "goimports" to re-generate mocks:
+
+```sh
+go install github.com/derision-test/go-mockgen/cmd/go-mockgen@latest
+go install golang.org/x/tools/cmd/goimports@latest
+
+go generate ./...
+```
+
 ## License
 
 This project is under the MIT License. See the [LICENSE](LICENSE) file for the full license text.

@@ -16,8 +16,10 @@ import (
 
 func TestRouter_Route(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
-		ctx.params = Params(params)
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+			return params[s]
+		})
 		return ctx
 	}
 	r := newRouter(contextCreator)
@@ -101,7 +103,7 @@ func TestRouter_Route(t *testing.T) {
 			test.add(test.routePath, func() {})
 
 			gotRoute := ""
-			ctx.run_ = func() { gotRoute = ctx.params["route"] }
+			ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(test.method, test.routePath, nil)
@@ -117,8 +119,10 @@ func TestRouter_Route(t *testing.T) {
 
 func TestRouter_Routes(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
-		ctx.params = Params(params)
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+			return params[s]
+		})
 		return ctx
 	}
 	r := newRouter(contextCreator)
@@ -127,7 +131,7 @@ func TestRouter_Routes(t *testing.T) {
 
 	for _, m := range []string{http.MethodGet, http.MethodPost} {
 		gotRoute := ""
-		ctx.run_ = func() { gotRoute = ctx.params["route"] }
+		ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest(m, "/routes", nil)
@@ -142,8 +146,10 @@ func TestRouter_Routes(t *testing.T) {
 
 func TestRouter_AutoHead(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) Context {
-		ctx.params = Params(params)
+	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) internalContext {
+		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+			return params[s]
+		})
 		return ctx
 	}
 
@@ -152,7 +158,7 @@ func TestRouter_AutoHead(t *testing.T) {
 		r.Get("/", func() {})
 
 		gotRoute := ""
-		ctx.run_ = func() { gotRoute = ctx.params["route"] }
+		ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodHead, "/", nil)
@@ -170,7 +176,7 @@ func TestRouter_AutoHead(t *testing.T) {
 		r.Get("/", func() {})
 
 		gotRoute := ""
-		ctx.run_ = func() { gotRoute = ctx.params["route"] }
+		ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodHead, "/", nil)
@@ -184,7 +190,7 @@ func TestRouter_AutoHead(t *testing.T) {
 }
 
 func TestRouter_DuplicatedRoutes(t *testing.T) {
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
 		return newMockContext()
 	}
 	r := newRouter(contextCreator)
@@ -198,7 +204,7 @@ func TestRouter_DuplicatedRoutes(t *testing.T) {
 }
 
 func TestRoute_Name(t *testing.T) {
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
 		return newMockContext()
 	}
 	r := newRouter(contextCreator)
@@ -221,7 +227,7 @@ func TestRoute_Name(t *testing.T) {
 }
 
 func TestRouter_URLPath(t *testing.T) {
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
 		return newMockContext()
 	}
 	r := newRouter(contextCreator)
@@ -265,8 +271,10 @@ func TestRouter_URLPath(t *testing.T) {
 
 func TestRouter_Group(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
-		ctx.params = Params(params)
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+			return params[s]
+		})
 		return ctx
 	}
 	r := newRouter(contextCreator)
@@ -289,7 +297,7 @@ func TestRouter_Group(t *testing.T) {
 	for _, route := range routes {
 		t.Run(route, func(t *testing.T) {
 			gotRoute := ""
-			ctx.run_ = func() { gotRoute = ctx.params["route"] }
+			ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, route, nil)
@@ -305,8 +313,10 @@ func TestRouter_Group(t *testing.T) {
 
 func TestComboRoute(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
-		ctx.params = Params(params)
+	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+			return params[s]
+		})
 		return ctx
 	}
 	r := newRouter(contextCreator)
@@ -325,7 +335,7 @@ func TestComboRoute(t *testing.T) {
 	for _, m := range httpMethods {
 		t.Run(m, func(t *testing.T) {
 			gotRoute := ""
-			ctx.run_ = func() { gotRoute = ctx.params["route"] }
+			ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(m, "/", nil)

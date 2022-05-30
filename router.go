@@ -66,7 +66,7 @@ type Router interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
 
-type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler, urlPather) Context
+type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler, urlPather) internalContext
 
 type router struct {
 	parser       *route.Parser                    // The route parser.

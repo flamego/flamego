@@ -72,7 +72,7 @@ func Classic() *Flame {
 	return f
 }
 
-func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) Context {
+func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
 	// Allocate a new slice to avoid mutating the original "handlers" and that could
 	// potentially cause data race.
 	hs := make([]Handler, 0, len(f.handlers)+len(handlers))
