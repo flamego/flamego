@@ -50,10 +50,12 @@ type Router interface {
 	Trace(routePath string, handlers ...Handler) *Route
 	// Any is a shortcut for `r.Route("*", routePath, handlers)`.
 	Any(routePath string, handlers ...Handler) *Route
-	// Routes is a shortcut of adding same handlers for different HTTP methods.
+	// Routes is a shortcut of adding route with same list of handlers for different
+	// HTTP methods.
 	//
 	// Example:
-	//	f.Routes("/", "GET,POST", handlers)
+	//  f.Routes("/", http.MethodGet, http.MethodPost, handlers...)
+	//  f.Routes("/", "GET,POST", handlers...)
 	Routes(routePath, methods string, handlers ...Handler) *Route
 	// NotFound configures a http.HandlerFunc to be called when no matching route is
 	// found. When it is not set, http.NotFound is used. Be sure to set
@@ -272,9 +274,24 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 		panic("empty methods")
 	}
 
-	var route *Route
+	var ms []string
 	for _, m := range strings.Split(methods, ",") {
-		route = r.Route(strings.TrimSpace(m), routePath, handlers)
+		ms = append(ms, strings.TrimSpace(m))
+	}
+
+	// Collect methods from handlers if they are strings
+	for i, h := range handlers {
+		m, ok := h.(string)
+		if !ok {
+			handlers = handlers[i:]
+			break
+		}
+		ms = append(ms, m)
+	}
+
+	var route *Route
+	for _, m := range ms {
+		route = r.Route(m, routePath, handlers)
 	}
 	return route
 }

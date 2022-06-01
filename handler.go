@@ -5,6 +5,7 @@
 package flamego
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -52,7 +53,7 @@ func (invoke teapotInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
 // gain up to 3x performance improvement.
 func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
 	if reflect.TypeOf(h).Kind() != reflect.Func {
-		panic("handler must be a callable function")
+		panic(fmt.Sprintf("handler must be a callable function, but got %T", h))
 	}
 
 	if inject.IsFastInvoker(h) {
