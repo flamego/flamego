@@ -119,7 +119,7 @@ func TestRouter_Route(t *testing.T) {
 
 func TestRouter_Routes(t *testing.T) {
 	ctx := newMockContext()
-	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) internalContext {
 		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
