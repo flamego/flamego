@@ -125,23 +125,46 @@ func TestRouter_Routes(t *testing.T) {
 		})
 		return ctx
 	}
-	r := newRouter(contextCreator)
 
-	r.Routes("/routes", "GET,POST", func() {})
+	t.Run("use single string", func(t *testing.T) {
+		r := newRouter(contextCreator)
 
-	for _, m := range []string{http.MethodGet, http.MethodPost} {
-		gotRoute := ""
-		ctx.run_ = func() { gotRoute = ctx.Param("route") }
+		r.Routes("/routes", "GET,POST", func() {})
 
-		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(m, "/routes", nil)
-		assert.Nil(t, err)
+		for _, m := range []string{http.MethodGet, http.MethodPost} {
+			gotRoute := ""
+			ctx.run_ = func() { gotRoute = ctx.Param("route") }
 
-		r.ServeHTTP(resp, req)
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/routes", nil)
+			assert.Nil(t, err)
 
-		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Equal(t, "/routes", gotRoute)
-	}
+			r.ServeHTTP(resp, req)
+
+			assert.Equal(t, http.StatusOK, resp.Code)
+			assert.Equal(t, "/routes", gotRoute)
+		}
+	})
+
+	t.Run("use multiple strings", func(t *testing.T) {
+		r := newRouter(contextCreator)
+
+		r.Routes("/routes", http.MethodGet, http.MethodPost, func() {})
+
+		for _, m := range []string{http.MethodGet, http.MethodPost} {
+			gotRoute := ""
+			ctx.run_ = func() { gotRoute = ctx.Param("route") }
+
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/routes", nil)
+			assert.Nil(t, err)
+
+			r.ServeHTTP(resp, req)
+
+			assert.Equal(t, http.StatusOK, resp.Code)
+			assert.Equal(t, "/routes", gotRoute)
+		}
+	})
 }
 
 func TestRouter_AutoHead(t *testing.T) {
