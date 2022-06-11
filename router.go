@@ -146,9 +146,9 @@ type Route struct {
 //
 // For example:
 //  f.Get("/", ...).Headers(
-//      "Server", "Caddy",    // Loose match
-//      "Status", "^200 OK$", // Exact match
-//      "Cache-Control", "",  // As long as "Cache-Control" is not empty
+//      "User-Agent", "Chrome",   // Loose match
+//      "Host", "^flamego\.dev$", // Exact match
+//      "Cache-Control", "",      // As long as "Cache-Control" is not empty
 //  )
 //
 // Subsequent calls to Headers() replace previously set matches.
