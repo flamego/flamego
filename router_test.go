@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flamego/flamego/internal/route"
 )
@@ -35,7 +36,7 @@ func TestRouter_Route(t *testing.T) {
 	t.Run("request with invalid HTTP method", func(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest("UNEXPECTED", "/", nil)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		ctx.run_ = func() {}
 		r.ServeHTTP(resp, req)
@@ -107,7 +108,7 @@ func TestRouter_Route(t *testing.T) {
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(test.method, test.routePath, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			r.ServeHTTP(resp, req)
 
@@ -137,7 +138,7 @@ func TestRouter_Routes(t *testing.T) {
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(m, "/routes", nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			r.ServeHTTP(resp, req)
 
@@ -157,7 +158,7 @@ func TestRouter_Routes(t *testing.T) {
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(m, "/routes", nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			r.ServeHTTP(resp, req)
 
@@ -185,7 +186,7 @@ func TestRouter_AutoHead(t *testing.T) {
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodHead, "/", nil)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		r.ServeHTTP(resp, req)
 
@@ -203,7 +204,7 @@ func TestRouter_AutoHead(t *testing.T) {
 
 		resp := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodHead, "/", nil)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		r.ServeHTTP(resp, req)
 
@@ -224,6 +225,34 @@ func TestRouter_DuplicatedRoutes(t *testing.T) {
 		assert.Contains(t, recover(), "duplicated route")
 	}()
 	r.Get("/", func() {})
+}
+
+func TestRoute_Headers(t *testing.T) {
+	f := New()
+	f.Get("/", func() {}).Headers("Server", "Caddy", "Cache-Control", "")
+
+	t.Run("ok", func(t *testing.T) {
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		require.NoError(t, err)
+
+		req.Header.Set("Server", "Caddy")
+		req.Header.Set("Cache-Control", "No-Cache")
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		require.NoError(t, err)
+
+		req.Header.Set("Server", "Caddy")
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusNotFound, resp.Code)
+	})
 }
 
 func TestRoute_Name(t *testing.T) {
@@ -324,7 +353,7 @@ func TestRouter_Group(t *testing.T) {
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(http.MethodGet, route, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			r.ServeHTTP(resp, req)
 
@@ -362,7 +391,7 @@ func TestComboRoute(t *testing.T) {
 
 			resp := httptest.NewRecorder()
 			req, err := http.NewRequest(m, "/", nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			r.ServeHTTP(resp, req)
 

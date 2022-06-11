@@ -6,6 +6,7 @@ package route
 
 import (
 	"bytes"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,6 +28,9 @@ const (
 
 // Leaf is a leaf derived from a segment.
 type Leaf interface {
+	// SetHeaderMatcher sets the HeaderMatcher for the leaf.
+	SetHeaderMatcher(m *HeaderMatcher)
+
 	// URLPath fills in bind parameters with given values to build the "path"
 	// portion of the URL. If `withOptional` is true, the path will include the
 	// current leaf when it is optional; otherwise, the current leaf is excluded.
@@ -46,15 +50,16 @@ type Leaf interface {
 	getMatchStyle() MatchStyle
 	// match returns true if the leaf matches the segment, values of bind parameters
 	// are stored in the `Params`.
-	match(segment string, params Params) bool
+	match(segment string, params Params, header http.Header) bool
 }
 
 // baseLeaf contains common fields for any leaf.
 type baseLeaf struct {
-	parent  Tree     // The parent tree this leaf belongs to.
-	route   *Route   // The route that the segment belongs to.
-	segment *Segment // The segment that the leaf is derived from.
-	handler Handler  // The handler bound to the leaf.
+	parent        Tree           // The parent tree this leaf belongs to.
+	route         *Route         // The route that the segment belongs to.
+	segment       *Segment       // The segment that the leaf is derived from.
+	handler       Handler        // The handler bound to the leaf.
+	headerMatcher *HeaderMatcher // The matcher for header values.
 }
 
 func (l *baseLeaf) getParent() Tree {
@@ -63,6 +68,14 @@ func (l *baseLeaf) getParent() Tree {
 
 func (l *baseLeaf) getSegment() *Segment {
 	return l.segment
+}
+
+func (l *baseLeaf) SetHeaderMatcher(m *HeaderMatcher) {
+	l.headerMatcher = m
+}
+
+func (l *baseLeaf) matchHeader(header http.Header) bool {
+	return l.headerMatcher == nil || l.headerMatcher.Match(header)
 }
 
 func (l *baseLeaf) URLPath(vals map[string]string, withOptional bool) string {
@@ -123,8 +136,8 @@ func (*staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
-func (l *staticLeaf) match(segment string, _ Params) bool {
-	return l.literals == segment
+func (l *staticLeaf) match(segment string, _ Params, header http.Header) bool {
+	return l.literals == segment && l.matchHeader(header)
 }
 
 func (l *staticLeaf) Static() bool {
@@ -149,9 +162,13 @@ func (*regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
-func (l *regexLeaf) match(segment string, params Params) bool {
+func (l *regexLeaf) match(segment string, params Params, header http.Header) bool {
 	submatches := l.regexp.FindStringSubmatch(segment)
 	if len(submatches) < len(l.binds)+1 {
+		return false
+	}
+
+	if !l.matchHeader(header) {
 		return false
 	}
 
@@ -171,7 +188,10 @@ func (*placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
-func (l *placeholderLeaf) match(segment string, params Params) bool {
+func (l *placeholderLeaf) match(segment string, params Params, header http.Header) bool {
+	if !l.matchHeader(header) {
+		return false
+	}
 	params[l.bind] = segment
 	return true
 }
@@ -187,7 +207,10 @@ func (*matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
-func (l *matchAllLeaf) match(segment string, params Params) bool {
+func (l *matchAllLeaf) match(segment string, params Params, header http.Header) bool {
+	if !l.matchHeader(header) {
+		return false
+	}
 	params[l.bind] = segment
 	return true
 }
@@ -196,11 +219,14 @@ func (l *matchAllLeaf) match(segment string, params Params) bool {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns true if segments are captured within the
 // limit, and the capture result is stored in `params`.
-func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params) bool {
+func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params, header http.Header) bool {
 	// Do `next-1` because "next" starts at the next character of preceding "/"; do
 	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
 	// "users/events" => 3
 	if l.capture > 0 && l.capture < strings.Count(path[next-1:], "/")+1 {
+		return false
+	}
+	if !l.matchHeader(header) {
 		return false
 	}
 

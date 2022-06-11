@@ -7,6 +7,7 @@ package flamego
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/flamego/flamego/internal/route"
@@ -132,10 +133,43 @@ func (r *router) HandlerWrapper(f func(Handler) Handler) {
 	r.handlerWrapper = f
 }
 
-// Route is a wrapper of the route leaf and its router.
+// Route is a wrapper of the route leaves and its router.
 type Route struct {
 	router *router
-	leaf   route.Leaf
+	leaves map[string]route.Leaf
+}
+
+// Headers uses given key-value pairs as the list of matching criteria for
+// request headers, where key is the header name and value is a regex. Once set,
+// the route will only be matched if all header matches are successful in
+// addition to the request path.
+//
+// For example:
+//  f.Get("/", ...).Headers(
+//      "User-Agent", "Chrome",   // Loose match
+//      "Host", "^flamego\.dev$", // Exact match
+//      "Cache-Control", "",      // As long as "Cache-Control" is not empty
+//  )
+//
+// Subsequent calls to Headers() replace previously set matches.
+func (r *Route) Headers(pairs ...string) *Route {
+	if len(pairs)%2 != 0 {
+		panic(fmt.Sprintf("imbalanced pairs with %d", len(pairs)))
+	}
+
+	matches := make(map[string]*regexp.Regexp, len(pairs)/2)
+	for i := 1; i < len(pairs); i += 2 {
+		matches[pairs[i-1]] = regexp.MustCompile(pairs[i])
+	}
+	for m, leaf := range r.leaves {
+		leaf.SetHeaderMatcher(route.NewHeaderMatcher(matches))
+
+		// Delete static route from fast paths since header matches are dynamic.
+		if leaf.Static() {
+			delete(r.router.staticRoutes[m], leaf.Route())
+		}
+	}
+	return r
 }
 
 // Name sets the name for the route.
@@ -145,7 +179,11 @@ func (r *Route) Name(name string) {
 	} else if _, ok := r.router.namedRoutes[name]; ok {
 		panic("duplicated route name: " + name)
 	}
-	r.router.namedRoutes[name] = r.leaf
+
+	for _, leaf := range r.leaves {
+		r.router.namedRoutes[name] = leaf
+		break
+	}
 }
 
 func (r *router) addRoute(method, routePath string, handler route.Handler) *Route {
@@ -171,9 +209,9 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 		panic(fmt.Sprintf("unable to parse route %q: %v", routePath, err))
 	}
 
-	var leaf route.Leaf
+	leaves := make(map[string]route.Leaf, len(methods))
 	for _, m := range methods {
-		leaf, err = route.AddRoute(r.routeTrees[m], ast, handler)
+		leaf, err := route.AddRoute(r.routeTrees[m], ast, handler)
 		if err != nil {
 			panic(fmt.Sprintf("unable to add route %q with method %s: %v", routePath, m, err))
 		}
@@ -181,11 +219,12 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 		if leaf.Static() {
 			r.staticRoutes[m][leaf.Route()] = leaf
 		}
+		leaves[m] = leaf
 	}
 
 	return &Route{
 		router: r,
-		leaf:   leaf,
+		leaves: leaves,
 	}
 }
 
@@ -319,7 +358,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	leaf, params, ok := routeTree.Match(req.URL.Path)
+	leaf, params, ok := routeTree.Match(req.URL.Path, req.Header)
 	if !ok {
 		r.notFound(w, req)
 		return
