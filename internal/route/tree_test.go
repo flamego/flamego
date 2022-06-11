@@ -6,11 +6,13 @@ package route
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTree(t *testing.T) {
@@ -29,7 +31,7 @@ func TestNewTree(t *testing.T) {
 	})
 
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		route string
@@ -59,12 +61,12 @@ func TestNewTree(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
-			assert.Len(t, route.Segments, 2)
+			require.NoError(t, err)
+			require.Len(t, route.Segments, 2)
 
 			segment := route.Segments[0]
 			got, err := newTree(nil, segment)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			switch test.style {
 			case matchStyleStatic:
@@ -82,7 +84,7 @@ func TestNewTree(t *testing.T) {
 
 func TestNewTree_Regex(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		route      string
@@ -118,12 +120,12 @@ func TestNewTree_Regex(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
-			assert.Len(t, route.Segments, 2)
+			require.NoError(t, err)
+			require.Len(t, route.Segments, 2)
 
 			segment := route.Segments[0]
 			got, err := newTree(nil, segment)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			tree := got.(*regexTree)
 			assert.Equal(t, test.wantRegexp, tree.regexp.String())
@@ -134,18 +136,18 @@ func TestNewTree_Regex(t *testing.T) {
 
 func TestAddRoute(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	t.Run("duplicated routes", func(t *testing.T) {
 		tree := NewTree()
 
 		r1, err := parser.Parse(`/webapi/users`)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 		_, err = AddRoute(tree, r1, nil)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		r2, err := parser.Parse(`/webapi/users/?events`)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 		_, err = AddRoute(tree, r2, nil)
 		got := fmt.Sprintf("%v", err)
 		want := `add optional leaf to grandparent: duplicated route "/webapi/users/?events"`
@@ -154,7 +156,7 @@ func TestAddRoute(t *testing.T) {
 
 	t.Run("duplicated match all styles", func(t *testing.T) {
 		route, err := parser.Parse(`/webapi/tree/{paths: **}/{names: **}/upload`)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
@@ -223,12 +225,12 @@ func TestAddRoute(t *testing.T) {
 			},
 		},
 		{
-			route:     `/webapi/article_{id: /[0-9]+/}_{page: /[\\w]+/}.{ext: /diff|patch/}`,
+			route:     `/webapi/article_{id: /\d+/}_{page: /[\\w]+/}.{ext: /diff|patch/}`,
 			style:     matchStyleRegex,
 			wantDepth: 3,
 			wantLeaf: &regexLeaf{
 				baseLeaf: baseLeaf{},
-				regexp:   regexp.MustCompile(`^article_([0-9]+)_([\\w]+)\.(diff|patch)$`),
+				regexp:   regexp.MustCompile(`^article_(\d+)_([\\w]+)\.(diff|patch)$`),
 				binds:    []string{"id", "page", "ext"},
 			},
 		},
@@ -236,10 +238,10 @@ func TestAddRoute(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			got, err := AddRoute(NewTree(), route, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			segment := route.Segments[len(route.Segments)-1]
 			switch test.style {
@@ -276,7 +278,7 @@ func TestAddRoute(t *testing.T) {
 
 func TestAddRoute_DuplicatedBinds(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tree := NewTree()
 
@@ -294,7 +296,7 @@ func TestAddRoute_DuplicatedBinds(t *testing.T) {
 	for _, route := range routes {
 		t.Run(route, func(t *testing.T) {
 			r, err := parser.Parse(route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			_, err = AddRoute(tree, r, nil)
 			got := fmt.Sprintf("%v", err)
@@ -305,7 +307,7 @@ func TestAddRoute_DuplicatedBinds(t *testing.T) {
 
 func TestAddRoute_DuplicatedMatchAll(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tree := NewTree()
 
@@ -321,12 +323,11 @@ func TestAddRoute_DuplicatedMatchAll(t *testing.T) {
 	for i, route := range routes {
 		t.Run(route, func(t *testing.T) {
 			r, err := parser.Parse(route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			_, err = AddRoute(tree, r, nil)
-
 			if i%2 == 0 {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			} else {
 				got := fmt.Sprintf("%v", err)
 				assert.Contains(t, got, "duplicated match all bind parameter")
@@ -337,7 +338,7 @@ func TestAddRoute_DuplicatedMatchAll(t *testing.T) {
 
 func TestTree_Match(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tree := NewTree()
 
@@ -361,10 +362,10 @@ func TestTree_Match(t *testing.T) {
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = AddRoute(tree, r, nil)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 	}
 
 	tests := []struct {
@@ -534,8 +535,8 @@ func TestTree_Match(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.path, func(t *testing.T) {
-			leaf, params, ok := tree.Match(test.path)
-			assert.Equal(t, test.wantOK, ok)
+			leaf, params, ok := tree.Match(test.path, nil)
+			require.Equal(t, test.wantOK, ok)
 
 			if !ok {
 				return
@@ -548,26 +549,22 @@ func TestTree_Match(t *testing.T) {
 
 func TestTree_MatchEscape(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tree := NewTree()
-
-	// NOTE: The order of routes and tests matters, matching for the same priority
-	//  is first in first match.
 	routes := []string{
 		"/webapi/special/vars/{var}",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 
 		_, err = AddRoute(tree, r, nil)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 
 	tests := []struct {
 		path             string
-		withOptional     bool
 		wantOK           bool
 		wantParams       Params
 		wantUnescapedURL string
@@ -591,14 +588,187 @@ func TestTree_MatchEscape(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.path, func(t *testing.T) {
-			leaf, params, ok := tree.Match(test.path)
-			assert.Equal(t, test.wantOK, ok)
+			leaf, params, ok := tree.Match(test.path, nil)
+			require.Equal(t, test.wantOK, ok)
 
 			if !ok {
 				return
 			}
 			assert.Equal(t, test.wantParams, params)
-			assert.Equal(t, strings.TrimRight(test.wantUnescapedURL, "/"), leaf.URLPath(params, test.withOptional))
+			assert.Equal(t, strings.TrimRight(test.wantUnescapedURL, "/"), leaf.URLPath(params, false))
+		})
+	}
+}
+
+func TestTree_MatchHeader(t *testing.T) {
+	parser, err := NewParser()
+	require.NoError(t, err)
+
+	tree := NewTree()
+
+	addRoute := func(path string, header map[string]string) {
+		t.Helper()
+
+		r, err := parser.Parse(path)
+		require.NoError(t, err)
+
+		l, err := AddRoute(tree, r, nil)
+		assert.NoError(t, err)
+
+		matches := make(map[string]*regexp.Regexp, len(header))
+		for k, v := range header {
+			matches[k] = regexp.MustCompile(v)
+		}
+		l.SetHeaderMatcher(NewHeaderMatcher(matches))
+	}
+	// Note: The order of routes and tests matters, matching for the same priority
+	// is first in first match.
+	addRoute("/webapi/static",
+		map[string]string{
+			"Server": "Caddy",
+			"Status": "",
+		},
+	)
+
+	addRoute("/webapi/vars/{var}",
+		map[string]string{
+			"Server": "Caddy",
+		},
+	)
+	addRoute("/webapi/vars/{var}.html",
+		map[string]string{
+			"Server": "Caddy",
+			"Status": "",
+		},
+	)
+
+	addRoute(`/webapi/users/ids/{id: /[0-9]+/}_html`,
+		map[string]string{
+			"Server": "Caddy",
+			"Status": "",
+		},
+	)
+	addRoute(`/webapi/users/ids/{id: /\w+/}`,
+		map[string]string{
+			"Server": "Caddy",
+		},
+	)
+
+	addRoute("/webapi/users/sessions/123",
+		map[string]string{
+			"Server": "Caddy",
+			"Status": "",
+		},
+	)
+	addRoute("/webapi/users/sessions/{paths: **}",
+		map[string]string{
+			"Server": "Caddy",
+		},
+	)
+	// 	"/webapi/users/events/{names: **}/feed",
+	// 	"/webapi/groups/{name: **, capture: 2}",
+
+	tests := []struct {
+		path       string
+		header     map[string]string
+		wantOK     bool
+		wantParams Params
+	}{
+		{
+			path: "/webapi/static",
+			header: map[string]string{
+				"Server": "Caddy",
+				"Status": "200 OK",
+			},
+			wantOK:     true,
+			wantParams: Params{},
+		},
+		{
+			path: "/webapi/static",
+			header: map[string]string{
+				"Server": "Caddy",
+			},
+			wantOK: false, // Missing "Status" header
+		},
+
+		{
+			path: "/webapi/vars/abc.html",
+			header: map[string]string{
+				"Server": "Caddy",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"var": "abc.html", // Not matching "/webapi/vars/{var}.html" because missing "Status" header
+			},
+		},
+		{
+			path: "/webapi/vars/abc.html",
+			header: map[string]string{
+				"Server": "Caddy",
+				"Status": "200 OK",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"var": "abc",
+			},
+		},
+
+		{
+			path: "/webapi/users/ids/abc_html",
+			header: map[string]string{
+				"Server": "Caddy",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"id": "abc_html", // Not matching "/webapi/users/ids/{id: /[0-9]+/}_html" because missing "Status" header
+			},
+		},
+		{
+			path: "/webapi/users/ids/2830_html",
+			header: map[string]string{
+				"Server": "Caddy",
+				"Status": "200 OK",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"id": "2830",
+			},
+		},
+
+		{
+			path: "/webapi/users/sessions/123",
+			header: map[string]string{
+				"Server": "Caddy",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"paths": "123", // Not matching "/webapi/users/sessions/123" because missing "Status" header
+			},
+		},
+		{
+			path: "/webapi/users/sessions/123",
+			header: map[string]string{
+				"Server": "Caddy",
+				"Status": "200 OK",
+			},
+			wantOK:     true,
+			wantParams: Params{},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			header := make(http.Header, len(test.header))
+			for k, v := range test.header {
+				header.Set(k, v)
+			}
+			leaf, params, ok := tree.Match(test.path, header)
+			require.Equal(t, test.wantOK, ok)
+
+			if !ok {
+				return
+			}
+			assert.Equal(t, test.wantParams, params)
+			assert.Equal(t, strings.TrimRight(test.path, "/"), leaf.URLPath(params, false))
 		})
 	}
 }

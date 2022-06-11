@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewLeaf(t *testing.T) {
@@ -21,7 +22,7 @@ func TestNewLeaf(t *testing.T) {
 	})
 
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		route string
@@ -60,12 +61,12 @@ func TestNewLeaf(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			assert.Len(t, route.Segments, 1)
 
 			segment := route.Segments[0]
 			got, err := newLeaf(nil, route, segment, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			switch test.style {
 			case matchStyleStatic:
@@ -86,7 +87,7 @@ func TestNewLeaf(t *testing.T) {
 
 func TestNewLeaf_Regex(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		route      string
@@ -122,12 +123,12 @@ func TestNewLeaf_Regex(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 			assert.Len(t, route.Segments, 1)
 
 			segment := route.Segments[0]
 			got, err := newLeaf(nil, route, segment, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			leaf := got.(*regexLeaf)
 			assert.Equal(t, test.wantRegexp, leaf.regexp.String())
@@ -138,7 +139,7 @@ func TestNewLeaf_Regex(t *testing.T) {
 
 func TestLeaf_URLPath(t *testing.T) {
 	parser, err := NewParser()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		route        string
@@ -245,11 +246,11 @@ func TestLeaf_URLPath(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
 			route, err := parser.Parse(test.route)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			segment := route.Segments[len(route.Segments)-1]
 			leaf, err := newLeaf(nil, route, segment, nil)
-			assert.Nil(t, err)
+			require.NoError(t, err)
 
 			got := leaf.URLPath(test.vals, test.withOptional)
 			assert.Equal(t, test.want, got)
