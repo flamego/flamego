@@ -665,8 +665,18 @@ func TestTree_MatchHeader(t *testing.T) {
 			"Server": "Caddy",
 		},
 	)
-	// 	"/webapi/users/events/{names: **}/feed",
-	// 	"/webapi/groups/{name: **, capture: 2}",
+
+	addRoute("/webapi/users/events/{names: **}/feed",
+		map[string]string{
+			"Server": "Caddy",
+			"Status": "",
+		},
+	)
+	addRoute("/webapi/users/events/{names: **}",
+		map[string]string{
+			"Server": "Caddy",
+		},
+	)
 
 	tests := []struct {
 		path       string
@@ -753,6 +763,28 @@ func TestTree_MatchHeader(t *testing.T) {
 			},
 			wantOK:     true,
 			wantParams: Params{},
+		},
+
+		{
+			path: "/webapi/users/events/push/feed",
+			header: map[string]string{
+				"Server": "Caddy",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"names": "push/feed", // Not matching "/webapi/users/events/{names: **}/feed" because missing "Status" header
+			},
+		},
+		{
+			path: "/webapi/users/events/push/feed",
+			header: map[string]string{
+				"Server": "Caddy",
+				"Status": "200 OK",
+			},
+			wantOK: true,
+			wantParams: Params{
+				"names": "push",
+			},
 		},
 	}
 	for _, test := range tests {
