@@ -1,7 +1,7 @@
 github.com/alecthomas/assert/v2 v2.0.3 h1:WKqJODfOiQG0nEJKFKzDIG3E29CN2/4zR9XGJzKIkbg=
 github.com/alecthomas/assert/v2 v2.0.3/go.mod h1:b/+1DI2Q6NckYi+3mXyH3wFb8qG37K/DuK80n7WefXA=
-github.com/alecthomas/participle/v2 v2.0.0-alpha10 h1:uv/xz/d4SZAiZ22umWu31JT384k7nsyOpi9eiVBVfxA=
-github.com/alecthomas/participle/v2 v2.0.0-alpha10/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
+github.com/alecthomas/participle/v2 v2.0.0-alpha11 h1:3dMbLvoeUJIly6r6MO978sjWU9PJrinEMoQFKt+O8Zk=
+github.com/alecthomas/participle/v2 v2.0.0-alpha11/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
 github.com/alecthomas/repr v0.1.0 h1:ENn2e1+J3k09gyj2shc0dHr/yjaWSHRlrJ4DPMevDqE=
 github.com/alecthomas/repr v0.1.0/go.mod h1:2kn6fqh/zIyPLmm3ugklbEi5hg5wS435eygvNfaDQL8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
