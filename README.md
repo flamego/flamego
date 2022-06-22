@@ -73,6 +73,7 @@ func main() {
 - [Cardinal](https://github.com/vidar-team/Cardinal): Attack-defence CTF platform.
 - [mebeats](https://github.com/wuhan005/mebeats): Realtime heartbeat monitor service based on Mi band.
 - [ASoulDocs](https://github.com/asoul-sig/asouldocs): Ellien's documentation server.
+- [NekoBox](https://github.com/NekoWheel/NekoBox): Anonymous question box.
 - _Just send a PR to add yours!_
 
 ## Development
