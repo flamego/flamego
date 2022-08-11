@@ -186,7 +186,7 @@ func TestStatic_Options(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
