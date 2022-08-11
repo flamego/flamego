@@ -173,6 +173,28 @@ func TestStatic_Options(t *testing.T) {
 		assert.Equal(t, "2830", resp.Header().Get("Expires"))
 	})
 
+	t.Run("cache-control", func(t *testing.T) {
+		__cacheControl := "public, max-age=60"
+		f := NewWithLogger(&bytes.Buffer{})
+		f.Use(Static(
+			StaticOptions{
+				Directory: ".",
+				CacheControl: func() string {
+					return __cacheControl
+				},
+			},
+		))
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", nil)
+		assert.Nil(t, err)
+
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, __cacheControl, resp.Header().Get("Cache-Control"))
+	})
+
 	t.Run("etag", func(t *testing.T) {
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
