@@ -74,6 +74,7 @@ func main() {
 - [mebeats](https://github.com/wuhan005/mebeats): Realtime heartbeat monitor service based on Mi band.
 - [ASoulDocs](https://github.com/asoul-sig/asouldocs): Ellien's documentation server.
 - [NekoBox](https://github.com/NekoWheel/NekoBox): Anonymous question box.
+- [Codenotify.run](https://github.com/codenotify/codenotify.run): Codenotify as a Service.
 - _Just send a PR to add yours!_
 
 ## Development
