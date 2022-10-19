@@ -145,11 +145,12 @@ type Route struct {
 // addition to the request path.
 //
 // For example:
-//  f.Get("/", ...).Headers(
-//      "User-Agent", "Chrome",   // Loose match
-//      "Host", "^flamego\.dev$", // Exact match
-//      "Cache-Control", "",      // As long as "Cache-Control" is not empty
-//  )
+//
+//	f.Get("/", ...).Headers(
+//	    "User-Agent", "Chrome",   // Loose match
+//	    "Host", "^flamego\.dev$", // Exact match
+//	    "Cache-Control", "",      // As long as "Cache-Control" is not empty
+//	)
 //
 // Subsequent calls to Headers() replace previously set matches.
 func (r *Route) Headers(pairs ...string) *Route {
