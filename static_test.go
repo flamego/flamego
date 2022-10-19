@@ -174,13 +174,13 @@ func TestStatic_Options(t *testing.T) {
 	})
 
 	t.Run("cache-control", func(t *testing.T) {
-		__cacheControl := "public, max-age=60"
+		const cacheControl = "public, max-age=60"
 		f := NewWithLogger(&bytes.Buffer{})
 		f.Use(Static(
 			StaticOptions{
 				Directory: ".",
 				CacheControl: func() string {
-					return __cacheControl
+					return cacheControl
 				},
 			},
 		))
@@ -192,7 +192,7 @@ func TestStatic_Options(t *testing.T) {
 		f.ServeHTTP(resp, req)
 
 		assert.Equal(t, http.StatusOK, resp.Code)
-		assert.Equal(t, __cacheControl, resp.Header().Get("Cache-Control"))
+		assert.Equal(t, cacheControl, resp.Header().Get("Cache-Control"))
 	})
 
 	t.Run("etag", func(t *testing.T) {

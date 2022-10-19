@@ -37,8 +37,8 @@ type StaticOptions struct {
 	// EnableLogging indicates whether to print "[Static]" log messages whenever a
 	// static file is served.
 	EnableLogging bool
-	// CacheControl specifies the Cache-Control header value to be used when serving
-	// static files.
+	// CacheControl is used to set the "Cache-Control" response header for every
+	// static file that is served. Default is not set.
 	CacheControl func() string
 }
 
