@@ -25,7 +25,7 @@ func TestStatic(t *testing.T) {
 
 	t.Run("serve with GET", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -37,7 +37,7 @@ func TestStatic(t *testing.T) {
 
 	t.Run("serve with HEAD", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -49,7 +49,7 @@ func TestStatic(t *testing.T) {
 
 	t.Run("404 with POST", func(t *testing.T) {
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodPost, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodPost, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -73,7 +73,7 @@ func TestStatic_Options(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/hello.txt", nil)
+		req, err := http.NewRequest(http.MethodGet, "/hello.txt", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -142,7 +142,7 @@ func TestStatic_Options(t *testing.T) {
 				))
 
 				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodHead, "/", nil)
+				req, err := http.NewRequest(http.MethodHead, "/", http.NoBody)
 				assert.Nil(t, err)
 
 				f.ServeHTTP(resp, req)
@@ -164,7 +164,7 @@ func TestStatic_Options(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodHead, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -205,7 +205,7 @@ func TestStatic_Options(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -229,7 +229,7 @@ func TestStatic_Options(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", nil)
+		req, err := http.NewRequest(http.MethodGet, "/.editorconfig", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -260,7 +260,7 @@ func TestStatic_Redirect(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/public/", nil)
+		req, err := http.NewRequest(http.MethodGet, "/public/", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -278,7 +278,7 @@ func TestStatic_Redirect(t *testing.T) {
 		))
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "/public", nil)
+		req, err := http.NewRequest(http.MethodGet, "/public", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
@@ -292,7 +292,7 @@ func TestStatic_Redirect(t *testing.T) {
 		f.Use(Static())
 
 		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodGet, "http://localhost:2830//example.com%2f..", nil)
+		req, err := http.NewRequest(http.MethodGet, "http://localhost:2830//example.com%2f..", http.NoBody)
 		assert.Nil(t, err)
 
 		f.ServeHTTP(resp, req)
