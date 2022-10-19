@@ -37,6 +37,9 @@ type StaticOptions struct {
 	// EnableLogging indicates whether to print "[Static]" log messages whenever a
 	// static file is served.
 	EnableLogging bool
+	// CacheControl is used to set the "Cache-Control" response header for every
+	// static file that is served. Default is not set.
+	CacheControl func() string
 }
 
 func generateETag(size int64, name string, modtime time.Time) string {
@@ -140,6 +143,9 @@ func Static(opts ...StaticOptions) Handler {
 		}
 		if opt.Expires != nil {
 			c.ResponseWriter().Header().Set("Expires", opt.Expires())
+		}
+		if opt.CacheControl != nil {
+			c.ResponseWriter().Header().Set("Cache-Control", opt.CacheControl())
 		}
 
 		if opt.SetETag {
