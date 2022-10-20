@@ -12,13 +12,12 @@ import (
 
 // Parser is a BNF-based route syntax parser using stateful lexer.
 type Parser struct {
-	parser *participle.Parser
+	parser *participle.Parser[Route]
 }
 
 // Parse parses and returns a single route.
 func (p *Parser) Parse(s string) (*Route, error) {
-	ast := &Route{}
-	return ast, p.parser.ParseString("", s, ast)
+	return p.parser.ParseString("", s)
 }
 
 // NewParser creates and returns a new Parser.
@@ -62,8 +61,7 @@ func NewParser() (*Parser, error) {
 		return nil, errors.Wrap(err, "new lexer")
 	}
 
-	parser, err := participle.Build(
-		&Route{},
+	parser, err := participle.Build[Route](
 		participle.Lexer(l),
 		participle.UseLookahead(2),
 	)
