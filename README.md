@@ -42,10 +42,10 @@ func main() {
 
 ## Middleware
 
-- [`Logger`](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
-- [`Recovery`](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
-- [`Static`](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
-- [`Renderer`](https://flamego.dev/core-services.html#rendering-content) - Render content
+- [Logger](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
+- [Recovery](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
+- [Static](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
+- [Renderer](https://flamego.dev/core-services.html#rendering-content) - Render content
 - [template](https://flamego.dev/middleware/template.html) - Go template rendering
 - [session](https://flamego.dev/middleware/session.html) - User session management
 - [recaptcha](https://flamego.dev/middleware/recaptcha.html) - Google reCAPTCHA verification
