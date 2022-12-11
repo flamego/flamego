@@ -42,23 +42,23 @@ func main() {
 
 ## Middleware
 
-- [`Logger`](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
-- [`Recovery`](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
-- [`Static`](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
-- [`Renderer`](https://flamego.dev/core-services.html#rendering-content) - Render content
-- [`template`](https://flamego.dev/middleware/template.html) - Go template rendering
-- [`session`](https://flamego.dev/middleware/session.html) - User session management
-- [`recaptcha`](https://flamego.dev/middleware/recaptcha.html) - Google reCAPTCHA verification
-- [`csrf`](https://flamego.dev/middleware/csrf.html) - Generate and validate CSRF tokens
-- [`cors`](https://flamego.dev/middleware/cors.html) - Cross-Origin Resource Sharing
-- [`binding`](https://flamego.dev/middleware/binding.html) - Request data binding and validation
-- [`gzip`](https://flamego.dev/middleware/gzip.html) - Gzip compression to responses
-- [`cache`](https://flamego.dev/middleware/cache.html) - Cache management
-- [`brotli`](https://flamego.dev/middleware/brotli.html) - Brotli compression to responses
-- [`auth`](https://flamego.dev/middleware/auth.html) - Basic and bearer authentication
-- [`i18n`](https://flamego.dev/middleware/i18n.html) - Internationalization and localization
-- [`captcha`](https://flamego.dev/middleware/captcha.html) - Captcha service
-- [`hcaptcha`](https://flamego.dev/middleware/hcaptcha.html) - hCaptcha verification
+- [Logger](https://flamego.dev/core-services.html#routing-logger) - Log requests and response status code
+- [Recovery](https://flamego.dev/core-services.html#panic-recovery) - Automatic recovery from panics
+- [Static](https://flamego.dev/core-services.html#serving-static-files) - Serve static files
+- [Renderer](https://flamego.dev/core-services.html#rendering-content) - Render content
+- [template](https://flamego.dev/middleware/template.html) - Go template rendering
+- [session](https://flamego.dev/middleware/session.html) - User session management
+- [recaptcha](https://flamego.dev/middleware/recaptcha.html) - Google reCAPTCHA verification
+- [csrf](https://flamego.dev/middleware/csrf.html) - Generate and validate CSRF tokens
+- [cors](https://flamego.dev/middleware/cors.html) - Cross-Origin Resource Sharing
+- [binding](https://flamego.dev/middleware/binding.html) - Request data binding and validation
+- [gzip](https://flamego.dev/middleware/gzip.html) - Gzip compression to responses
+- [cache](https://flamego.dev/middleware/cache.html) - Cache management
+- [brotli](https://flamego.dev/middleware/brotli.html) - Brotli compression to responses
+- [auth](https://flamego.dev/middleware/auth.html) - Basic and bearer authentication
+- [i18n](https://flamego.dev/middleware/i18n.html) - Internationalization and localization
+- [captcha](https://flamego.dev/middleware/captcha.html) - Captcha service
+- [hcaptcha](https://flamego.dev/middleware/hcaptcha.html) - hCaptcha verification
 
 ## Getting help
 
