@@ -75,6 +75,7 @@ func main() {
 - [ASoulDocs](https://github.com/asoul-sig/asouldocs): Ellien's documentation server.
 - [NekoBox](https://github.com/NekoWheel/NekoBox): Anonymous question box.
 - [Codenotify.run](https://github.com/codenotify/codenotify.run): Codenotify as a Service.
+- [Relay](https://github.com/bytebase/relay): A web server for forwarding events from service A to service B.
 - _Just send a PR to add yours!_
 
 ## Development
