@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/charmbracelet/log"
 
@@ -177,8 +178,9 @@ func (f *Flame) Run(args ...interface{}) {
 	logger.Print("Listening on "+addr, "env", Env())
 
 	server := &http.Server{
-		Addr:    addr,
-		Handler: f,
+		Addr:              addr,
+		Handler:           f,
+		ReadHeaderTimeout: 3 * time.Second,
 	}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
