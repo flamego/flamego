@@ -7,11 +7,12 @@ package flamego
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/charmbracelet/log"
 )
 
 // StaticOptions contains options for the flamego.Static middleware.
@@ -78,7 +79,7 @@ func Static(opts ...StaticOptions) Handler {
 
 	opt = parseStaticOptions(opt)
 
-	return LoggerInvoker(func(c Context, log *log.Logger) {
+	return LoggerInvoker(func(c Context, logger log.Logger) {
 		if c.Request().Method != http.MethodGet && c.Request().Method != http.MethodHead {
 			return
 		}
@@ -139,7 +140,7 @@ func Static(opts ...StaticOptions) Handler {
 		}
 
 		if opt.EnableLogging {
-			log.Println("[Static] Serving " + file)
+			logger.Print("[Static] Serving", "file", file)
 		}
 		if opt.Expires != nil {
 			c.ResponseWriter().Header().Set("Expires", opt.Expires())

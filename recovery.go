@@ -7,10 +7,11 @@ package flamego
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"runtime"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/flamego/flamego/inject"
 )
@@ -121,11 +122,11 @@ pre {
 		return buf.Bytes()
 	}
 
-	return LoggerInvoker(func(c Context, log *log.Logger) {
+	return LoggerInvoker(func(c Context, logger log.Logger) {
 		defer func() {
 			if err := recover(); err != nil {
 				stack := stack(3)
-				log.Printf("PANIC: %s\n%s", err, stack)
+				logger.Error(fmt.Sprintf("PANIC: %s\n%s", err, stack))
 
 				// Lookup the current ResponseWriter
 				val := c.Value(inject.InterfaceOf((*http.ResponseWriter)(nil)))

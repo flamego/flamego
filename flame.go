@@ -8,13 +8,14 @@ package flamego
 import (
 	gocontext "context"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync/atomic"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/flamego/flamego/inject"
 	"github.com/flamego/flamego/internal/route"
@@ -31,7 +32,7 @@ type Flame struct {
 	befores  []BeforeHandler // The list of handlers to be called before matching route.
 	handlers []Handler       // The list of middleware handlers.
 	action   Handler         // The last action handler to be executed.
-	logger   *log.Logger     // The default request logger.
+	logger   log.Logger      // The default request logger.
 
 	stop chan struct{} // The signal to stop the HTTP server.
 }
@@ -42,13 +43,20 @@ type Flame struct {
 func NewWithLogger(w io.Writer) *Flame {
 	f := &Flame{
 		Injector: inject.New(),
-		logger:   log.New(w, "[Flamego] ", 0),
-		stop:     make(chan struct{}),
+		logger: log.New(
+			log.WithOutput(w),
+			log.WithTimestamp(),
+			log.WithTimeFormat("2006-01-02 15:04:05"),
+			log.WithPrefix("🧙 Flamego"),
+			log.WithLevel(log.DebugLevel),
+		),
+		stop: make(chan struct{}),
 	}
 	f.Router = newRouter(f.createContext)
 	f.NotFound(http.NotFound)
 
 	f.Map(f.logger)
+	f.Map(f.logger.StandardLog())
 	f.Map(defaultReturnHandler())
 	return f
 }
@@ -165,8 +173,8 @@ func (f *Flame) Run(args ...interface{}) {
 	}
 
 	addr := host + ":" + port
-	logger := f.Value(reflect.TypeOf(f.logger)).Interface().(*log.Logger)
-	logger.Printf("Listening on %s (%s)\n", addr, Env())
+	logger := f.Value(reflect.TypeOf(f.logger)).Interface().(log.Logger)
+	logger.Print("Listening on "+addr, "env", Env())
 
 	server := &http.Server{
 		Addr:    addr,
@@ -174,16 +182,16 @@ func (f *Flame) Run(args ...interface{}) {
 	}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalln(err)
+			logger.Fatal("Failed to start server", "error", err)
 		}
 	}()
 
 	<-f.stop
 
 	if err := server.Shutdown(gocontext.Background()); err != nil {
-		logger.Fatalln(err)
+		logger.Fatal("Failed to shutdown server", "error", err)
 	}
-	logger.Println("Server stopped")
+	logger.Print("Server stopped")
 }
 
 // Stop stops the server started by the Flame instance.
