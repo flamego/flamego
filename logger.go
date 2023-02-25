@@ -16,7 +16,7 @@ import (
 var _ inject.FastInvoker = (*LoggerInvoker)(nil)
 
 // LoggerInvoker is an inject.FastInvoker implementation of
-// `func(ctx Context, log *log.Logger)`.
+// `func(ctx Context, log log.Logger)`.
 type LoggerInvoker func(ctx Context, log log.Logger)
 
 func (invoke LoggerInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
