@@ -16,20 +16,21 @@ import (
 var _ inject.FastInvoker = (*LoggerInvoker)(nil)
 
 // LoggerInvoker is an inject.FastInvoker implementation of
-// `func(ctx Context, log log.Logger)`.
-type LoggerInvoker func(ctx Context, log log.Logger)
+// `func(ctx Context, log *log.Logger)`.
+type LoggerInvoker func(ctx Context, logger *log.Logger)
 
 func (invoke LoggerInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
-	invoke(params[0].(Context), params[1].(log.Logger))
+	invoke(params[0].(Context), params[1].(*log.Logger))
 	return nil, nil
 }
 
 // Logger returns a middleware handler that logs the request as it goes in and
 // the response as it goes out.
 func Logger() Handler {
-	return LoggerInvoker(func(ctx Context, logger log.Logger) {
+	return LoggerInvoker(func(ctx Context, logger *log.Logger) {
 		started := time.Now()
 
+		logger = logger.WithPrefix("Logger")
 		logger.Print("Started",
 			"method", ctx.Request().Method,
 			"path", ctx.Request().RequestURI,
