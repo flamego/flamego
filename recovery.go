@@ -122,7 +122,7 @@ pre {
 		return buf.Bytes()
 	}
 
-	return LoggerInvoker(func(c Context, logger log.Logger) {
+	return LoggerInvoker(func(c Context, logger *log.Logger) {
 		defer func() {
 			if err := recover(); err != nil {
 				stack := stack(3)

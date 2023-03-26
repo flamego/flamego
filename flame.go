@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -33,7 +32,7 @@ type Flame struct {
 	befores  []BeforeHandler // The list of handlers to be called before matching route.
 	handlers []Handler       // The list of middleware handlers.
 	action   Handler         // The last action handler to be executed.
-	logger   log.Logger      // The default request logger.
+	logger   *log.Logger     // The default request logger.
 
 	stop chan struct{} // The signal to stop the HTTP server.
 }
@@ -44,12 +43,13 @@ type Flame struct {
 func NewWithLogger(w io.Writer) *Flame {
 	f := &Flame{
 		Injector: inject.New(),
-		logger: log.New(
-			log.WithOutput(w),
-			log.WithTimestamp(),
-			log.WithTimeFormat("2006-01-02 15:04:05"),
-			log.WithPrefix("🧙 Flamego"),
-			log.WithLevel(log.DebugLevel),
+		logger: log.NewWithOptions(
+			w,
+			log.Options{
+				TimeFormat:      "2006-01-02 15:04:05", // TODO(go1.20): Use time.DateTime
+				Level:           log.DebugLevel,
+				ReportTimestamp: true,
+			},
 		),
 		stop: make(chan struct{}),
 	}
@@ -174,7 +174,7 @@ func (f *Flame) Run(args ...interface{}) {
 	}
 
 	addr := host + ":" + port
-	logger := f.Value(reflect.TypeOf(f.logger)).Interface().(log.Logger)
+	logger := f.logger.WithPrefix("🧙 Flamego")
 	logger.Print("Listening on "+addr, "env", Env())
 
 	server := &http.Server{
