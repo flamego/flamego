@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -209,7 +210,8 @@ func (c *context) run() {
 
 		vals, err := c.Invoke(h)
 		if err != nil {
-			panic(fmt.Sprintf("unable to invoke the %s handler [%T]: %v", ordinalize(c.index), h, err))
+			panic(fmt.Sprintf("unable to invoke the %s handler [%s:%T]: %v",
+				ordinalize(c.index), runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name(), h, err))
 		}
 		c.index++
 
