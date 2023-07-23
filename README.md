@@ -78,6 +78,7 @@ func main() {
 - [Relay](https://github.com/bytebase/relay): A web server for forwarding events from service A to service B.
 - [bilibili-lottery](https://github.com/flamego-examples/bilibili-lottery): 一款支持对哔哩哔哩视频或动态评论进行抽奖的小程序
 - [pgrok](https://github.com/pgrok/pgrok): Poor man's ngrok.
+- [Caramelverse](https://caramelverse.com): A fashion brand.
 - _Just send a PR to add yours!_
 
 ## Development
