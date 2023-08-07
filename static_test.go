@@ -6,6 +6,7 @@ package flamego
 
 import (
 	"bytes"
+	"embed"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +15,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+//go:embed internal
+var embedFS embed.FS
 
 func TestStatic(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
@@ -119,30 +123,45 @@ func TestStatic_Options(t *testing.T) {
 
 	t.Run("index", func(t *testing.T) {
 		tests := []struct {
+			uri            string
 			index          string
 			wantStatusCode int
 		}{
 			{
+				uri:            "/",
 				index:          ".editorconfig",
 				wantStatusCode: http.StatusOK,
 			},
 			{
+				uri:            "/",
 				index:          "index.html",
 				wantStatusCode: http.StatusNotFound,
+			},
+			{
+				uri:            "/embed/internal/route/",
+				index:          "README.md",
+				wantStatusCode: http.StatusOK,
 			},
 		}
 		for _, test := range tests {
 			t.Run(test.index, func(t *testing.T) {
 				f := NewWithLogger(&bytes.Buffer{})
-				f.Use(Static(
-					StaticOptions{
-						Directory: ".",
-						Index:     test.index,
-					},
-				))
+				f.Use(
+					Static(
+						StaticOptions{
+							Directory: ".",
+							Index:     test.index,
+						},
+					),
+					Static(StaticOptions{
+						FileSystem: http.FS(embedFS),
+						Prefix:     "/embed",
+						Index:      test.index,
+					}),
+				)
 
 				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodHead, "/", http.NoBody)
+				req, err := http.NewRequest(http.MethodHead, test.uri, http.NoBody)
 				assert.Nil(t, err)
 
 				f.ServeHTTP(resp, req)
