@@ -98,7 +98,9 @@ func Static(opts ...StaticOptions) Handler {
 		}
 
 		// The go embed file system returns an error when the path ends with a slash or the path is empty.
-		if file != "/" {
+		if file == "/" {
+			file = "."
+		} else {
 			file = strings.TrimRight(file, "/")
 		}
 
