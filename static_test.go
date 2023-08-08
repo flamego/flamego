@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:embed internal
+//go:embed internal README.md
 var embedFS embed.FS
 
 func TestStatic(t *testing.T) {
@@ -139,6 +139,11 @@ func TestStatic_Options(t *testing.T) {
 			},
 			{
 				uri:            "/embed/internal/route/",
+				index:          "README.md",
+				wantStatusCode: http.StatusOK,
+			},
+			{
+				uri:            "/embed/",
 				index:          "README.md",
 				wantStatusCode: http.StatusOK,
 			},
