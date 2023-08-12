@@ -7,6 +7,7 @@ package flamego
 
 import (
 	gocontext "context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -148,6 +149,8 @@ func (f *Flame) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // altered by the environment variable "FLAMEGO_ADDR". The instance can be
 // stopped by calling `Flame.Stop`.
 func (f *Flame) Run(args ...interface{}) {
+	logger := f.logger.WithPrefix("🧙 Flamego")
+
 	host := "0.0.0.0"
 	port := "2830"
 
@@ -163,6 +166,8 @@ func (f *Flame) Run(args ...interface{}) {
 			host = arg
 		case int:
 			port = strconv.Itoa(arg)
+		default:
+			logger.Print("Ignoring invalid type of argument", "type", fmt.Sprintf("%T", arg), "value", arg)
 		}
 	} else if len(args) >= 2 {
 		if arg, ok := args[0].(string); ok {
@@ -174,8 +179,7 @@ func (f *Flame) Run(args ...interface{}) {
 	}
 
 	addr := host + ":" + port
-	logger := f.logger.WithPrefix("🧙 Flamego")
-	logger.Print("Listening on "+addr, "env", Env())
+	logger.Print("Serving on http://localhost:"+port, "env", Env())
 
 	server := &http.Server{
 		Addr:              addr,
