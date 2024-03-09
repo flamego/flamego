@@ -79,6 +79,7 @@ func main() {
 - [bilibili-lottery](https://github.com/flamego-examples/bilibili-lottery): 一款支持对哔哩哔哩视频或动态评论进行抽奖的小程序
 - [pgrok](https://github.com/pgrok/pgrok): Poor man's ngrok.
 - [Caramelverse](https://caramelverse.com): A fashion brand.
+- [Sourcegraph Accounts](https://accounts.sourcegraph.com/): Centralized accounts system for all of the Sourcegraph-operated services
 - _Just send a PR to add yours!_
 
 ## Development
