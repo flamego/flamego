@@ -50,11 +50,11 @@ jobs:
         with:
           go-version: 'stable'
       - name: Run tests with coverage (windows)
-        if: ${{ matrix.platform }} == 'windows-latest'
+        if: ${{ matrix.platform == 'windows-latest' }}
         continue-on-error: true
         run: go test -shuffle=on -v -race -coverprofile=coverage -covermode=atomic ./...
       - name: Run tests with coverage (non-windows)
-        if: ${{ matrix.platform }} != 'windows-latest'
+        if: ${{ matrix.platform != 'windows-latest' }}
         continue-on-error: true
         run: |
           go test -shuffle=on -v -race -coverprofile=coverage -covermode=atomic -json ./... > test-report.json
