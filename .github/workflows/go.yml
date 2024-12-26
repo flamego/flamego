@@ -49,16 +49,14 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 'stable'
-      - name: Run tests with coverage
+      - name: Run tests with coverage (windows)
         if: ${{ matrix.platform }} == 'windows-latest'
         continue-on-error: true
         run: go test -shuffle=on -v -race -coverprofile=coverage -covermode=atomic ./...
-      - name: Run tests with coverage
+      - name: Run tests with coverage (non-windows)
         if: ${{ matrix.platform }} != 'windows-latest'
         continue-on-error: true
-        run: go test -shuffle=on -v -race -coverprofile=coverage -covermode=atomic -json ./... > test-report.json
-      - name: Analyze test report
-        if: ${{ matrix.platform }} != 'windows-latest'
         run: |
+          go test -shuffle=on -v -race -coverprofile=coverage -covermode=atomic -json ./... > test-report.json
           go install github.com/mfridman/tparse@latest
           tparse -all -file=test-report.json
