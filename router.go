@@ -69,15 +69,15 @@ type Router interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
 
-type contextCreator func(http.ResponseWriter, *http.Request, route.Params, []Handler, urlPather) internalContext
+type contextCreator func(http.ResponseWriter, *http.Request, route.Params, string, []Handler, urlPather) internalContext
 
 type router struct {
-	parser       *route.Parser                    // The route parser.
-	autoHead     bool                             // Whether to automatically attach the same handler of a GET method as HEAD.
-	groups       []group                          // The living stack of nested route groups.
-	routeTrees   map[string]route.Tree            // A set of route trees, keys are HTTP methods.
-	namedRoutes  map[string]route.Leaf            // A set of named routes.
-	staticRoutes map[string]map[string]route.Leaf // A set of static routes, keys are HTTP methods and full route paths.
+	parser       *route.Parser                      // The route parser.
+	autoHead     bool                               // Whether to automatically attach the same handler of a GET method as HEAD.
+	groups       []group                            // The living stack of nested route groups.
+	routeTrees   [methodCount]route.Tree            // A set of route trees, indexed by HTTP method.
+	namedRoutes  map[string]route.Leaf              // A set of named routes.
+	staticRoutes [methodCount]map[string]route.Leaf // A set of static routes, indexed by HTTP method and full route paths.
 
 	notFound http.HandlerFunc // The handler to be called when a route has no match.
 
@@ -88,6 +88,19 @@ type router struct {
 	// useful for wrapping the Handler to inject.FastInvoker.
 	handlerWrapper func(Handler) Handler
 }
+
+const (
+	methodGet = iota
+	methodPost
+	methodPut
+	methodDelete
+	methodPatch
+	methodOptions
+	methodHead
+	methodConnect
+	methodTrace
+	methodCount
+)
 
 // httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
 var httpMethods = []string{
@@ -102,6 +115,31 @@ var httpMethods = []string{
 	http.MethodTrace,
 }
 
+func methodIndex(method string) int {
+	switch method {
+	case http.MethodGet:
+		return methodGet
+	case http.MethodPost:
+		return methodPost
+	case http.MethodPut:
+		return methodPut
+	case http.MethodDelete:
+		return methodDelete
+	case http.MethodPatch:
+		return methodPatch
+	case http.MethodOptions:
+		return methodOptions
+	case http.MethodHead:
+		return methodHead
+	case http.MethodConnect:
+		return methodConnect
+	case http.MethodTrace:
+		return methodTrace
+	default:
+		return -1
+	}
+}
+
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
 	parser, err := route.NewParser()
@@ -111,14 +149,13 @@ func newRouter(contextCreator contextCreator) Router {
 
 	r := &router{
 		parser:         parser,
-		routeTrees:     make(map[string]route.Tree),
 		namedRoutes:    make(map[string]route.Leaf),
-		staticRoutes:   make(map[string]map[string]route.Leaf),
 		contextCreator: contextCreator,
 	}
 	for _, m := range httpMethods {
-		r.routeTrees[m] = route.NewTree()
-		r.staticRoutes[m] = make(map[string]route.Leaf)
+		i := methodIndex(m)
+		r.routeTrees[i] = route.NewTree()
+		r.staticRoutes[i] = make(map[string]route.Leaf)
 	}
 
 	r.NotFound(http.NotFound)
@@ -167,7 +204,7 @@ func (r *Route) Headers(pairs ...string) *Route {
 
 		// Delete static route from fast paths since header matches are dynamic.
 		if leaf.Static() {
-			delete(r.router.staticRoutes[m], leaf.Route())
+			delete(r.router.staticRoutes[methodIndex(m)], leaf.Route())
 		}
 	}
 	return r
@@ -194,12 +231,10 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	if method == "*" {
 		methods = httpMethods
 	} else {
-		for _, m := range httpMethods {
-			if method == m {
-				methods = []string{method}
-				break
-			}
+		if methodIndex(method) == -1 {
+			panic("unknown HTTP method: " + method)
 		}
+		methods = []string{method}
 	}
 	if len(methods) == 0 {
 		panic("unknown HTTP method: " + method)
@@ -212,13 +247,14 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 
 	leaves := make(map[string]route.Leaf, len(methods))
 	for _, m := range methods {
-		leaf, err := route.AddRoute(r.routeTrees[m], ast, handler)
+		method := methodIndex(m)
+		leaf, err := route.AddRoute(r.routeTrees[method], ast, handler)
 		if err != nil {
 			panic(fmt.Sprintf("unable to add route %q with method %s: %v", routePath, m, err))
 		}
 
 		if leaf.Static() {
-			r.staticRoutes[m][leaf.Route()] = leaf
+			r.staticRoutes[method][leaf.Route()] = leaf
 		}
 		leaves[m] = leaf
 	}
@@ -249,8 +285,8 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 	}
 
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
-	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params) {
-		r.contextCreator(w, req, params, handlers, r.URLPath).run()
+	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params, routeName string) {
+		r.contextCreator(w, req, params, routeName, handlers, r.URLPath).run()
 	})
 }
 
@@ -339,34 +375,32 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 func (r *router) NotFound(handlers ...Handler) {
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
 	r.notFound = func(w http.ResponseWriter, req *http.Request) {
-		r.contextCreator(w, req, nil, handlers, r.URLPath).run()
+		r.contextCreator(w, req, nil, "", handlers, r.URLPath).run()
 	}
 }
 
 func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Fast path for static routes
-	leaf, ok := r.staticRoutes[req.Method][req.URL.Path]
-	if ok {
-		leaf.Handler()(w, req, route.Params{
-			"route": leaf.Route(),
-		})
-		return
-	}
-
-	routeTree, ok := r.routeTrees[req.Method]
-	if !ok {
+	method := methodIndex(req.Method)
+	if method == -1 {
 		r.notFound(w, req)
 		return
 	}
 
+	// Fast path for static routes
+	leaf, ok := r.staticRoutes[method][req.URL.Path]
+	if ok {
+		leaf.Handler()(w, req, nil, leaf.Route())
+		return
+	}
+
+	routeTree := r.routeTrees[method]
 	leaf, params, ok := routeTree.Match(req.URL.Path, req.Header)
 	if !ok {
 		r.notFound(w, req)
 		return
 	}
 
-	params["route"] = leaf.Route()
-	leaf.Handler()(w, req, params)
+	leaf.Handler()(w, req, params, leaf.Route())
 }
 
 func (r *router) URLPath(name string, pairs ...string) string {

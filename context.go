@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/charmbracelet/log"
+
 	"github.com/flamego/flamego/inject"
 	"github.com/flamego/flamego/internal/route"
 )
@@ -114,13 +116,16 @@ type Params map[string]string
 type context struct {
 	inject.Injector
 
-	handlers []Handler // The list of handlers to be executed.
-	action   Handler   // The last action handler to be executed.
-	index    int       // The index of the current handler that is being executed.
+	handlers      []Handler // The list of middleware handlers to be executed.
+	routeHandlers []Handler // The list of matched route handlers to be executed.
+	action        Handler   // The last action handler to be executed.
+	index         int       // The index of the current handler that is being executed.
 
-	responseWriter ResponseWriter // The http.ResponseWriter wrapper for the coming request.
-	request        *Request       // The http.Request wrapper for the coming request.
-	params         Params         // The values of bind parameters for the coming request.
+	responseWriter     ResponseWriter // The http.ResponseWriter wrapper for the coming request.
+	request            *Request       // The http.Request wrapper for the coming request.
+	params             Params         // The values of bind parameters for the coming request.
+	routeName          string         // The matched route pattern for the coming request.
+	paramsMaterialized bool           // Whether Params has been exposed and may be user-mutated.
 
 	// urlPath is used to build URL path for a route.
 	urlPath urlPather
@@ -128,14 +133,25 @@ type context struct {
 
 type urlPather func(name string, pairs ...string) string
 
+var (
+	loggerType        = reflect.TypeOf((*log.Logger)(nil))
+	returnHandlerType = reflect.TypeOf(ReturnHandler(nil))
+)
+
 // newContext creates and returns a new Context.
-func newContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+func newContext(w http.ResponseWriter, r *http.Request, params route.Params, routeName string, handlers []Handler, urlPath urlPather) internalContext {
+	return newContextWithHandlers(w, r, params, routeName, handlers, nil, urlPath)
+}
+
+func newContextWithHandlers(w http.ResponseWriter, r *http.Request, params route.Params, routeName string, handlers, routeHandlers []Handler, urlPath urlPather) internalContext {
 	c := &context{
 		Injector:       inject.New(),
 		handlers:       handlers,
+		routeHandlers:  routeHandlers,
 		responseWriter: NewResponseWriter(r.Method, w),
 		request:        &Request{Request: r},
 		params:         Params(params),
+		routeName:      routeName,
 		urlPath:        urlPath,
 	}
 	c.MapTo(c, (*Context)(nil))
@@ -165,6 +181,43 @@ func (c *context) setAction(h Handler) {
 	c.action = h
 }
 
+func (c *context) numHandlers() int {
+	return len(c.handlers) + len(c.routeHandlers)
+}
+
+func (c *context) handlerAt(index int) Handler {
+	if index < len(c.handlers) {
+		return c.handlers[index]
+	}
+	return c.routeHandlers[index-len(c.handlers)]
+}
+
+func (c *context) invokeHandler(h Handler) ([]reflect.Value, error) {
+	switch h := h.(type) {
+	case funcInvoker:
+		h()
+		return nil, nil
+	case ContextInvoker:
+		h(c)
+		return nil, nil
+	case httpHandlerFuncInvoker:
+		h(c.responseWriter, c.request.Request)
+		return nil, nil
+	case LoggerInvoker:
+		val := c.Value(loggerType)
+		if !val.IsValid() {
+			return nil, fmt.Errorf("value not found for type %v", loggerType)
+		}
+		h(c, val.Interface().(*log.Logger))
+		return nil, nil
+	case teapotInvoker:
+		ret1, ret2 := h()
+		return []reflect.Value{reflect.ValueOf(ret1), reflect.ValueOf(ret2)}, nil
+	default:
+		return c.Invoke(h)
+	}
+}
+
 // ordinalize ordinalizes the number by adding the ordinal to the number.
 func ordinalize(number int) string {
 	abs := int(math.Abs(float64(number)))
@@ -188,7 +241,7 @@ func ordinalize(number int) string {
 }
 
 func (c *context) run() {
-	for c.index <= len(c.handlers) {
+	for c.index <= c.numHandlers() {
 		// Break out when the request context has been cancelled.
 		select {
 		case <-c.Request().Context().Done():
@@ -197,10 +250,10 @@ func (c *context) run() {
 		}
 
 		var h Handler
-		if c.index == len(c.handlers) {
+		if c.index == c.numHandlers() {
 			h = c.action
 		} else {
-			h = c.handlers[c.index]
+			h = c.handlerAt(c.index)
 		}
 
 		if h == nil {
@@ -208,7 +261,7 @@ func (c *context) run() {
 			return
 		}
 
-		vals, err := c.Invoke(h)
+		vals, err := c.invokeHandler(h)
 		if err != nil {
 			panic(fmt.Sprintf("unable to invoke the %s handler [%s:%T]: %v",
 				ordinalize(c.index), runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name(), h, err))
@@ -217,7 +270,7 @@ func (c *context) run() {
 
 		// If the handler returned something, write it to the response.
 		if len(vals) > 0 {
-			ev := c.Value(reflect.TypeOf(ReturnHandler(nil)))
+			ev := c.Value(returnHandlerType)
 			handleReturn := ev.Interface().(ReturnHandler)
 			handleReturn(c, vals)
 		}
@@ -256,11 +309,31 @@ func (c *context) Redirect(location string, status ...int) {
 }
 
 func (c *context) Params() Params {
+	if c.params == nil {
+		if c.routeName == "" {
+			c.paramsMaterialized = true
+			return nil
+		}
+		c.params = make(Params, 1)
+	}
+	if !c.paramsMaterialized && c.routeName != "" {
+		c.params["route"] = c.routeName
+	}
+	c.paramsMaterialized = true
 	return c.params
 }
 
 func (c *context) Param(name string) string {
-	return c.params[name]
+	if name == "route" && !c.paramsMaterialized {
+		return c.routeName
+	}
+	if c.params != nil {
+		v, ok := c.params[name]
+		if ok || c.paramsMaterialized {
+			return v
+		}
+	}
+	return ""
 }
 
 func (c *context) ParamInt(name string) int {

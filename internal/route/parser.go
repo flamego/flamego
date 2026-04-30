@@ -5,6 +5,8 @@
 package route
 
 import (
+	"strings"
+
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/pkg/errors"
@@ -17,7 +19,14 @@ type Parser struct {
 
 // Parse parses and returns a single route.
 func (p *Parser) Parse(s string) (*Route, error) {
-	return p.parser.ParseString("", s)
+	r, err := p.parser.ParseString("", s)
+	if err != nil {
+		msg := strings.Replace(err.Error(), ": lexer: invalid input text", ": invalid input text", 1)
+		if msg != err.Error() {
+			return nil, errors.New(msg)
+		}
+	}
+	return r, err
 }
 
 // NewParser creates and returns a new Parser.

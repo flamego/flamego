@@ -137,7 +137,12 @@ func (inj *injector) fastInvoke(f FastInvoker, t reflect.Type, numIn int) ([]ref
 func (inj *injector) callInvoke(f interface{}, t reflect.Type, numIn int) ([]reflect.Value, error) {
 	var in []reflect.Value
 	if numIn > 0 {
-		in = make([]reflect.Value, numIn)
+		var stack [8]reflect.Value
+		if numIn <= len(stack) {
+			in = stack[:numIn]
+		} else {
+			in = make([]reflect.Value, numIn)
+		}
 		var argType reflect.Type
 		var val reflect.Value
 		for i := 0; i < numIn; i++ {

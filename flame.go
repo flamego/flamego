@@ -82,14 +82,8 @@ func Classic() *Flame {
 	return f
 }
 
-func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
-	// Allocate a new slice to avoid mutating the original "handlers" and that could
-	// potentially cause data race.
-	hs := make([]Handler, 0, len(f.handlers)+len(handlers))
-	hs = append(hs, f.handlers...)
-	hs = append(hs, handlers...)
-
-	c := newContext(w, r, params, hs, urlPath)
+func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params route.Params, routeName string, handlers []Handler, urlPath urlPather) internalContext {
+	c := newContextWithHandlers(w, r, params, routeName, f.handlers, handlers, urlPath)
 	c.SetParent(f)
 
 	if f.action != nil {
@@ -103,7 +97,12 @@ func (f *Flame) createContext(w http.ResponseWriter, r *http.Request, params rou
 // same order as they are added.
 func (f *Flame) Use(handlers ...Handler) {
 	validateAndWrapHandlers(handlers, nil)
-	f.handlers = append(f.handlers, handlers...)
+	if len(handlers) == 0 {
+		return
+	}
+	hs := make([]Handler, 0, len(f.handlers)+len(handlers))
+	hs = append(hs, f.handlers...)
+	f.handlers = append(hs, handlers...)
 }
 
 // Handlers sets the entire middleware stack with the given Handlers. This will

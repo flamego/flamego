@@ -19,6 +19,16 @@ type Handler interface{}
 
 var _ inject.FastInvoker = (*ContextInvoker)(nil)
 
+var _ inject.FastInvoker = (*funcInvoker)(nil)
+
+// funcInvoker is an inject.FastInvoker implementation of `func()`.
+type funcInvoker func()
+
+func (invoke funcInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+	invoke()
+	return nil, nil
+}
+
 // ContextInvoker is an inject.FastInvoker implementation of `func(Context)`.
 type ContextInvoker func(ctx Context)
 
@@ -61,6 +71,10 @@ func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
 	}
 
 	switch v := h.(type) {
+	case func():
+		if wrapper == nil {
+			return funcInvoker(v)
+		}
 	case func(Context):
 		return ContextInvoker(v)
 	case func(http.ResponseWriter, *http.Request):

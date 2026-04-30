@@ -31,6 +31,7 @@ func TestValidateAndWrapHandler(t *testing.T) {
 	})
 
 	handlers := []Handler{
+		func() {},
 		func(Context) {},
 		func(http.ResponseWriter, *http.Request) {},
 		http.HandlerFunc(nil),
@@ -42,8 +43,10 @@ func TestValidateAndWrapHandler(t *testing.T) {
 
 			h = validateAndWrapHandler(h,
 				func(handler Handler) Handler {
-					v, ok := h.(func() string)
-					if ok {
+					switch v := h.(type) {
+					case func():
+						return funcInvoker(v)
+					case func() string:
 						return testHandlerFastInvoker(v)
 					}
 					return h

@@ -50,7 +50,7 @@ type Leaf interface {
 	getMatchStyle() MatchStyle
 	// match returns true if the leaf matches the segment, values of bind parameters
 	// are stored in the `Params`.
-	match(segment string, params Params, header http.Header) bool
+	match(segment string, params *Params, header http.Header) bool
 }
 
 // baseLeaf contains common fields for any leaf.
@@ -136,7 +136,7 @@ func (*staticLeaf) getMatchStyle() MatchStyle {
 	return matchStyleStatic
 }
 
-func (l *staticLeaf) match(segment string, _ Params, header http.Header) bool {
+func (l *staticLeaf) match(segment string, _ *Params, header http.Header) bool {
 	return l.literals == segment && l.matchHeader(header)
 }
 
@@ -162,18 +162,18 @@ func (*regexLeaf) getMatchStyle() MatchStyle {
 	return matchStyleRegex
 }
 
-func (l *regexLeaf) match(segment string, params Params, header http.Header) bool {
+func (l *regexLeaf) match(segment string, params *Params, header http.Header) bool {
+	if !l.matchHeader(header) {
+		return false
+	}
+
 	submatches := l.regexp.FindStringSubmatch(segment)
 	if len(submatches) < len(l.binds)+1 {
 		return false
 	}
 
-	if !l.matchHeader(header) {
-		return false
-	}
-
 	for i, bind := range l.binds {
-		params[bind] = submatches[i+1]
+		setParam(params, bind, submatches[i+1])
 	}
 	return true
 }
@@ -188,11 +188,11 @@ func (*placeholderLeaf) getMatchStyle() MatchStyle {
 	return matchStylePlaceholder
 }
 
-func (l *placeholderLeaf) match(segment string, params Params, header http.Header) bool {
+func (l *placeholderLeaf) match(segment string, params *Params, header http.Header) bool {
 	if !l.matchHeader(header) {
 		return false
 	}
-	params[l.bind] = segment
+	setParam(params, l.bind, segment)
 	return true
 }
 
@@ -207,11 +207,11 @@ func (*matchAllLeaf) getMatchStyle() MatchStyle {
 	return matchStyleAll
 }
 
-func (l *matchAllLeaf) match(segment string, params Params, header http.Header) bool {
+func (l *matchAllLeaf) match(segment string, params *Params, header http.Header) bool {
 	if !l.matchHeader(header) {
 		return false
 	}
-	params[l.bind] = segment
+	setParam(params, l.bind, segment)
 	return true
 }
 
@@ -219,7 +219,7 @@ func (l *matchAllLeaf) match(segment string, params Params, header http.Header) 
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns true if segments are captured within the
 // limit, and the capture result is stored in `params`.
-func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params, header http.Header) bool {
+func (l *matchAllLeaf) matchAll(path, segment string, next int, params *Params, header http.Header) bool {
 	// Do `next-1` because "next" starts at the next character of preceding "/"; do
 	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
 	// "users/events" => 3
@@ -230,7 +230,8 @@ func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params, h
 		return false
 	}
 
-	params[l.bind] = segment + "/" + path[next:]
+	captureStart := next - len(segment) - 1
+	setParam(params, l.bind, path[captureStart:])
 	return true
 }
 

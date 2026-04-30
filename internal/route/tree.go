@@ -43,10 +43,10 @@ type Tree interface {
 	// match returns true if the tree matches the segment, values of bind parameters
 	// are stored in the `Params`. The `Params` may contain extra values that do not
 	// belong to the final leaf due to backtrace.
-	match(segment string, params Params) bool
+	match(segment string, params *Params) bool
 	// matchNextSegment advances the `next` cursor for matching next segment in the
 	// request path.
-	matchNextSegment(path string, next int, params Params, header http.Header) (Leaf, bool)
+	matchNextSegment(path string, next int, params *Params, header http.Header) (Leaf, bool)
 }
 
 // baseTree contains common fields and methods for any tree.
@@ -55,6 +55,11 @@ type baseTree struct {
 	segment  *Segment // The segment that the tree is derived from.
 	subtrees []Tree   // The list of direct subtrees ordered by matching priority.
 	leaves   []Leaf   // The list of direct leaves ordered by matching priority.
+
+	staticSubtrees      map[string]Tree // Static direct subtrees keyed by path segment.
+	firstDynamicSubtree int             // Index of the first non-static subtree.
+	staticLeaves        map[string]Leaf // Static direct leaves keyed by path segment.
+	firstDynamicLeaf    int             // Index of the first non-static leaf.
 }
 
 func (t *baseTree) getParent() Tree {
@@ -79,10 +84,36 @@ func (t *baseTree) getLeaves() []Leaf {
 
 func (t *baseTree) setSubtrees(subtrees []Tree) {
 	t.subtrees = subtrees
+	t.staticSubtrees = nil
+	t.firstDynamicSubtree = len(subtrees)
+	for i, st := range subtrees {
+		if st.getMatchStyle() != matchStyleStatic {
+			t.firstDynamicSubtree = i
+			break
+		}
+
+		if t.staticSubtrees == nil {
+			t.staticSubtrees = make(map[string]Tree)
+		}
+		t.staticSubtrees[st.getSegment().String()[1:]] = st // Skip the leading "/".
+	}
 }
 
 func (t *baseTree) setLeaves(leaves []Leaf) {
 	t.leaves = leaves
+	t.staticLeaves = nil
+	t.firstDynamicLeaf = len(leaves)
+	for i, l := range leaves {
+		if l.getMatchStyle() != matchStyleStatic {
+			t.firstDynamicLeaf = i
+			break
+		}
+
+		if t.staticLeaves == nil {
+			t.staticLeaves = make(map[string]Leaf)
+		}
+		t.staticLeaves[l.(*staticLeaf).literals] = l
+	}
 }
 
 func (*baseTree) getBinds() []string {
@@ -99,7 +130,7 @@ func (t *baseTree) hasMatchAllLeaf() bool {
 		t.leaves[len(t.leaves)-1].getMatchStyle() == matchStyleAll
 }
 
-func (*baseTree) match(_ string, _ Params) bool {
+func (*baseTree) match(_ string, _ *Params) bool {
 	panic("unreachable")
 }
 
@@ -107,9 +138,16 @@ func (*baseTree) match(_ string, _ Params) bool {
 // the request path.
 type Params map[string]string
 
+func setParam(params *Params, key, value string) {
+	if *params == nil {
+		*params = make(Params, 1)
+	}
+	(*params)[key] = value
+}
+
 // Handler is a function that can be registered to a route for handling HTTP
 // requests.
-type Handler func(http.ResponseWriter, *http.Request, Params)
+type Handler func(http.ResponseWriter, *http.Request, Params, string)
 
 // addLeaf adds a new leaf from the given segment.
 func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
@@ -228,7 +266,7 @@ func (*staticTree) getBinds() []string {
 	return nil
 }
 
-func (t *staticTree) match(segment string, _ Params) bool {
+func (t *staticTree) match(segment string, _ *Params) bool {
 	return t.segment.String()[1:] == segment // Skip the leading "/"
 }
 
@@ -249,14 +287,14 @@ func (t *regexTree) getBinds() []string {
 	return binds
 }
 
-func (t *regexTree) match(segment string, params Params) bool {
+func (t *regexTree) match(segment string, params *Params) bool {
 	submatches := t.regexp.FindStringSubmatch(segment)
 	if len(submatches) != len(t.binds)+1 {
 		return false
 	}
 
 	for i, bind := range t.binds {
-		params[bind] = submatches[i+1]
+		setParam(params, bind, submatches[i+1])
 	}
 	return true
 }
@@ -275,8 +313,8 @@ func (t *placeholderTree) getBinds() []string {
 	return []string{t.bind}
 }
 
-func (t *placeholderTree) match(segment string, params Params) bool {
-	params[t.bind] = segment
+func (t *placeholderTree) match(segment string, params *Params) bool {
+	setParam(params, t.bind, segment)
 	return true
 }
 
@@ -299,12 +337,14 @@ func (t *matchAllTree) getBinds() []string {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns the matched leaf and true if segments are
 // captured within the limit, and the capture result is stored in `params`.
-func (t *matchAllTree) matchAll(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
+func (t *matchAllTree) matchAll(path, segment string, next int, params *Params, header http.Header) (Leaf, bool) {
+	captureStart := next - len(segment) - 1
+	captureEnd := captureStart + len(segment)
 	captured := 1 // Starts with 1 because the segment itself also count.
 	for t.capture <= 0 || t.capture >= captured {
 		leaf, ok := t.matchNextSegment(path, next, params, header)
 		if ok {
-			params[t.bind] = segment
+			setParam(params, t.bind, path[captureStart:captureEnd])
 			return leaf, true
 		}
 
@@ -315,7 +355,7 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 			break
 		}
 
-		segment += "/" + path[next:next+i]
+		captureEnd = next + i
 		next += i + 1
 		captured++
 	}
@@ -413,8 +453,14 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 
 // matchLeaf returns the matched leaf and true if any leaf of the tree matches
 // the given segment.
-func (t *baseTree) matchLeaf(segment string, params Params, header http.Header) (Leaf, bool) {
-	for _, l := range t.leaves {
+func (t *baseTree) matchLeaf(segment string, params *Params, header http.Header) (Leaf, bool) {
+	if l, ok := t.staticLeaves[segment]; ok {
+		if l.match(segment, params, header) {
+			return l, true
+		}
+	}
+
+	for _, l := range t.leaves[t.firstDynamicLeaf:] {
 		ok := l.match(segment, params, header)
 		if ok {
 			return l, true
@@ -425,8 +471,15 @@ func (t *baseTree) matchLeaf(segment string, params Params, header http.Header) 
 
 // matchSubtree returns the matched leaf and true if any subtree or leaf of the
 // tree matches the given segment.
-func (t *baseTree) matchSubtree(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
-	for _, st := range t.subtrees {
+func (t *baseTree) matchSubtree(path, segment string, next int, params *Params, header http.Header) (Leaf, bool) {
+	if st, ok := t.staticSubtrees[segment]; ok {
+		leaf, ok := st.matchNextSegment(path, next, params, header)
+		if ok {
+			return leaf, true
+		}
+	}
+
+	for _, st := range t.subtrees[t.firstDynamicSubtree:] {
 		if st.getMatchStyle() == matchStyleAll {
 			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params, header)
 			if ok {
@@ -467,7 +520,7 @@ func (t *baseTree) matchSubtree(path, segment string, next int, params Params, h
 	return nil, false
 }
 
-func (t *baseTree) matchNextSegment(path string, next int, params Params, header http.Header) (Leaf, bool) {
+func (t *baseTree) matchNextSegment(path string, next int, params *Params, header http.Header) (Leaf, bool) {
 	i := strings.Index(path[next:], "/")
 	if i == -1 {
 		return t.matchLeaf(path[next:], params, header)
@@ -477,13 +530,19 @@ func (t *baseTree) matchNextSegment(path string, next int, params Params, header
 
 func (t *baseTree) Match(path string, header http.Header) (Leaf, Params, bool) {
 	path = strings.TrimLeft(path, "/")
-	params := make(Params)
-	leaf, ok := t.matchNextSegment(path, 0, params, header)
+	var params Params
+	leaf, ok := t.matchNextSegment(path, 0, &params, header)
 	if !ok {
 		return nil, nil, false
 	}
+	if params == nil {
+		params = make(Params)
+	}
 
 	for k, v := range params {
+		if !strings.Contains(v, "%") {
+			continue
+		}
 		unescaped, err := url.PathUnescape(v)
 		if err == nil {
 			params[k] = unescaped
