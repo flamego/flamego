@@ -28,7 +28,7 @@ func NewParser() (*Parser, error) {
 				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
 			},
 			"Segment": {
-				lexer.Include("Common"),
+				lexer.Include("SegmentCommon"),
 				{Name: "Optional", Pattern: `[?]`},
 				{Name: "Bind", Pattern: `{`, Action: lexer.Push("Bind")},
 				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
@@ -36,6 +36,7 @@ func NewParser() (*Parser, error) {
 			"Bind": {
 				lexer.Include("Common"),
 				{Name: "BindParameter", Pattern: `:`, Action: lexer.Push("BindParameter")},
+				{Name: "BindParameterSeparator", Pattern: `,`},
 				{Name: "Bind", Pattern: `{`, Action: lexer.Push("Bind")},
 				{Name: "BindEnd", Pattern: `}`, Action: lexer.Pop()},
 				{Name: "Segment", Pattern: `/`, Action: lexer.Push("Segment")},
@@ -43,16 +44,18 @@ func NewParser() (*Parser, error) {
 			"BindParameter": {
 				lexer.Include("Common"),
 				{Name: "BindParameterRegexValue", Pattern: `/`, Action: lexer.Push("BindParameterRegexValue")},
-				{Name: "BindParameterEnd", Pattern: `[},]`, Action: lexer.Pop()},
+				lexer.Return(),
 			},
 			"BindParameterRegexValue": {
 				{Name: "Regex", Pattern: `[a-zA-Z0-9*\-+._,?()\[\]{} \\\|]+`},
 				{Name: "RegexEnd", Pattern: `/`, Action: lexer.Pop()},
 			},
+			"SegmentCommon": {
+				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~@!$&'()*+;%=:,\[\]\\|]+`},
+				{Name: "Whitespace", Pattern: `\s`},
+			},
 			"Common": {
-				// All legal URI characters that are defined in RFC 3986.
-				// FIXME: `[]:,` are not allowed, since it may affect the binding processing
-				{Name: "Ident", Pattern: `[a-zA-Z0-9\-._~@!$&'()*+;%=]+`},
+				{Name: "BindIdent", Pattern: `[a-zA-Z0-9\-._~@!$&'()*+;%=]+`},
 				{Name: "Whitespace", Pattern: `\s`},
 			},
 		},

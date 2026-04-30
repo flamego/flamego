@@ -14,14 +14,14 @@ import (
 // BindParameterValue is a single bind parameter value containing either literal
 // or regex, the latter is surrounded by slashes ("/").
 type BindParameterValue struct {
-	Literal *string `parser:"  @Ident"`
+	Literal *string `parser:"  @BindIdent"`
 	Regex   *string `parser:"| '/' @Regex '/'"`
 }
 
 // BindParameter is a single pair of bind parameter containing identifier and
 // value that are separated by the colon (":").
 type BindParameter struct {
-	Ident string             `parser:"@Ident ':' ' '*"`
+	Ident string             `parser:"@BindIdent ':' ' '*"`
 	Value BindParameterValue `parser:"@@"`
 }
 
@@ -38,7 +38,7 @@ type SegmentElement struct {
 	Pos            lexer.Position
 	EndPos         lexer.Position
 	Ident          *string         `parser:"  @Ident"`
-	BindIdent      *string         `parser:"| '{' @Ident '}'"`
+	BindIdent      *string         `parser:"| '{' @BindIdent '}'"`
 	BindParameters *BindParameters `parser:"| '{' @@ '}'"`
 }
 

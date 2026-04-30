@@ -116,6 +116,16 @@ func TestNewTree_Regex(t *testing.T) {
 			wantRegexp: `^article_([0-9]+)_([\w]+)\.(diff|patch)$`,
 			wantBinds:  []string{"id", "page", "ext"},
 		},
+		{
+			route:      `/file[0],info:{id: /[0-9]+/}/events`,
+			wantRegexp: `^file\[0\],info:([0-9]+)$`,
+			wantBinds:  []string{"id"},
+		},
+		{
+			route:      `/{id: /[0-9]+/}[meta]/events`,
+			wantRegexp: `^([0-9]+)\[meta\]$`,
+			wantBinds:  []string{"id"},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
@@ -359,6 +369,7 @@ func TestTree_Match(t *testing.T) {
 		"/webapi/groups/{name: **, capture: 2}",
 		"/webapi/special/test@$",
 		"/webapi/special/%_",
+		"/webapi/special/file[0],info:{id}",
 	}
 	for _, route := range routes {
 		r, err := parser.Parse(route)
@@ -484,6 +495,13 @@ func TestTree_Match(t *testing.T) {
 			wantParams: Params{},
 		},
 		{
+			path:   "/webapi/special/file[0],info:123",
+			wantOK: true,
+			wantParams: Params{
+				"id": "123",
+			},
+		},
+		{
 			path:       "/webapi/users/settings",
 			wantOK:     true,
 			wantParams: Params{},
@@ -532,6 +550,10 @@ func TestTree_Match(t *testing.T) {
 			path:   "/webapi/projects/flamego/hashes/src/lib/main.c/blob/15", // capture limit is 2
 			wantOK: false,
 		},
+		{
+			path:   "/webapi/special/file0,info:123", // "[0]" is a literal, not a character class
+			wantOK: false,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.path, func(t *testing.T) {
@@ -543,6 +565,96 @@ func TestTree_Match(t *testing.T) {
 			}
 			assert.Equal(t, test.wantParams, params)
 			assert.Equal(t, strings.TrimRight(test.path, "/"), leaf.URLPath(params, test.withOptional))
+		})
+	}
+}
+
+func TestTree_MatchStaticLiteralSpecialChars(t *testing.T) {
+	parser, err := NewParser()
+	require.NoError(t, err)
+
+	tree := NewTree()
+	tests := []struct {
+		route      string
+		path       string
+		wantParams Params
+	}{
+		{
+			route:      "/users[0]",
+			path:       "/users[0]",
+			wantParams: Params{},
+		},
+		{
+			route:      "/users[0],info",
+			path:       "/users[0],info",
+			wantParams: Params{},
+		},
+		{
+			route:      "/users:list",
+			path:       "/users:list",
+			wantParams: Params{},
+		},
+		{
+			route: "/repos/{owner}/{name}:settings",
+			path:  "/repos/flamego/flamego:settings",
+			wantParams: Params{
+				"owner": "flamego",
+				"name":  "flamego",
+			},
+		},
+		{
+			route: "/files[latest]/{id}",
+			path:  "/files[latest]/123",
+			wantParams: Params{
+				"id": "123",
+			},
+		},
+		{
+			route: "/search,tags/{tag}",
+			path:  "/search,tags/go",
+			wantParams: Params{
+				"tag": "go",
+			},
+		},
+		{
+			route:      "/api:v1/users",
+			path:       "/api:v1/users",
+			wantParams: Params{},
+		},
+		{
+			route: "/compare/{base}...{head}[diff]",
+			path:  "/compare/main...feature[diff]",
+			wantParams: Params{
+				"base": "main",
+				"head": "feature",
+			},
+		},
+		{
+			route:      `/windows\path`,
+			path:       `/windows\path`,
+			wantParams: Params{},
+		},
+		{
+			route:      "/choice|fallback",
+			path:       "/choice|fallback",
+			wantParams: Params{},
+		},
+	}
+
+	for _, test := range tests {
+		r, err := parser.Parse(test.route)
+		require.NoError(t, err)
+
+		_, err = AddRoute(tree, r, nil)
+		require.NoError(t, err)
+	}
+
+	for _, test := range tests {
+		t.Run(test.route, func(t *testing.T) {
+			leaf, params, ok := tree.Match(test.path, nil)
+			require.True(t, ok)
+			assert.Equal(t, test.wantParams, params)
+			assert.Equal(t, test.path, leaf.URLPath(params, false))
 		})
 	}
 }
