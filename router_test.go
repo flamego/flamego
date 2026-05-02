@@ -18,7 +18,7 @@ import (
 func TestRouter_Route(t *testing.T) {
 	ctx := newMockContext()
 	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
-		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+		ctx.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
 		return ctx
@@ -121,7 +121,7 @@ func TestRouter_Route(t *testing.T) {
 func TestRouter_Routes(t *testing.T) {
 	ctx := newMockContext()
 	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) internalContext {
-		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+		ctx.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
 		return ctx
@@ -171,7 +171,7 @@ func TestRouter_Routes(t *testing.T) {
 func TestRouter_AutoHead(t *testing.T) {
 	ctx := newMockContext()
 	contextCreator := func(_ http.ResponseWriter, _ *http.Request, params route.Params, _ []Handler, _ urlPather) internalContext {
-		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+		ctx.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
 		return ctx
@@ -324,7 +324,7 @@ func TestRouter_URLPath(t *testing.T) {
 func TestRouter_Group(t *testing.T) {
 	ctx := newMockContext()
 	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
-		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+		ctx.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
 		return ctx
@@ -366,7 +366,7 @@ func TestRouter_Group(t *testing.T) {
 func TestComboRoute(t *testing.T) {
 	ctx := newMockContext()
 	contextCreator := func(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
-		ctx.MockContext.ParamFunc.SetDefaultHook(func(s string) string {
+		ctx.ParamFunc.SetDefaultHook(func(s string) string {
 			return params[s]
 		})
 		return ctx

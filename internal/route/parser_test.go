@@ -598,12 +598,12 @@ func TestParser(t *testing.T) {
 			{
 				name:    "missing leading slash",
 				route:   "webapi",
-				wantErr: `1:1: invalid input text "webapi"`,
+				wantErr: `1:1: lexer: invalid input text "webapi"`,
 			},
 			{
 				name:    "missing opening bracket",
 				route:   "/name}",
-				wantErr: `1:6: invalid input text "}"`,
+				wantErr: `1:6: lexer: invalid input text "}"`,
 			},
 			{
 				name:    "missing closing bracket",
@@ -613,7 +613,7 @@ func TestParser(t *testing.T) {
 			{
 				name:    "no surroundings for regex",
 				route:   "/{name: [a-z0-9]{7, 40}}",
-				wantErr: `1:9: invalid input text "[a-z0-9]{7, 40}}"`,
+				wantErr: `1:9: lexer: invalid input text "[a-z0-9]{7, 40}}"`,
 			},
 		}
 		for _, test := range tests {
