@@ -18,7 +18,7 @@ type ReturnHandler func(Context, []reflect.Value)
 
 func defaultReturnHandler() ReturnHandler {
 	canDeref := func(val reflect.Value) bool {
-		return val.Kind() == reflect.Interface || val.Kind() == reflect.Ptr
+		return val.Kind() == reflect.Interface || val.Kind() == reflect.Pointer
 	}
 
 	isByteSlice := func(val reflect.Value) bool {

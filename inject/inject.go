@@ -83,7 +83,7 @@ type injector struct {
 // is not an pointer to an interface.
 func InterfaceOf(value interface{}) reflect.Type {
 	t := reflect.TypeOf(value)
-	for t.Kind() == reflect.Ptr {
+	for t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 
@@ -156,7 +156,7 @@ func (inj *injector) callInvoke(f interface{}, t reflect.Type, numIn int) ([]ref
 func (inj *injector) Apply(val interface{}) error {
 	v := reflect.ValueOf(val)
 
-	for v.Kind() == reflect.Ptr {
+	for v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 
