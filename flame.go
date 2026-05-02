@@ -16,7 +16,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 
 	"github.com/flamego/flamego/inject"
 	"github.com/flamego/flamego/internal/route"

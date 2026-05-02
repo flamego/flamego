@@ -12,8 +12,6 @@ It is the successor of the [Macaron](https://github.com/go-macaron/macaron), and
 
 ## Installation
 
-The minimum requirement of Go is **1.26**.
-
 	go get github.com/flamego/flamego
 
 ## Getting started
