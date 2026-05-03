@@ -551,7 +551,7 @@ func TestTree_Match(t *testing.T) {
 			wantOK: false,
 		},
 		{
-			path:   "/webapi/special/file0,info:123", // "[0]" is a literal, not a character class
+			path:   "/webapi/special/file0,info:123", // route has literal "[0]"; path missing brackets does not match
 			wantOK: false,
 		},
 	}
