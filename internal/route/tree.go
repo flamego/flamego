@@ -5,6 +5,7 @@
 package route
 
 import (
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -299,13 +300,44 @@ func (t *matchAllTree) getBinds() []string {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns the matched leaf and true if segments are
 // captured within the limit, and the capture result is stored in `params`.
+//
+// When the capture limit is unbounded, the search is lazy: returns on the first
+// downstream match. When bounded, the search is greedy within the limit:
+// continues to grow the captured segment up to the limit and returns the
+// longest match that still allows the rest of the route to match. This enables
+// multiple match-all globs in a single route by giving non-final globs an
+// upper bound for partitioning the path.
 func (t *matchAllTree) matchAll(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
+
+	var (
+		bestLeaf    Leaf
+		bestSegment string
+		bestParams  Params
+		found       bool
+	)
 	for t.capture <= 0 || t.capture >= captured {
-		leaf, ok := t.matchNextSegment(path, next, params, header)
+		var trial Params
+		if t.capture > 0 {
+			// Use a scratch Params so a failed deeper match doesn't pollute the caller's.
+			trial = make(Params, len(params))
+			maps.Copy(trial, params)
+		} else {
+			trial = params
+		}
+
+		leaf, ok := t.matchNextSegment(path, next, trial, header)
 		if ok {
-			params[t.bind] = segment
-			return leaf, true
+			if t.capture <= 0 {
+				// Lazy: commit on first match.
+				params[t.bind] = segment
+				return leaf, true
+			}
+			// Greedy within cap: remember and keep extending.
+			bestLeaf = leaf
+			bestSegment = segment
+			bestParams = trial
+			found = true
 		}
 
 		i := strings.Index(path[next:], "/")
@@ -318,6 +350,12 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		segment += "/" + path[next:next+i]
 		next += i + 1
 		captured++
+	}
+
+	if found {
+		maps.Copy(params, bestParams)
+		params[t.bind] = bestSegment
+		return bestLeaf, true
 	}
 	return nil, false
 }
@@ -355,15 +393,6 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 	if bind, capture, ok := checkMatchStyleAll(s); ok {
 		if _, exists := parentBindSet[bind]; exists {
 			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
-		}
-
-		// One route can only have at most one match all style for subtree.
-		ancestor := parent
-		for ancestor != nil {
-			if ancestor.getMatchStyle() == matchStyleAll {
-				return nil, errors.Errorf("duplicated match all style in position %d", s.Pos.Offset)
-			}
-			ancestor = ancestor.getParent()
 		}
 
 		return &matchAllTree{
@@ -408,6 +437,30 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	if r == nil || len(r.Segments) == 0 {
 		return nil, errors.New("cannot add empty route")
 	}
+
+	// Validate match-all globs in the route. Multiple globs are allowed, but
+	// any two globs in the same route must be separated by either a non-glob
+	// segment (static/regex/placeholder, which acts as an anchor) or a capture
+	// limit on the earlier glob (which bounds how much it can consume). Without
+	// one of these, the earlier glob would swallow the path segments needed by
+	// the later glob.
+	var prevUnboundedGlob *Segment
+	for _, s := range r.Segments {
+		_, capture, ok := checkMatchStyleAll(s)
+		if !ok {
+			// Non-glob segment: resets the anchor — any unbounded glob before this
+			// one is now safely separated from anything that follows.
+			prevUnboundedGlob = nil
+			continue
+		}
+		if prevUnboundedGlob != nil {
+			return nil, errors.Errorf("match all style in position %d follows an unbounded match all style in position %d with no separator; the preceding glob must have a capture limit", s.Pos.Offset, prevUnboundedGlob.Pos.Offset)
+		}
+		if capture <= 0 {
+			prevUnboundedGlob = s
+		}
+	}
+
 	return addNextSegment(t, r, 0, h)
 }
 
