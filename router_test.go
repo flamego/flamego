@@ -98,6 +98,31 @@ func TestRouter_Route(t *testing.T) {
 			method:    http.MethodHead,
 			add:       r.Any,
 		},
+		{
+			routePath: "/users[0]",
+			method:    http.MethodGet,
+			add:       r.Get,
+		},
+		{
+			routePath: "/users:list",
+			method:    http.MethodGet,
+			add:       r.Get,
+		},
+		{
+			routePath: "/choice|fallback",
+			method:    http.MethodGet,
+			add:       r.Get,
+		},
+		{
+			routePath: "/a,b,c",
+			method:    http.MethodGet,
+			add:       r.Get,
+		},
+		{
+			routePath: `/back\slash`,
+			method:    http.MethodGet,
+			add:       r.Get,
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.routePath, func(t *testing.T) {

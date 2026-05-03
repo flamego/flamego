@@ -24,6 +24,17 @@ func TestRoute_String(t *testing.T) {
 		"/webapi/{name-1}/{name-2: /[a-z0-9]{7, 40}/}/{year: regex2}-{month-day}/{**: **, capture: 3}",
 		"/webapi/projects/{name}/hashes/{ids: **}/diff/{lineno}",
 		"/webapi/{username}/%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C/test@$",
+		"/webapi/{id: /[0-9]+/}[meta]",
+		"/users[0]",
+		"/users[0],info",
+		"/users:list",
+		"/repos/{owner}/{name}:settings",
+		"/files[latest]/{id}",
+		"/search,tags/{tag}",
+		"/api:v1/users",
+		"/compare/{base}...{head}[diff]",
+		`/windows\path`,
+		"/choice|fallback",
 	}
 	for _, route := range routes {
 		t.Run(route, func(t *testing.T) {

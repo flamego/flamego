@@ -416,6 +416,127 @@ func TestParser(t *testing.T) {
 				},
 			},
 			{
+				route: "/webapi/users:list",
+				want: &Route{
+					Segments: []*Segment{
+						{
+							Pos: lexer.Position{
+								Offset: 0,
+								Line:   1,
+								Column: 1,
+							},
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
+							},
+						}, {
+							Pos: lexer.Position{
+								Offset: 7,
+								Line:   1,
+								Column: 8,
+							},
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 18,
+										Line:   1,
+										Column: 19,
+									},
+									Ident: strptr("users:list"),
+								},
+							},
+						},
+					},
+				},
+			},
+			{
+				route: "/webapi/users[0],info/events",
+				want: &Route{
+					Segments: []*Segment{
+						{
+							Pos: lexer.Position{
+								Offset: 0,
+								Line:   1,
+								Column: 1,
+							},
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 1,
+										Line:   1,
+										Column: 2,
+									},
+									EndPos: lexer.Position{
+										Offset: 7,
+										Line:   1,
+										Column: 8,
+									},
+									Ident: strptr("webapi"),
+								},
+							},
+						}, {
+							Pos: lexer.Position{
+								Offset: 7,
+								Line:   1,
+								Column: 8,
+							},
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 8,
+										Line:   1,
+										Column: 9,
+									},
+									EndPos: lexer.Position{
+										Offset: 21,
+										Line:   1,
+										Column: 22,
+									},
+									Ident: strptr("users[0],info"),
+								},
+							},
+						}, {
+							Pos: lexer.Position{
+								Offset: 21,
+								Line:   1,
+								Column: 22,
+							},
+							Elements: []SegmentElement{
+								{
+									Pos: lexer.Position{
+										Offset: 22,
+										Line:   1,
+										Column: 23,
+									},
+									EndPos: lexer.Position{
+										Offset: 28,
+										Line:   1,
+										Column: 29,
+									},
+									Ident: strptr("events"),
+								},
+							},
+						},
+					},
+				},
+			},
+			{
 				// NOTE: Extra spaces before "3" is on purpose to test consecutive spaces.
 				route: "/webapi/{name-1}/{name-2: /[a-z0-9]{7, 40}/}/{year: regex2}-{month-day}/{**: **, capture:  3}",
 				want: &Route{
