@@ -139,8 +139,26 @@ func TestRouter_Route(t *testing.T) {
 
 			assert.Equal(t, http.StatusOK, resp.Code)
 			assert.Equal(t, test.routePath, gotRoute)
+			assert.Equal(t, test.method+" "+test.routePath, req.Pattern)
 		})
 	}
+
+	t.Run("dynamic route pattern", func(t *testing.T) {
+		r.Get("/users/{id}", func() {})
+
+		gotRoute := ""
+		ctx.run_ = func() { gotRoute = ctx.Param("route") }
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/users/42", nil)
+		require.NoError(t, err)
+
+		r.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "/users/{id}", gotRoute)
+		assert.Equal(t, "GET /users/{id}", req.Pattern)
+	})
 }
 
 func TestRouter_Routes(t *testing.T) {
