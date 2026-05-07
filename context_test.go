@@ -258,6 +258,35 @@ func TestContext_Param(t *testing.T) {
 			},
 			wantBody: "hello/123//////////////",
 		},
+		{
+			route: "/path-value/{string}/{int}",
+			url:   "/path-value/hello/123",
+			handler: func(c Context, r *http.Request) string {
+				return strings.Join([]string{
+					r.PathValue("string"),
+					r.PathValue("int"),
+					c.Request().PathValue("string"),
+					r.PathValue("missing"),
+				}, ",")
+			},
+			wantBody: "hello,123,hello,",
+		},
+		{
+			route: "/path-value/glob/{**}",
+			url:   "/path-value/glob/a/b/c",
+			handler: func(_ Context, r *http.Request) string {
+				return r.PathValue("**")
+			},
+			wantBody: "a/b/c",
+		},
+		{
+			route: "/path-value/regex/{name: /[a-z]+/}",
+			url:   "/path-value/regex/alice",
+			handler: func(_ Context, r *http.Request) string {
+				return r.PathValue("name")
+			},
+			wantBody: "alice",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.route, func(t *testing.T) {
@@ -272,25 +301,6 @@ func TestContext_Param(t *testing.T) {
 			assert.Equal(t, test.wantBody, resp.Body.String())
 		})
 	}
-}
-
-func TestContext_RequestPathValue(t *testing.T) {
-	f := NewWithLogger(&bytes.Buffer{})
-	f.Get("/params/{string}/{int}", func(c Context, r *http.Request) string {
-		return strings.Join([]string{
-			r.PathValue("string"),
-			r.PathValue("int"),
-			c.Request().PathValue("string"),
-		}, ",")
-	})
-
-	resp := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/params/hello/123", nil)
-	assert.Nil(t, err)
-
-	f.ServeHTTP(resp, req)
-
-	assert.Equal(t, "hello,123,hello", resp.Body.String())
 }
 
 func TestContext_ParamInt(t *testing.T) {
