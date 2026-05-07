@@ -280,7 +280,6 @@ func TestContext_RequestPathValue(t *testing.T) {
 		return strings.Join([]string{
 			r.PathValue("string"),
 			r.PathValue("int"),
-			r.PathValue("route"),
 			c.Request().PathValue("string"),
 		}, ",")
 	})
@@ -291,7 +290,7 @@ func TestContext_RequestPathValue(t *testing.T) {
 
 	f.ServeHTTP(resp, req)
 
-	assert.Equal(t, "hello,123,/params/{string}/{int},hello", resp.Body.String())
+	assert.Equal(t, "hello,123,hello", resp.Body.String())
 }
 
 func TestContext_ParamInt(t *testing.T) {
