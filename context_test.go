@@ -274,6 +274,26 @@ func TestContext_Param(t *testing.T) {
 	}
 }
 
+func TestContext_RequestPathValue(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Get("/params/{string}/{int}", func(c Context, r *http.Request) string {
+		return strings.Join([]string{
+			r.PathValue("string"),
+			r.PathValue("int"),
+			r.PathValue("route"),
+			c.Request().PathValue("string"),
+		}, ",")
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/params/hello/123", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, "hello,123,/params/{string}/{int},hello", resp.Body.String())
+}
+
 func TestContext_ParamInt(t *testing.T) {
 	f := NewWithLogger(&bytes.Buffer{})
 	f.Get("/{uid}", func(c Context) string {

@@ -130,6 +130,10 @@ type urlPather func(name string, pairs ...string) string
 
 // newContext creates and returns a new Context.
 func newContext(w http.ResponseWriter, r *http.Request, params route.Params, handlers []Handler, urlPath urlPather) internalContext {
+	for name, value := range params {
+		r.SetPathValue(name, value)
+	}
+
 	c := &context{
 		Injector:       inject.New(),
 		handlers:       handlers,
