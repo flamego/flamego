@@ -33,7 +33,7 @@ type Leaf interface {
 
 	// URLPath fills in bind parameters with given values to build the "path"
 	// portion of the URL. If `withOptional` is true, the path will include the
-	// current leaf when it is optional; otherwise, the current leaf is excluded.
+	// current leaf when it is optional. Otherwise, the current leaf is excluded.
 	URLPath(vals map[string]string, withOptional bool) string
 	// Route returns the string representation of the original route.
 	Route() string
@@ -220,8 +220,8 @@ func (l *matchAllLeaf) match(segment string, params Params, header http.Header) 
 // unescaped by the caller. It returns true if segments are captured within the
 // limit, and the capture result is stored in `params`.
 func (l *matchAllLeaf) matchAll(path, segment string, next int, params Params, header http.Header) bool {
-	// Do `next-1` because "next" starts at the next character of preceding "/"; do
-	// `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
+	// Do `next-1` because "next" starts at the next character of preceding "/".
+	// Do `strings.Count()+1` because the segment itself also counts. E.g. "webapi" +
 	// "users/events" => 3
 	if l.capture > 0 && l.capture < strings.Count(path[next-1:], "/")+1 {
 		return false

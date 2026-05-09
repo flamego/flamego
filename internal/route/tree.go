@@ -5,6 +5,7 @@
 package route
 
 import (
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -299,13 +300,51 @@ func (t *matchAllTree) getBinds() []string {
 // defined). The `path` should be original request path, `segment` should NOT be
 // unescaped by the caller. It returns the matched leaf and true if segments are
 // captured within the limit, and the capture result is stored in `params`.
+//
+// When the capture limit is unbounded, the search is lazy: returns on the first
+// downstream match. When bounded, the search is greedy within the limit:
+// continues to grow the captured segment up to the limit and returns the
+// longest match through a match-all sibling that still allows the rest of the
+// route to match. If a partition produces a match through a more-specific
+// sibling (static, regex, or placeholder), that match is committed immediately
+// and longer partitions are not explored — match style priority outranks
+// partition length, just as it does in `matchSubtree`.
 func (t *matchAllTree) matchAll(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
+
+	var (
+		bestLeaf    Leaf
+		bestSegment string
+		bestParams  Params
+		found       bool
+	)
 	for t.capture <= 0 || t.capture >= captured {
-		leaf, ok := t.matchNextSegment(path, next, params, header)
+		// Use a scratch Params so a failed deeper match doesn't pollute the
+		// caller's. Both lazy (unbounded) and greedy (bounded) modes can
+		// retry across partitions, so both need the snapshot.
+		trial := make(Params, len(params))
+		maps.Copy(trial, params)
+
+		leaf, ok := t.matchNextSegment(path, next, trial, header)
 		if ok {
-			params[t.bind] = segment
-			return leaf, true
+			if t.capture <= 0 {
+				// Lazy: commit on first match.
+				maps.Copy(params, trial)
+				params[t.bind] = segment
+				return leaf, true
+			}
+			if immediateChildStyle(t, leaf) != matchStyleAll {
+				// More-specific sibling won at this partition. Priority outranks
+				// partition length, so commit and stop extending.
+				maps.Copy(params, trial)
+				params[t.bind] = segment
+				return leaf, true
+			}
+			// Greedy within cap: remember and keep extending.
+			bestLeaf = leaf
+			bestSegment = segment
+			bestParams = trial
+			found = true
 		}
 
 		i := strings.Index(path[next:], "/")
@@ -319,7 +358,32 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		next += i + 1
 		captured++
 	}
+
+	if found {
+		maps.Copy(params, bestParams)
+		params[t.bind] = bestSegment
+		return bestLeaf, true
+	}
 	return nil, false
+}
+
+// immediateChildStyle returns the match style of the immediate child of `t`
+// that the matched `leaf` descended through. The immediate child can be a
+// direct leaf under `t` or the subtree whose ancestor chain ends at `t`.
+// Panics if `leaf` did not descend through `t`, which would indicate a
+// contract violation by the caller.
+func immediateChildStyle(t Tree, leaf Leaf) MatchStyle {
+	if leaf.getParent() == t {
+		return leaf.getMatchStyle()
+	}
+	parent := leaf.getParent()
+	for parent.getParent() != t {
+		parent = parent.getParent()
+		if parent == nil {
+			panic("immediateChildStyle: leaf did not descend through t")
+		}
+	}
+	return parent.getMatchStyle()
 }
 
 // newTree creates and returns a new Tree derived from the given segment.
@@ -355,15 +419,6 @@ func newTree(parent Tree, s *Segment) (Tree, error) {
 	if bind, capture, ok := checkMatchStyleAll(s); ok {
 		if _, exists := parentBindSet[bind]; exists {
 			return nil, errors.Errorf("duplicated bind parameter %q in position %d", bind, s.Pos.Offset)
-		}
-
-		// One route can only have at most one match all style for subtree.
-		ancestor := parent
-		for ancestor != nil {
-			if ancestor.getMatchStyle() == matchStyleAll {
-				return nil, errors.Errorf("duplicated match all style in position %d", s.Pos.Offset)
-			}
-			ancestor = ancestor.getParent()
 		}
 
 		return &matchAllTree{
@@ -408,6 +463,38 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	if r == nil || len(r.Segments) == 0 {
 		return nil, errors.New("cannot add empty route")
 	}
+
+	// Validate match-all globs in the route. Multiple globs are allowed, but
+	// any two globs in the same route must be separated by either a static or
+	// regex segment, or a capture limit on the earlier glob. Static segments
+	// pin the path text exactly. Regex segments are accepted as separators
+	// regardless of how broadly the regex matches — a permissive pattern like
+	// `/.+/` does not actually disambiguate adjacent unbounded globs, but the
+	// regex is taken as the author's explicit opt-in to that shape, and the
+	// resulting bindings then follow the normal sibling matching priority.
+	// Placeholder segments do not count as separators because they accept any
+	// one segment of any content with no opt-in (e.g. `/{a: **}/{id}/{b: **}`
+	// against `/x/y/z/w` admits both `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w`).
+	var prevUnboundedGlob *Segment
+	for _, s := range r.Segments {
+		_, capture, ok := checkMatchStyleAll(s)
+		if !ok {
+			if isMatchStyleStatic(s) {
+				prevUnboundedGlob = nil
+			} else if _, isPlaceholder := checkMatchStylePlaceholder(s); !isPlaceholder {
+				// Regex segment.
+				prevUnboundedGlob = nil
+			}
+			continue
+		}
+		if prevUnboundedGlob != nil {
+			return nil, errors.Errorf("match all style in position %d follows an unbounded match all style in position %d with no separator, the preceding glob must have a capture limit", s.Pos.Offset, prevUnboundedGlob.Pos.Offset)
+		}
+		if capture <= 0 {
+			prevUnboundedGlob = s
+		}
+	}
+
 	return addNextSegment(t, r, 0, h)
 }
 

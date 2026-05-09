@@ -164,14 +164,111 @@ func TestAddRoute(t *testing.T) {
 		assert.Equal(t, want, got)
 	})
 
-	t.Run("duplicated match all styles", func(t *testing.T) {
+	t.Run("adjacent unbounded match all styles", func(t *testing.T) {
 		route, err := parser.Parse(`/webapi/tree/{paths: **}/{names: **}/upload`)
 		require.NoError(t, err)
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "new tree: duplicated match all style in position 24"
+		want := "match all style in position 24 follows an unbounded match all style in position 12 with no separator, the preceding glob must have a capture limit"
 		assert.Equal(t, want, got)
+	})
+
+	t.Run("unbounded match all followed later by another with no separator", func(t *testing.T) {
+		// {a:**} is non-final and unbounded. {b:**} follows with no static/regex/placeholder anchor between them.
+		route, err := parser.Parse(`/api/{a: **}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		got := fmt.Sprintf("%v", err)
+		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("bounded then unbounded multi-glob is allowed", func(t *testing.T) {
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("static-separated multi-glob is allowed", func(t *testing.T) {
+		route, err := parser.Parse(`/api/{a: **}/sep/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("unbounded then bounded multi-glob is rejected", func(t *testing.T) {
+		// A capture limit on the *later* glob does not help. The earlier glob is
+		// what consumes path segments first, and being unbounded it would swallow
+		// what the later glob needs.
+		route, err := parser.Parse(`/api/{a: **}/{b: **, capture: 2}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		got := fmt.Sprintf("%v", err)
+		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("three globs with mixed separators is allowed", func(t *testing.T) {
+		// Exercises the validation walk across a longer route: bounded, anchored
+		// by static, bounded, anchored by static, unbounded final.
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/sep/{b: **, capture: 2}/end/{c: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("two bounded globs followed by unbounded is allowed", func(t *testing.T) {
+		// No separator is required between consecutive bounded globs. Each
+		// capture limit prevents that glob from swallowing what follows, so the
+		// trailing unbounded glob still has segments to match.
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/{b: **, capture: 2}/{c: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("placeholder between unbounded globs is rejected", func(t *testing.T) {
+		// A placeholder consumes exactly one segment of any content, so it does
+		// not constrain how far the preceding unbounded glob can grow. Both
+		// `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w` would satisfy the pattern
+		// for `/api/x/y/z/w`. The choice would depend on backtracking order
+		// rather than on the route shape.
+		route, err := parser.Parse(`/api/{a: **}/{id}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		got := fmt.Sprintf("%v", err)
+		want := "match all style in position 17 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("regex between unbounded globs is allowed", func(t *testing.T) {
+		// A regex segment constrains the path text, so it acts as a true anchor
+		// between globs.
+		route, err := parser.Parse(`/api/{a: **}/{n: /[0-9]+/}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("bounded then placeholder then unbounded is allowed", func(t *testing.T) {
+		// The first glob has a capture limit, so the placeholder does not need
+		// to separate two unbounded globs. Matching still follows the normal
+		// bounded-glob partition rules.
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/{id}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
 	})
 
 	tests := []struct {
@@ -367,6 +464,31 @@ func TestTree_Match(t *testing.T) {
 		`/webapi/projects/{name}/commit/{sha: /[a-z0-9]{7,40}/}{ext: /(\.(patch|diff))?/}`,
 		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
 		"/webapi/groups/{name: **, capture: 2}",
+		"/webapi/multi/{prefix: **, capture: 2}/{suffix: **}",
+		// Sibling of the route above, sharing the "multi/{prefix: **, capture: 2}"
+		// prefix subtree. At partition len=1 the static "sep" anchor matches. At
+		// partition len=2 the match-all leaf above also matches. Match style
+		// priority (static > matchAll) must override "longest partition wins".
+		"/webapi/multi/{prefix: **, capture: 2}/sep/{y: **}",
+		"/webapi/anchored/{a: **}/sep/{b: **}",
+		// Three-level back-to-back bounded globs followed by an unbounded final
+		// glob. No separators between them — each capture limit alone is enough
+		// to keep the next glob from being starved.
+		"/webapi/triple/{a: **, capture: 2}/{b: **, capture: 2}/{c: **}",
+		"/webapi/cap1/{a: **, capture: 1}/{b: **}",
+		"/webapi/strict/{a: **, capture: 2}/{n: /[0-9]+/}",
+		// Two routes that share the same {leak: **, capture: 2} prefix and diverge below.
+		// A failed partition descends into {x}/end, writing "x" before failing on "end".
+		// The winning partition takes the regex sibling. If params weren't scratched
+		// per trial, the stale "x" from the failed trial would leak into the result.
+		"/webapi/leak/{leak: **, capture: 2}/{x}/end",
+		"/webapi/leak/{leak: **, capture: 2}/{n: /[0-9]+/}",
+		// Kitchen-sink route exercising most segment flavors in one shot:
+		// statics, single-bind regex, bounded glob (non-final), placeholder,
+		// multi-bind regex with literals between binds, and an unbounded final
+		// glob. (Optional segments are excluded — they don't compose with a
+		// trailing glob.)
+		"/api/v1/{org_id: /[0-9]+/}/repos/{repo_path: **, capture: 3}/blob/{ref}/article_{id: /\\d+/}-{slug: /[a-z-]+/}.{ext: /md|txt/}/files/{tail: **}",
 		"/webapi/special/test@$",
 		"/webapi/special/%_",
 		"/webapi/special/file[0],info:{id}",
@@ -485,6 +607,134 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
+			// Bounded prefix glob (capture: 2) takes its maximum, suffix glob takes the rest.
+			path:   "/webapi/multi/x/y/z/w",
+			wantOK: true,
+			wantParams: Params{
+				"prefix": "x/y",
+				"suffix": "z/w",
+			},
+		},
+		{
+			// Bounded prefix glob with fewer remaining segments still partitions greedily.
+			path:   "/webapi/multi/x/y/z",
+			wantOK: true,
+			wantParams: Params{
+				"prefix": "x/y",
+				"suffix": "z",
+			},
+		},
+		{
+			// Sibling-priority guard for the bounded-glob greedy loop. Both
+			// partitions succeed:
+			//   len=1 via the static "sep" subtree → y=b/c
+			//   len=2 via the match-all "{suffix}" leaf → suffix=b/c
+			// The static-anchored branch is more specific and must win, even
+			// though the match-all branch corresponds to a longer prefix
+			// partition. If "longest wins" overrides priority, "y" would be
+			// missing and "suffix" would be set instead.
+			path:   "/webapi/multi/a/sep/b/c",
+			wantOK: true,
+			wantParams: Params{
+				"prefix": "a",
+				"y":      "b/c",
+			},
+		},
+		{
+			// Static separator anchors the first glob and matches the leftmost separator.
+			path:   "/webapi/anchored/x/y/sep/z/w",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"b": "z/w",
+			},
+		},
+		{
+			// Three back-to-back globs, no separators. Each bounded glob takes
+			// its maximum (capture: 2), and the unbounded final glob picks up
+			// the remainder.
+			path:   "/webapi/triple/x/y/z/w/v",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"b": "z/w",
+				"c": "v",
+			},
+		},
+		{
+			// Same shape with fewer remaining segments: each bounded glob still
+			// takes its maximum, the unbounded final glob takes a single segment.
+			path:   "/webapi/triple/x/y/z/w",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"b": "z",
+				"c": "w",
+			},
+		},
+		{
+			// capture: 1 — boundary case for the greedy-within-cap loop.
+			path:   "/webapi/cap1/x/y/z",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x",
+				"b": "y/z",
+			},
+		},
+		{
+			// Greedy loop must try multiple partitions: a=x with n=y fails (not digits),
+			// a=x/y with n=42 succeeds. Proves the loop continues past failed downstream
+			// matches up to the capture limit.
+			path:   "/webapi/strict/x/y/42",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"n": "42",
+			},
+		},
+		{
+			// Param scratching: the leak=p partition tries the {x}/end branch, writes
+			// x=q, then fails on "end". The leak=p/q partition then succeeds via the
+			// regex sibling. The result must NOT contain a stale "x" from the failed
+			// trial — only "leak" and "n".
+			path:   "/webapi/leak/p/q/42",
+			wantOK: true,
+			wantParams: Params{
+				"leak": "p/q",
+				"n":    "42",
+			},
+		},
+		{
+			// Kitchen sink: every segment flavor binds correctly in one route.
+			path:   "/api/v1/42/repos/a/b/c/blob/main/article_7-hello-world.md/files/x/y/z",
+			wantOK: true,
+			wantParams: Params{
+				"org_id":    "42",
+				"repo_path": "a/b/c",
+				"ref":       "main",
+				"id":        "7",
+				"slug":      "hello-world",
+				"ext":       "md",
+				"tail":      "x/y/z",
+			},
+		},
+		{
+			// The bounded glob must continue past captured=1, where no "blob"
+			// anchor matches, and commit at captured=2 when the static "blob"
+			// subtree matches.
+			path:   "/api/v1/42/repos/a/b/blob/main/article_7-hello-world.md/files/last",
+			wantOK: true,
+			wantParams: Params{
+				"org_id":    "42",
+				"repo_path": "a/b",
+				"ref":       "main",
+				"id":        "7",
+				"slug":      "hello-world",
+				"ext":       "md",
+				"tail":      "last",
+			},
+		},
+		{
 			path:       "/webapi/special/test@$",
 			wantOK:     true,
 			wantParams: Params{},
@@ -551,7 +801,20 @@ func TestTree_Match(t *testing.T) {
 			wantOK: false,
 		},
 		{
-			path:   "/webapi/special/file0,info:123", // route has literal "[0]"; path missing brackets does not match
+			path:   "/webapi/anchored/x/y/z", // no "sep" segment to anchor the first glob
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/strict/x/y/z/w", // no partition within capture: 2 leaves digits for "n"
+			wantOK: false,
+		},
+		{
+			// Kitchen sink, no match: "ext" must be "md" or "txt", not "html".
+			path:   "/api/v1/42/repos/a/b/c/blob/main/article_7-hello-world.html/files/x",
+			wantOK: false,
+		},
+		{
+			path:   "/webapi/special/file0,info:123", // route has literal "[0]", path missing brackets does not match
 			wantOK: false,
 		},
 	}
