@@ -160,7 +160,7 @@ func TestAddRoute(t *testing.T) {
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "match all style in position 24 follows an unbounded match all style in position 12 with no separator; the preceding glob must have a capture limit"
+		want := "match all style in position 24 follows an unbounded match all style in position 12 with no separator, the preceding glob must have a capture limit"
 		assert.Equal(t, want, got)
 	})
 
@@ -171,7 +171,7 @@ func TestAddRoute(t *testing.T) {
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator; the preceding glob must have a capture limit"
+		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
 		assert.Equal(t, want, got)
 	})
 
@@ -200,7 +200,7 @@ func TestAddRoute(t *testing.T) {
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator; the preceding glob must have a capture limit"
+		want := "match all style in position 12 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
 		assert.Equal(t, want, got)
 	})
 
@@ -236,7 +236,7 @@ func TestAddRoute(t *testing.T) {
 
 		_, err = AddRoute(NewTree(), route, nil)
 		got := fmt.Sprintf("%v", err)
-		want := "match all style in position 17 follows an unbounded match all style in position 4 with no separator; the preceding glob must have a capture limit"
+		want := "match all style in position 17 follows an unbounded match all style in position 4 with no separator, the preceding glob must have a capture limit"
 		assert.Equal(t, want, got)
 	})
 

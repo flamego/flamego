@@ -488,7 +488,7 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 			continue
 		}
 		if prevUnboundedGlob != nil {
-			return nil, errors.Errorf("match all style in position %d follows an unbounded match all style in position %d with no separator; the preceding glob must have a capture limit", s.Pos.Offset, prevUnboundedGlob.Pos.Offset)
+			return nil, errors.Errorf("match all style in position %d follows an unbounded match all style in position %d with no separator, the preceding glob must have a capture limit", s.Pos.Offset, prevUnboundedGlob.Pos.Offset)
 		}
 		if capture <= 0 {
 			prevUnboundedGlob = s
