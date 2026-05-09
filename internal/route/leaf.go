@@ -291,8 +291,7 @@ func constructMatchStyleRegex(s *Segment) (*regexp.Regexp, []string, error) {
 	buf := bytes.NewBufferString("^")
 	for _, e := range s.Elements {
 		if e.Ident != nil {
-			// Dots (".") may appear as literals, we need to escape them in a regex.
-			buf.WriteString(strings.ReplaceAll(*e.Ident, ".", `\.`))
+			buf.WriteString(regexp.QuoteMeta(*e.Ident))
 			continue
 		} else if e.BindIdent != nil {
 			binds = append(binds, *e.BindIdent)

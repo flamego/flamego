@@ -347,6 +347,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// Fast path for static routes
 	leaf, ok := r.staticRoutes[req.Method][req.URL.Path]
 	if ok {
+		req.Pattern = req.Method + " " + leaf.Route()
 		leaf.Handler()(w, req, route.Params{
 			"route": leaf.Route(),
 		})
@@ -366,6 +367,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	params["route"] = leaf.Route()
+	req.Pattern = req.Method + " " + leaf.Route()
 	leaf.Handler()(w, req, params)
 }
 
