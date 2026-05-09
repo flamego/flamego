@@ -12,9 +12,10 @@ import (
 	"github.com/flamego/flamego/inject"
 )
 
-// Handler is any callable function. Flamego attempts to inject services into
-// the Handler's argument list and panics if any argument could not be fulfilled
-// via dependency injection.
+// Handler is any callable function or a value that implements http.Handler.
+// Flamego attempts to inject services into the Handler's argument list and
+// panics if any argument could not be fulfilled via dependency injection.
+// Values implementing http.Handler are invoked via their ServeHTTP method.
 type Handler interface{}
 
 var _ inject.FastInvoker = (*ContextInvoker)(nil)
@@ -47,15 +48,12 @@ func (invoke teapotInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
 	return []reflect.Value{reflect.ValueOf(ret1), reflect.ValueOf(ret2)}, nil
 }
 
-// validateAndWrapHandler makes sure the handler is a callable function, it
-// panics if not. When the handler is also convertible to any built-in
-// inject.FastInvoker implementations, it wraps the handler automatically to
-// gain up to 3x performance improvement.
+// validateAndWrapHandler makes sure the handler is either a callable function
+// or a value that implements http.Handler, and panics otherwise. When the
+// handler is also convertible to any built-in inject.FastInvoker
+// implementations, it wraps the handler automatically to gain up to 3x
+// performance improvement.
 func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
-	if reflect.TypeOf(h).Kind() != reflect.Func {
-		panic(fmt.Sprintf("handler must be a callable function, but got %T", h))
-	}
-
 	if inject.IsFastInvoker(h) {
 		return h
 	}
@@ -69,6 +67,14 @@ func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
 		return httpHandlerFuncInvoker(v)
 	case func() (int, string):
 		return teapotInvoker(v)
+	}
+
+	if hh, ok := h.(http.Handler); ok {
+		return httpHandlerFuncInvoker(hh.ServeHTTP)
+	}
+
+	if reflect.TypeOf(h).Kind() != reflect.Func {
+		panic(fmt.Sprintf("handler must be a callable function or http.Handler, but got %T", h))
 	}
 
 	if wrapper != nil {

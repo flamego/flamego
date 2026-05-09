@@ -22,10 +22,14 @@ func (invoke testHandlerFastInvoker) Invoke([]interface{}) ([]reflect.Value, err
 	return []reflect.Value{reflect.ValueOf(invoke())}, nil
 }
 
+type testHTTPHandler struct{}
+
+func (testHTTPHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
+
 func TestValidateAndWrapHandler(t *testing.T) {
 	t.Run("not a callable function", func(t *testing.T) {
 		defer func() {
-			assert.Contains(t, recover(), "handler must be a callable function")
+			assert.Contains(t, recover(), "handler must be a callable function or http.Handler")
 		}()
 		validateAndWrapHandler("string", nil)
 	})
@@ -35,6 +39,7 @@ func TestValidateAndWrapHandler(t *testing.T) {
 		func(http.ResponseWriter, *http.Request) {},
 		http.HandlerFunc(nil),
 		func() string { return "" },
+		testHTTPHandler{},
 	}
 	for _, h := range handlers {
 		t.Run("handlers", func(t *testing.T) {
