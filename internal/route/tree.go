@@ -336,7 +336,7 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 				return leaf, true
 			}
 			if immediateChildStyle(t, leaf) != matchStyleAll {
-				// More-specific sibling won at this partition; priority outranks
+				// More-specific sibling won at this partition. Priority outranks
 				// partition length, so commit and stop extending.
 				maps.Copy(params, trial)
 				params[t.bind] = segment
@@ -372,19 +372,20 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 // immediateChildStyle returns the match style of the immediate child of `t`
 // that the matched `leaf` descended through. The immediate child is either the
 // fallback match-all leaf (whose parent is `t`) or the subtree whose ancestor
-// chain ends at `t`.
+// chain ends at `t`. Panics if `leaf` did not descend through `t`, which would
+// indicate a contract violation by the caller.
 func immediateChildStyle(t Tree, leaf Leaf) MatchStyle {
 	if leaf.getParent() == t {
 		return leaf.getMatchStyle()
 	}
-	node := leaf.getParent()
-	for node != nil && node.getParent() != t {
-		node = node.getParent()
+	parent := leaf.getParent()
+	for parent.getParent() != t {
+		parent = parent.getParent()
+		if parent == nil {
+			panic("immediateChildStyle: leaf did not descend through t")
+		}
 	}
-	if node == nil {
-		return matchStyleNone
-	}
-	return node.getMatchStyle()
+	return parent.getMatchStyle()
 }
 
 // newTree creates and returns a new Tree derived from the given segment.

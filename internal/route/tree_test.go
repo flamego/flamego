@@ -165,7 +165,7 @@ func TestAddRoute(t *testing.T) {
 	})
 
 	t.Run("unbounded match all followed later by another with no separator", func(t *testing.T) {
-		// {a:**} is non-final and unbounded; {b:**} follows with no static/regex/placeholder anchor between them.
+		// {a:**} is non-final and unbounded. {b:**} follows with no static/regex/placeholder anchor between them.
 		route, err := parser.Parse(`/api/{a: **}/{b: **}`)
 		require.NoError(t, err)
 
@@ -192,7 +192,7 @@ func TestAddRoute(t *testing.T) {
 	})
 
 	t.Run("unbounded then bounded multi-glob is rejected", func(t *testing.T) {
-		// A capture limit on the *later* glob does not help; the earlier glob is
+		// A capture limit on the *later* glob does not help. The earlier glob is
 		// what consumes path segments first, and being unbounded it would swallow
 		// what the later glob needs.
 		route, err := parser.Parse(`/api/{a: **}/{b: **, capture: 2}`)
@@ -218,7 +218,7 @@ func TestAddRoute(t *testing.T) {
 		// A placeholder consumes exactly one segment of any content, so it does
 		// not constrain how far the preceding unbounded glob can grow. Both
 		// `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w` would satisfy the pattern
-		// for `/api/x/y/z/w`; the choice would depend on backtracking order
+		// for `/api/x/y/z/w`. The choice would depend on backtracking order
 		// rather than on the route shape.
 		route, err := parser.Parse(`/api/{a: **}/{id}/{b: **}`)
 		require.NoError(t, err)
@@ -444,7 +444,7 @@ func TestTree_Match(t *testing.T) {
 		"/webapi/groups/{name: **, capture: 2}",
 		"/webapi/multi/{prefix: **, capture: 2}/{suffix: **}",
 		// Sibling of the route above, sharing the "multi/{prefix: **, capture: 2}"
-		// prefix subtree. At partition len=1 the static "sep" anchor matches; at
+		// prefix subtree. At partition len=1 the static "sep" anchor matches. At
 		// partition len=2 the match-all leaf above also matches. Match style
 		// priority (static > matchAll) must override "longest partition wins".
 		"/webapi/multi/{prefix: **, capture: 2}/sep/{y: **}",
@@ -614,7 +614,7 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
-			// Static separator anchors the first glob; matches the leftmost separator.
+			// Static separator anchors the first glob and matches the leftmost separator.
 			path:   "/webapi/anchored/x/y/sep/z/w",
 			wantOK: true,
 			wantParams: Params{
