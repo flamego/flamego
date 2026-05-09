@@ -214,6 +214,41 @@ func TestAddRoute(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("placeholder between unbounded globs is rejected", func(t *testing.T) {
+		// A placeholder consumes exactly one segment of any content, so it does
+		// not constrain how far the preceding unbounded glob can grow. Both
+		// `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w` would satisfy the pattern
+		// for `/api/x/y/z/w`; the choice would depend on backtracking order
+		// rather than on the route shape.
+		route, err := parser.Parse(`/api/{a: **}/{id}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		got := fmt.Sprintf("%v", err)
+		want := "match all style in position 17 follows an unbounded match all style in position 4 with no separator; the preceding glob must have a capture limit"
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("regex between unbounded globs is allowed", func(t *testing.T) {
+		// A regex segment constrains the path text, so it acts as a true anchor
+		// between globs.
+		route, err := parser.Parse(`/api/{a: **}/{n: /[0-9]+/}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("bounded then placeholder then unbounded is allowed", func(t *testing.T) {
+		// The first glob has a capture limit, so the placeholder doesn't need
+		// to act as the anchor. The route is unambiguous.
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/{id}/{b: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
 	tests := []struct {
 		route     string
 		style     MatchStyle
@@ -408,6 +443,11 @@ func TestTree_Match(t *testing.T) {
 		"/webapi/articles/{category}/{year: /[0-9]{4}/}-{month}-{day}.json",
 		"/webapi/groups/{name: **, capture: 2}",
 		"/webapi/multi/{prefix: **, capture: 2}/{suffix: **}",
+		// Sibling of the route above, sharing the "multi/{prefix: **, capture: 2}"
+		// prefix subtree. At partition len=1 the static "sep" anchor matches; at
+		// partition len=2 the match-all leaf above also matches. Match style
+		// priority (static > matchAll) must override "longest partition wins".
+		"/webapi/multi/{prefix: **, capture: 2}/sep/{y: **}",
 		"/webapi/anchored/{a: **}/sep/{b: **}",
 		"/webapi/cap1/{a: **, capture: 1}/{b: **}",
 		"/webapi/strict/{a: **, capture: 2}/{n: /[0-9]+/}",
@@ -555,6 +595,22 @@ func TestTree_Match(t *testing.T) {
 			wantParams: Params{
 				"prefix": "x/y",
 				"suffix": "z",
+			},
+		},
+		{
+			// Sibling-priority guard for the bounded-glob greedy loop. Both
+			// partitions succeed:
+			//   len=1 via the static "sep" subtree → y=b/c
+			//   len=2 via the match-all "{suffix}" leaf → suffix=b/c
+			// The static-anchored branch is more specific and must win, even
+			// though the match-all branch corresponds to a longer prefix
+			// partition. If "longest wins" overrides priority, "y" would be
+			// missing and "suffix" would be set instead.
+			path:   "/webapi/multi/a/sep/b/c",
+			wantOK: true,
+			wantParams: Params{
+				"prefix": "a",
+				"y":      "b/c",
 			},
 		},
 		{

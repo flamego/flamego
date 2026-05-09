@@ -304,9 +304,11 @@ func (t *matchAllTree) getBinds() []string {
 // When the capture limit is unbounded, the search is lazy: returns on the first
 // downstream match. When bounded, the search is greedy within the limit:
 // continues to grow the captured segment up to the limit and returns the
-// longest match that still allows the rest of the route to match. This enables
-// multiple match-all globs in a single route by giving non-final globs an
-// upper bound for partitioning the path.
+// longest match through a match-all sibling that still allows the rest of the
+// route to match. If a partition produces a match through a more-specific
+// sibling (static, regex, or placeholder), that match is committed immediately
+// and longer partitions are not explored — match style priority outranks
+// partition length, just as it does in `matchSubtree`.
 func (t *matchAllTree) matchAll(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
 
@@ -330,6 +332,13 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		if ok {
 			if t.capture <= 0 {
 				// Lazy: commit on first match.
+				params[t.bind] = segment
+				return leaf, true
+			}
+			if immediateChildStyle(t, leaf) != matchStyleAll {
+				// More-specific sibling won at this partition; priority outranks
+				// partition length, so commit and stop extending.
+				maps.Copy(params, trial)
 				params[t.bind] = segment
 				return leaf, true
 			}
@@ -358,6 +367,24 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		return bestLeaf, true
 	}
 	return nil, false
+}
+
+// immediateChildStyle returns the match style of the immediate child of `t`
+// that the matched `leaf` descended through. The immediate child is either the
+// fallback match-all leaf (whose parent is `t`) or the subtree whose ancestor
+// chain ends at `t`.
+func immediateChildStyle(t Tree, leaf Leaf) MatchStyle {
+	if leaf.getParent() == t {
+		return leaf.getMatchStyle()
+	}
+	node := leaf.getParent()
+	for node != nil && node.getParent() != t {
+		node = node.getParent()
+	}
+	if node == nil {
+		return matchStyleNone
+	}
+	return node.getMatchStyle()
 }
 
 // newTree creates and returns a new Tree derived from the given segment.
@@ -439,18 +466,23 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 	}
 
 	// Validate match-all globs in the route. Multiple globs are allowed, but
-	// any two globs in the same route must be separated by either a non-glob
-	// segment (static/regex/placeholder, which acts as an anchor) or a capture
-	// limit on the earlier glob (which bounds how much it can consume). Without
-	// one of these, the earlier glob would swallow the path segments needed by
-	// the later glob.
+	// any two globs in the same route must be separated by either a static or
+	// regex segment (which constrains the path text and so bounds how far the
+	// earlier glob can grow) or a capture limit on the earlier glob. Placeholder
+	// segments do not count as separators: they consume exactly one segment of
+	// any content, so they leave the split between the surrounding globs
+	// ambiguous (e.g. `/{a: **}/{id}/{b: **}` matched against `/x/y/z/w` admits
+	// both `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w`).
 	var prevUnboundedGlob *Segment
 	for _, s := range r.Segments {
 		_, capture, ok := checkMatchStyleAll(s)
 		if !ok {
-			// Non-glob segment: resets the anchor — any unbounded glob before this
-			// one is now safely separated from anything that follows.
-			prevUnboundedGlob = nil
+			if isMatchStyleStatic(s) {
+				prevUnboundedGlob = nil
+			} else if _, isPlaceholder := checkMatchStylePlaceholder(s); !isPlaceholder {
+				// Regex segment: a true anchor.
+				prevUnboundedGlob = nil
+			}
 			continue
 		}
 		if prevUnboundedGlob != nil {
