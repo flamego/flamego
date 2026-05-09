@@ -368,10 +368,10 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 }
 
 // immediateChildStyle returns the match style of the immediate child of `t`
-// that the matched `leaf` descended through. The immediate child is either the
-// fallback match-all leaf (whose parent is `t`) or the subtree whose ancestor
-// chain ends at `t`. Panics if `leaf` did not descend through `t`, which would
-// indicate a contract violation by the caller.
+// that the matched `leaf` descended through. The immediate child can be a
+// direct leaf under `t` or the subtree whose ancestor chain ends at `t`.
+// Panics if `leaf` did not descend through `t`, which would indicate a
+// contract violation by the caller.
 func immediateChildStyle(t Tree, leaf Leaf) MatchStyle {
 	if leaf.getParent() == t {
 		return leaf.getMatchStyle()

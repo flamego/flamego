@@ -240,8 +240,9 @@ func TestAddRoute(t *testing.T) {
 	})
 
 	t.Run("bounded then placeholder then unbounded is allowed", func(t *testing.T) {
-		// The first glob has a capture limit, so the placeholder doesn't need
-		// to act as the anchor. The route is unambiguous.
+		// The first glob has a capture limit, so the placeholder does not need
+		// to separate two unbounded globs. Matching still follows the normal
+		// bounded-glob partition rules.
 		route, err := parser.Parse(`/api/{a: **, capture: 2}/{id}/{b: **}`)
 		require.NoError(t, err)
 
@@ -669,11 +670,9 @@ func TestTree_Match(t *testing.T) {
 			},
 		},
 		{
-			// Kitchen sink, loop-continuation variant: the bounded glob tries
-			// captured=1 (no "blob" anchor → fails), captured=2 (anchor matches →
-			// succeeds), then captured=3 (no anchor → fails). The loop must keep
-			// going past failures rather than treating the first miss as terminal,
-			// and must not treat the trailing failure as overriding the success.
+			// The bounded glob must continue past captured=1, where no "blob"
+			// anchor matches, and commit at captured=2 when the static "blob"
+			// subtree matches.
 			path:   "/api/v1/42/repos/a/b/blob/main/article_7-hello-world.md/files/last",
 			wantOK: true,
 			wantParams: Params{
