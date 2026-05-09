@@ -54,6 +54,10 @@ func (invoke teapotInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
 // implementations, it wraps the handler automatically to gain up to 3x
 // performance improvement.
 func validateAndWrapHandler(h Handler, wrapper func(Handler) Handler) Handler {
+	if h == nil {
+		panic("handler must be a callable function or http.Handler, but got nil")
+	}
+
 	if inject.IsFastInvoker(h) {
 		return h
 	}

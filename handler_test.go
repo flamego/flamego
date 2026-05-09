@@ -34,6 +34,21 @@ func TestValidateAndWrapHandler(t *testing.T) {
 		validateAndWrapHandler("string", nil)
 	})
 
+	t.Run("nil handler", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "handler must be a callable function or http.Handler")
+		}()
+		validateAndWrapHandler(nil, nil)
+	})
+
+	t.Run("nil http.Handler interface", func(t *testing.T) {
+		defer func() {
+			assert.Contains(t, recover(), "handler must be a callable function or http.Handler")
+		}()
+		var hh http.Handler
+		validateAndWrapHandler(hh, nil)
+	})
+
 	handlers := []Handler{
 		func(Context) {},
 		func(http.ResponseWriter, *http.Request) {},
