@@ -214,6 +214,17 @@ func TestAddRoute(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("two bounded globs followed by unbounded is allowed", func(t *testing.T) {
+		// No separator is required between consecutive bounded globs. Each
+		// capture limit prevents that glob from swallowing what follows, so the
+		// trailing unbounded glob still has segments to match.
+		route, err := parser.Parse(`/api/{a: **, capture: 2}/{b: **, capture: 2}/{c: **}`)
+		require.NoError(t, err)
+
+		_, err = AddRoute(NewTree(), route, nil)
+		assert.NoError(t, err)
+	})
+
 	t.Run("placeholder between unbounded globs is rejected", func(t *testing.T) {
 		// A placeholder consumes exactly one segment of any content, so it does
 		// not constrain how far the preceding unbounded glob can grow. Both
@@ -450,6 +461,10 @@ func TestTree_Match(t *testing.T) {
 		// priority (static > matchAll) must override "longest partition wins".
 		"/webapi/multi/{prefix: **, capture: 2}/sep/{y: **}",
 		"/webapi/anchored/{a: **}/sep/{b: **}",
+		// Three-level back-to-back bounded globs followed by an unbounded final
+		// glob. No separators between them — each capture limit alone is enough
+		// to keep the next glob from being starved.
+		"/webapi/triple/{a: **, capture: 2}/{b: **, capture: 2}/{c: **}",
 		"/webapi/cap1/{a: **, capture: 1}/{b: **}",
 		"/webapi/strict/{a: **, capture: 2}/{n: /[0-9]+/}",
 		// Two routes that share the same {leak: **, capture: 2} prefix and diverge below.
@@ -621,6 +636,29 @@ func TestTree_Match(t *testing.T) {
 			wantParams: Params{
 				"a": "x/y",
 				"b": "z/w",
+			},
+		},
+		{
+			// Three back-to-back globs, no separators. Each bounded glob takes
+			// its maximum (capture: 2), and the unbounded final glob picks up
+			// the remainder.
+			path:   "/webapi/triple/x/y/z/w/v",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"b": "z/w",
+				"c": "v",
+			},
+		},
+		{
+			// Same shape with fewer remaining segments: each bounded glob still
+			// takes its maximum, the unbounded final glob takes a single segment.
+			path:   "/webapi/triple/x/y/z/w",
+			wantOK: true,
+			wantParams: Params{
+				"a": "x/y",
+				"b": "z",
+				"c": "w",
 			},
 		},
 		{
