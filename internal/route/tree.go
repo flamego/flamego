@@ -319,19 +319,17 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		found       bool
 	)
 	for t.capture <= 0 || t.capture >= captured {
-		var trial Params
-		if t.capture > 0 {
-			// Use a scratch Params so a failed deeper match doesn't pollute the caller's.
-			trial = make(Params, len(params))
-			maps.Copy(trial, params)
-		} else {
-			trial = params
-		}
+		// Use a scratch Params so a failed deeper match doesn't pollute the
+		// caller's. Both lazy (unbounded) and greedy (bounded) modes can
+		// retry across partitions, so both need the snapshot.
+		trial := make(Params, len(params))
+		maps.Copy(trial, params)
 
 		leaf, ok := t.matchNextSegment(path, next, trial, header)
 		if ok {
 			if t.capture <= 0 {
 				// Lazy: commit on first match.
+				maps.Copy(params, trial)
 				params[t.bind] = segment
 				return leaf, true
 			}
@@ -468,12 +466,15 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 
 	// Validate match-all globs in the route. Multiple globs are allowed, but
 	// any two globs in the same route must be separated by either a static or
-	// regex segment (which constrains the path text and so bounds how far the
-	// earlier glob can grow) or a capture limit on the earlier glob. Placeholder
-	// segments do not count as separators: they consume exactly one segment of
-	// any content, so they leave the split between the surrounding globs
-	// ambiguous (e.g. `/{a: **}/{id}/{b: **}` matched against `/x/y/z/w` admits
-	// both `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w`).
+	// regex segment, or a capture limit on the earlier glob. Static segments
+	// pin the path text exactly. Regex segments are accepted as separators
+	// regardless of how broadly the regex matches — a permissive pattern like
+	// `/.+/` does not actually disambiguate adjacent unbounded globs, but the
+	// regex is taken as the author's explicit opt-in to that shape, and the
+	// resulting bindings then follow the normal sibling matching priority.
+	// Placeholder segments do not count as separators because they accept any
+	// one segment of any content with no opt-in (e.g. `/{a: **}/{id}/{b: **}`
+	// against `/x/y/z/w` admits both `a=x, id=y, b=z/w` and `a=x/y, id=z, b=w`).
 	var prevUnboundedGlob *Segment
 	for _, s := range r.Segments {
 		_, capture, ok := checkMatchStyleAll(s)
@@ -481,7 +482,7 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 			if isMatchStyleStatic(s) {
 				prevUnboundedGlob = nil
 			} else if _, isPlaceholder := checkMatchStylePlaceholder(s); !isPlaceholder {
-				// Regex segment: a true anchor.
+				// Regex segment.
 				prevUnboundedGlob = nil
 			}
 			continue
