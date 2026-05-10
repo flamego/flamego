@@ -135,8 +135,9 @@ func (r *router) HandlerWrapper(f func(Handler) Handler) {
 
 // Route is a wrapper of the route leaves and its router.
 type Route struct {
-	router *router
-	leaves map[string]route.Leaf
+	router     *router
+	leaves     map[string]route.Leaf
+	predicates []route.Predicate // The list of predicates accumulated across Match calls.
 }
 
 // Headers uses given key-value pairs as the list of matching criteria for
@@ -166,6 +167,46 @@ func (r *Route) Headers(pairs ...string) *Route {
 		leaf.SetHeaderMatcher(route.NewHeaderMatcher(matches))
 
 		// Delete static route from fast paths since header matches are dynamic.
+		if leaf.Static() {
+			delete(r.router.staticRoutes[m], leaf.Route())
+		}
+	}
+	return r
+}
+
+// Match adds an arbitrary predicate as an additional matching criterion for the
+// route. The predicate is evaluated only after the request path (and any
+// Headers matchers) match. If it returns false, the request falls through to
+// the next candidate route just like a failed Headers match — it does not halt
+// the routing process.
+//
+// Multiple calls to Match accumulate and are combined with AND: every
+// predicate must return true for the route to match. When combined with
+// Headers, both must pass. The predicate does not affect the matching priority
+// of the route, nor does it participate in URLPath construction.
+//
+// For example:
+//
+//	f.Get("/admin", h).Match(func(r *http.Request) bool {
+//	    return strings.HasPrefix(r.RemoteAddr, "10.")
+//	})
+//
+//	f.Get("/", h).
+//	    Headers("Accept", "application/json").
+//	    Match(func(r *http.Request) bool { return r.TLS != nil })
+//
+// Panics if fn is nil.
+func (r *Route) Match(fn func(*http.Request) bool) *Route {
+	if fn == nil {
+		panic("nil predicate function")
+	}
+
+	r.predicates = append(r.predicates, fn)
+	matcher := route.NewPredicateMatcher(r.predicates)
+	for m, leaf := range r.leaves {
+		leaf.SetPredicateMatcher(matcher)
+
+		// Delete static route from fast paths since predicate matches are dynamic.
 		if leaf.Static() {
 			delete(r.router.staticRoutes[m], leaf.Route())
 		}
@@ -360,7 +401,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	leaf, params, ok := routeTree.Match(req.URL.Path, req.Header)
+	leaf, params, ok := routeTree.Match(req.URL.Path, req)
 	if !ok {
 		r.notFound(w, req)
 		return
