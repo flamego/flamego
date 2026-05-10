@@ -627,11 +627,12 @@ func BenchmarkRouter_ServeHTTP_NoMatch(b *testing.B) {
 	req, err := http.NewRequest(http.MethodGet, "/users/42", nil)
 	require.NoError(b, err)
 
-	resp := httptest.NewRecorder()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		f.ServeHTTP(resp, req)
+		// A fresh recorder per iteration so accumulated state (wroteHeader,
+		// Body, Code) does not skew alloc/timing measurements.
+		f.ServeHTTP(httptest.NewRecorder(), req)
 	}
 }
 
@@ -644,10 +645,9 @@ func BenchmarkRouter_ServeHTTP_WithMatch(b *testing.B) {
 	req, err := http.NewRequest(http.MethodGet, "/users/42", nil)
 	require.NoError(b, err)
 
-	resp := httptest.NewRecorder()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		f.ServeHTTP(resp, req)
+		f.ServeHTTP(httptest.NewRecorder(), req)
 	}
 }
