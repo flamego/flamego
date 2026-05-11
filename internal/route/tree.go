@@ -16,10 +16,11 @@ import (
 
 // Tree is a tree derived from a segment.
 type Tree interface {
-	// Match matches a leaf for the given request path and provided headers, values
-	// of bind parameters are stored in the `Params`. The `Params` may contain extra
-	// values that do not belong to the final leaf due to backtrace.
-	Match(path string, header http.Header) (Leaf, Params, bool)
+	// Match matches a leaf for the given request, values of bind parameters are
+	// stored in the `Params`. The `Params` may contain extra values that do not
+	// belong to the final leaf due to backtrace. The `req` may be nil when there
+	// is no need to match against headers or predicates.
+	Match(path string, req *http.Request) (Leaf, Params, bool)
 
 	// getParent returns the parent tree. The root tree does not have parent.
 	getParent() Tree
@@ -47,7 +48,7 @@ type Tree interface {
 	match(segment string, params Params) bool
 	// matchNextSegment advances the `next` cursor for matching next segment in the
 	// request path.
-	matchNextSegment(path string, next int, params Params, header http.Header) (Leaf, bool)
+	matchNextSegment(path string, next int, params Params, req *http.Request) (Leaf, bool)
 }
 
 // baseTree contains common fields and methods for any tree.
@@ -309,7 +310,7 @@ func (t *matchAllTree) getBinds() []string {
 // sibling (static, regex, or placeholder), that match is committed immediately
 // and longer partitions are not explored — match style priority outranks
 // partition length, just as it does in `matchSubtree`.
-func (t *matchAllTree) matchAll(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
+func (t *matchAllTree) matchAll(path, segment string, next int, params Params, req *http.Request) (Leaf, bool) {
 	captured := 1 // Starts with 1 because the segment itself also count.
 
 	var (
@@ -325,7 +326,7 @@ func (t *matchAllTree) matchAll(path, segment string, next int, params Params, h
 		trial := make(Params, len(params))
 		maps.Copy(trial, params)
 
-		leaf, ok := t.matchNextSegment(path, next, trial, header)
+		leaf, ok := t.matchNextSegment(path, next, trial, req)
 		if ok {
 			if t.capture <= 0 {
 				// Lazy: commit on first match.
@@ -500,9 +501,9 @@ func AddRoute(t Tree, r *Route, h Handler) (Leaf, error) {
 
 // matchLeaf returns the matched leaf and true if any leaf of the tree matches
 // the given segment.
-func (t *baseTree) matchLeaf(segment string, params Params, header http.Header) (Leaf, bool) {
+func (t *baseTree) matchLeaf(segment string, params Params, req *http.Request) (Leaf, bool) {
 	for _, l := range t.leaves {
-		ok := l.match(segment, params, header)
+		ok := l.match(segment, params, req)
 		if ok {
 			return l, true
 		}
@@ -512,10 +513,10 @@ func (t *baseTree) matchLeaf(segment string, params Params, header http.Header) 
 
 // matchSubtree returns the matched leaf and true if any subtree or leaf of the
 // tree matches the given segment.
-func (t *baseTree) matchSubtree(path, segment string, next int, params Params, header http.Header) (Leaf, bool) {
+func (t *baseTree) matchSubtree(path, segment string, next int, params Params, req *http.Request) (Leaf, bool) {
 	for _, st := range t.subtrees {
 		if st.getMatchStyle() == matchStyleAll {
-			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params, header)
+			leaf, ok := st.(*matchAllTree).matchAll(path, segment, next, params, req)
 			if ok {
 				return leaf, true
 			}
@@ -531,7 +532,7 @@ func (t *baseTree) matchSubtree(path, segment string, next int, params Params, h
 			continue
 		}
 
-		leaf, ok := st.matchNextSegment(path, next, params, header)
+		leaf, ok := st.matchNextSegment(path, next, params, req)
 		if !ok {
 			continue
 		}
@@ -545,7 +546,7 @@ func (t *baseTree) matchSubtree(path, segment string, next int, params Params, h
 			return nil, false
 		}
 
-		ok := leaf.(*matchAllLeaf).matchAll(path, segment, next, params, header)
+		ok := leaf.(*matchAllLeaf).matchAll(path, segment, next, params, req)
 		if ok {
 			return leaf, ok
 		}
@@ -554,18 +555,18 @@ func (t *baseTree) matchSubtree(path, segment string, next int, params Params, h
 	return nil, false
 }
 
-func (t *baseTree) matchNextSegment(path string, next int, params Params, header http.Header) (Leaf, bool) {
+func (t *baseTree) matchNextSegment(path string, next int, params Params, req *http.Request) (Leaf, bool) {
 	i := strings.Index(path[next:], "/")
 	if i == -1 {
-		return t.matchLeaf(path[next:], params, header)
+		return t.matchLeaf(path[next:], params, req)
 	}
-	return t.matchSubtree(path, path[next:next+i], next+i+1, params, header)
+	return t.matchSubtree(path, path[next:next+i], next+i+1, params, req)
 }
 
-func (t *baseTree) Match(path string, header http.Header) (Leaf, Params, bool) {
+func (t *baseTree) Match(path string, req *http.Request) (Leaf, Params, bool) {
 	path = strings.TrimLeft(path, "/")
 	params := make(Params)
-	leaf, ok := t.matchNextSegment(path, 0, params, header)
+	leaf, ok := t.matchNextSegment(path, 0, params, req)
 	if !ok {
 		return nil, nil, false
 	}

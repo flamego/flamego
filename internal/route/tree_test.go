@@ -7,6 +7,7 @@ package route
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strings"
 	"testing"
@@ -1164,11 +1165,11 @@ func TestTree_MatchHeader(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.path, func(t *testing.T) {
-			header := make(http.Header, len(test.header))
+			req := httptest.NewRequest(http.MethodGet, "http://example.com"+test.path, nil)
 			for k, v := range test.header {
-				header.Set(k, v)
+				req.Header.Set(k, v)
 			}
-			leaf, params, ok := tree.Match(test.path, header)
+			leaf, params, ok := tree.Match(test.path, req)
 			require.Equal(t, test.wantOK, ok)
 
 			if !ok {
