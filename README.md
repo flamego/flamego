@@ -4,6 +4,7 @@
 [![Codecov](https://img.shields.io/codecov/c/gh/flamego/flamego?logo=codecov&style=for-the-badge)](https://app.codecov.io/gh/flamego/flamego)
 [![GoDoc](https://img.shields.io/badge/GoDoc-Reference-blue?style=for-the-badge&logo=go)](https://pkg.go.dev/github.com/flamego/flamego?tab=doc)
 [![Sourcegraph](https://img.shields.io/badge/view%20on-Sourcegraph-brightgreen.svg?style=for-the-badge&logo=sourcegraph)](https://sourcegraph.com/github.com/flamego/flamego)
+[![Netlify Status](https://img.shields.io/netlify/8c6545f8-a001-4515-b052-63847be97752?style=for-the-badge&logo=netlify)](https://app.netlify.com/projects/keen-austin-23ca57/deploys)
 
 Flamego is a modular Go framework for building composable systems, and equips the most powerful routing syntax among all web frameworks within the Go ecosystem.
 
