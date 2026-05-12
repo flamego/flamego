@@ -1,0 +1,118 @@
+# Configuration
+baseURL: https://flamego.dev/
+title: Flamego
+
+enableRobotsTXT: true
+enableGitInfo: true
+enableEmoji: true
+hasCJKLanguage: true
+
+# Multilingual
+defaultContentLanguage: en
+languages:
+  en:
+    label: English
+    weight: 1
+    title: Flamego
+    contentDir: content
+    params:
+      editURL:
+        base: https://github.com/flamego/flamego/edit/main/docs/content
+    menus:
+      main:
+        - name: Starter guide
+          pageRef: /starter-guide
+          weight: 1
+        - name: Core concepts
+          pageRef: /core-concepts
+          weight: 2
+        - name: Routing
+          pageRef: /routing
+          weight: 3
+        - name: Middleware
+          pageRef: /middleware
+          weight: 4
+        - name: FAQs
+          pageRef: /faqs
+          weight: 5
+        - name: Search
+          weight: 6
+          params:
+            type: search
+        - name: GitHub
+          weight: 7
+          url: https://github.com/flamego/flamego
+          params:
+            icon: github
+  zh:
+    label: 简体中文
+    weight: 2
+    title: Flamego
+    contentDir: content.zh
+    params:
+      editURL:
+        base: https://github.com/flamego/flamego/edit/main/docs/content.zh
+    menus:
+      main:
+        - name: 入门指南
+          pageRef: /starter-guide
+          weight: 1
+        - name: 核心概念
+          pageRef: /core-concepts
+          weight: 2
+        - name: 路由
+          pageRef: /routing
+          weight: 3
+        - name: 中间件
+          pageRef: /middleware
+          weight: 4
+        - name: 常见问题
+          pageRef: /faqs
+          weight: 5
+        - name: 搜索
+          weight: 6
+          params:
+            type: search
+        - name: GitHub
+          weight: 7
+          url: https://github.com/flamego/flamego
+          params:
+            icon: github
+
+module:
+  imports:
+    - path: github.com/imfing/hextra
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+
+cascade:
+  - target:
+      kind: page
+    type: docs
+  - target:
+      kind: section
+    type: docs
+
+params:
+  description: A fantastic modular Go web framework boiled with love
+  navbar:
+    displayTitle: true
+    displayLogo: true
+    logo:
+      path: logo.png
+      width: 28
+      height: 28
+  footer:
+    enable: true
+    displayCopyright: true
+    displayPoweredBy: false
+  theme:
+    default: system
+    displayToggle: true
+  editURL:
+    enable: true

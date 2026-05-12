@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Quicksand:wght@500;600&display=swap');
+
+html, body {
+  font-family: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+}
+
+code, pre, kbd, samp, .chroma, .hextra-code-block {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.hextra-nav-container nav > a > span {
+  font-family: 'Quicksand', system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 1.4rem;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+
+.hextra-nav-container nav > a > span::after {
+  content: ".";
+  color: #ff5a1f;
+  margin-left: -0.08em;
+}
+
+/* Mintlify-style prev/next cards. */
+.flamego-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 3rem 0 2rem;
+}
+
+.flamego-pager-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.75rem;
+  background: transparent;
+  text-decoration: none !important;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+html.dark .flamego-pager-card {
+  border-color: rgb(38 38 38);
+}
+
+.flamego-pager-card:hover {
+  border-color: #ff5a1f;
+  box-shadow: 0 6px 20px -10px rgba(255, 90, 31, 0.45);
+  transform: translateY(-1px);
+}
+
+.flamego-pager-next {
+  text-align: right;
+}
+
+.flamego-pager-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgb(115 115 115);
+}
+
+html.dark .flamego-pager-label {
+  color: rgb(163 163 163);
+}
+
+.flamego-pager-next .flamego-pager-label {
+  justify-content: flex-end;
+}
+
+.flamego-pager-arrow {
+  height: 1rem;
+  width: 1rem;
+}
+
+.flamego-pager-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(23 23 23);
+  transition: color 150ms ease;
+}
+
+html.dark .flamego-pager-title {
+  color: rgb(245 245 245);
+}
+
+.flamego-pager-card:hover .flamego-pager-title {
+  color: #ff5a1f;
+}
+
+@media (max-width: 640px) {
+  .flamego-pager {
+    grid-template-columns: 1fr;
+  }
+}
+/* Pierre Light — applies to default (no .dark ancestor). */
+html:not(.dark) .chroma {background-color:#ffffff;color:#070707;border-radius:6px}
+html:not(.dark) pre.chroma {background-color:#ffffff;}
+html:not(.dark) .chroma .c {color:#84848A}
+html:not(.dark) .chroma .c1 {color:#84848A}
+html:not(.dark) .chroma .cm {color:#84848A}
+html:not(.dark) .chroma .cs {color:#84848A}
+html:not(.dark) .chroma .k {color:#fc2b73}
+html:not(.dark) .chroma .kc {color:#1ca1c7}
+html:not(.dark) .chroma .kd {color:#fc2b73}
+html:not(.dark) .chroma .kn {color:#fc2b73}
+html:not(.dark) .chroma .kp {color:#fc2b73}
+html:not(.dark) .chroma .kr {color:#fc2b73}
+html:not(.dark) .chroma .kt {color:#fc2b73}
+html:not(.dark) .chroma .n {color:#d47628}
+html:not(.dark) .chroma .na {color:#16a994}
+html:not(.dark) .chroma .nb {color:#7b43f8}
+html:not(.dark) .chroma .nc {color:#c635e4}
+html:not(.dark) .chroma .nd {color:#7b43f8}
+html:not(.dark) .chroma .nf {color:#7b43f8}
+html:not(.dark) .chroma .nl {color:#d5a910}
+html:not(.dark) .chroma .nn {color:#d5a910}
+html:not(.dark) .chroma .nt {color:#d52c36}
+html:not(.dark) .chroma .nv {color:#d47628}
+html:not(.dark) .chroma .s {color:#199f43}
+html:not(.dark) .chroma .sb {color:#199f43}
+html:not(.dark) .chroma .sc {color:#d5a910}
+html:not(.dark) .chroma .sd {color:#199f43}
+html:not(.dark) .chroma .s2 {color:#199f43}
+html:not(.dark) .chroma .se {color:#1ca1c7}
+html:not(.dark) .chroma .si {color:#199f43}
+html:not(.dark) .chroma .s1 {color:#199f43}
+html:not(.dark) .chroma .m {color:#1ca1c7}
+html:not(.dark) .chroma .mb {color:#1ca1c7}
+html:not(.dark) .chroma .mf {color:#1ca1c7}
+html:not(.dark) .chroma .mh {color:#1ca1c7}
+html:not(.dark) .chroma .mi {color:#1ca1c7}
+html:not(.dark) .chroma .mo {color:#1ca1c7}
+html:not(.dark) .chroma .o {color:#79797F}
+html:not(.dark) .chroma .ow {color:#79797F}
+html:not(.dark) .chroma .p {color:#79797F}
+html:not(.dark) .chroma .err {color:#f44747}
+
+/* Pierre Dark — applies under .dark (Hextra dark mode). */
+html.dark .chroma {background-color:#070707;color:#fbfbfb;border-radius:6px}
+html.dark pre.chroma {background-color:#070707;}
+html.dark .chroma .c {color:#84848A}
+html.dark .chroma .c1 {color:#84848A}
+html.dark .chroma .cm {color:#84848A}
+html.dark .chroma .cs {color:#84848A}
+html.dark .chroma .k {color:#ff678d}
+html.dark .chroma .kc {color:#68cdf2}
+html.dark .chroma .kd {color:#ff678d}
+html.dark .chroma .kn {color:#ff678d}
+html.dark .chroma .kp {color:#ff678d}
+html.dark .chroma .kr {color:#ff678d}
+html.dark .chroma .kt {color:#ff678d}
+html.dark .chroma .n {color:#ffa359}
+html.dark .chroma .na {color:#61d5c0}
+html.dark .chroma .nb {color:#9d6afb}
+html.dark .chroma .nc {color:#d568ea}
+html.dark .chroma .nd {color:#9d6afb}
+html.dark .chroma .nf {color:#9d6afb}
+html.dark .chroma .nl {color:#ffca00}
+html.dark .chroma .nn {color:#ffca00}
+html.dark .chroma .nt {color:#ff6762}
+html.dark .chroma .nv {color:#ffa359}
+html.dark .chroma .s {color:#5ecc71}
+html.dark .chroma .sb {color:#5ecc71}
+html.dark .chroma .sc {color:#ffd452}
+html.dark .chroma .sd {color:#5ecc71}
+html.dark .chroma .s2 {color:#5ecc71}
+html.dark .chroma .se {color:#68cdf2}
+html.dark .chroma .si {color:#5ecc71}
+html.dark .chroma .s1 {color:#5ecc71}
+html.dark .chroma .m {color:#68cdf2}
+html.dark .chroma .mb {color:#68cdf2}
+html.dark .chroma .mf {color:#68cdf2}
+html.dark .chroma .mh {color:#68cdf2}
+html.dark .chroma .mi {color:#68cdf2}
+html.dark .chroma .mo {color:#68cdf2}
+html.dark .chroma .o {color:#79797F}
+html.dark .chroma .ow {color:#79797F}
+html.dark .chroma .p {color:#79797F}
+html.dark .chroma .err {color:#f44747}
+
+/* Highlighted lines — visible row tint + orange accent bar.
+   Use box-shadow (not border) to avoid shifting line content horizontally. */
+.chroma .line.hl {
+  box-shadow: inset 3px 0 0 0 #ff5a1f;
+}
+html:not(.dark) .chroma .line.hl {
+  background-color: rgba(255, 90, 31, 0.10);
+}
+html.dark .chroma .line.hl {
+  background-color: rgba(255, 90, 31, 0.20);
+}
