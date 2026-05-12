@@ -1,0 +1,56 @@
+{{/* Mintlify-style prev/next cards. Overrides the Hextra default. */}}
+
+{{- $reversePagination := .Store.Get "reversePagination" | default false -}}
+{{- $prev := cond $reversePagination .PrevInSection .NextInSection -}}
+{{- $next := cond $reversePagination .NextInSection .PrevInSection -}}
+
+{{- if eq .Params.prev false }}
+  {{- if $reversePagination }}{{ $next = false }}{{ else }}{{ $prev = false }}{{ end -}}
+{{ else }}
+  {{- with .Params.prev -}}
+    {{- with $.Site.GetPage . -}}
+      {{- if $reversePagination }}{{ $next = . }}{{ else }}{{ $prev = . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if eq .Params.next false }}
+  {{- if $reversePagination }}{{ $prev = false }}{{ else }}{{ $next = false }}{{ end -}}
+{{ else }}
+  {{- with .Params.next -}}
+    {{- with $.Site.GetPage . -}}
+      {{- if $reversePagination }}{{ $prev = . }}{{ else }}{{ $next = . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if or $prev $next -}}
+  <div class="flamego-pager">
+    {{- if $prev -}}
+      <a href="{{ $prev.RelPermalink }}" class="flamego-pager-card flamego-pager-prev" title="{{ partial "utils/title" $prev }}">
+        <span class="flamego-pager-label">
+          <svg class="flamego-pager-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1 0 1.06L9.06 10l3.73 3.71a.75.75 0 1 1-1.06 1.06l-4.25-4.24a.75.75 0 0 1 0-1.06l4.25-4.24a.75.75 0 0 1 1.06 0z" clip-rule="evenodd" />
+          </svg>
+          {{ T "previous" | default "Previous" }}
+        </span>
+        <span class="flamego-pager-title">{{ partial "utils/title" $prev }}</span>
+      </a>
+    {{- else -}}
+      <span></span>
+    {{- end -}}
+    {{- if $next -}}
+      <a href="{{ $next.RelPermalink }}" class="flamego-pager-card flamego-pager-next" title="{{ partial "utils/title" $next }}">
+        <span class="flamego-pager-label">
+          {{ T "next" | default "Next" }}
+          <svg class="flamego-pager-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 0-1.06L10.94 10 7.21 6.29a.75.75 0 1 1 1.06-1.06l4.25 4.24a.75.75 0 0 1 0 1.06l-4.25 4.24a.75.75 0 0 1-1.06 0z" clip-rule="evenodd" />
+          </svg>
+        </span>
+        <span class="flamego-pager-title">{{ partial "utils/title" $next }}</span>
+      </a>
+    {{- else -}}
+      <span></span>
+    {{- end -}}
+  </div>
+{{- end -}}
