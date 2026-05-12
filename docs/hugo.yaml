@@ -15,6 +15,11 @@ languages:
     weight: 1
     title: Flamego
     contentDir: content
+    outputs:
+      home:
+        - html
+        - rss
+        - llms
     params:
       editURL:
         base: https://github.com/flamego/flamego/edit/main/docs/content
@@ -82,6 +87,13 @@ languages:
 module:
   imports:
     - path: github.com/imfing/hextra
+
+outputFormats:
+  llms:
+    mediaType: text/plain
+    baseName: llms
+    isPlainText: true
+    notAlternative: true
 
 markup:
   goldmark:

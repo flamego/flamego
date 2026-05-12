@@ -1,0 +1,31 @@
+{{- define "page-summary" -}}
+{{- with .Description -}}
+: {{ . }}
+{{- else -}}
+{{- $html := printf "%s" .Summary -}}
+{{- $stripped := $html | replaceRE "(?s)<pre.*?</pre>" "" | replaceRE "(?s)<code.*?</code>" "" | replaceRE "(?s)<div[^>]*>" "" | replaceRE "(?s)</div>" "" -}}
+{{- $text := $stripped | plainify | htmlUnescape | replaceRE "\\s+" " " | strings.TrimSpace -}}
+{{- with $text -}}: {{ . | truncate 200 }}{{- end -}}
+{{- end -}}
+{{- end -}}
+# {{ site.Title }}
+
+> {{ site.Params.description }}
+
+{{- $sections := slice "starter-guide" "core-concepts" "routing" "middleware" "faqs" }}
+{{- range $sections }}
+{{- $page := site.GetPage . }}
+{{- if $page }}
+
+## {{ $page.Title | default (humanize .) }}
+
+{{- $children := where site.RegularPages "Section" . }}
+{{- if $children }}
+{{- range $children.ByWeight }}
+- [{{ .Title }}]({{ .Permalink }}){{ template "page-summary" . }}
+{{- end }}
+{{- else }}
+- [{{ $page.Title | default (humanize .) }}]({{ $page.Permalink }}){{ template "page-summary" $page }}
+{{- end }}
+{{- end }}
+{{- end }}
