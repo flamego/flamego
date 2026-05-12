@@ -1,0 +1,38 @@
+{{- $enableFooterSwitches := .Store.Get "enableFooterSwitches" | default false -}}
+{{- $displayThemeToggle := site.Params.theme.displayToggle | default true -}}
+{{- $footerSwitchesVisible := and $enableFooterSwitches (or hugo.IsMultilingual $displayThemeToggle) -}}
+{{- $copyrightSectionVisible := or (.Site.Params.footer.displayPoweredBy | default true) .Site.Params.footer.displayCopyright -}}
+
+{{- $copyright := (T "copyright") | default "© %d." -}}
+{{- $copyright = replace $copyright "%d" (string now.Year) -}}
+{{- $poweredBy := (T "poweredBy") | default "Powered by Hextra" -}}
+
+
+<footer class="hextra-footer hx:bg-gray-100 hx:pb-[env(safe-area-inset-bottom)] hx:dark:bg-neutral-900 hx:print:bg-transparent">
+  {{- if $footerSwitchesVisible -}}
+    <div class="hx:mx-auto hx:flex hx:gap-2 hx:py-2 hx:px-4 hextra-max-footer-width">
+      {{- partial "language-switch.html" (dict "context" .) -}}
+      {{- with $displayThemeToggle }}{{ partial "theme-toggle.html" }}{{ end -}}
+    </div>
+    {{- if or hugo.IsMultilingual $displayThemeToggle -}}
+      <hr class="hx:border-gray-200 hx:dark:border-neutral-800" />
+    {{- end -}}
+  {{- end -}}
+  <div class="hextra-custom-footer hextra-max-footer-width hx:mx-auto hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400">
+    {{- partial "custom/footer.html" (dict "context" . "switchesVisible" $footerSwitchesVisible "copyrightVisible" $copyrightSectionVisible) -}}
+  </div>
+  {{- if $copyrightSectionVisible -}}
+    <div
+      class="hextra-max-footer-width hx:mx-auto hx:flex hx:justify-center hx:py-12 hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400 hx:md:justify-start"
+    >
+      <div class="hx:flex hx:w-full hx:flex-col hx:items-center hx:sm:items-start">
+        {{- if (.Site.Params.footer.displayPoweredBy | default true) }}<div class="hx:font-semibold">{{ template "theme-credit" $poweredBy }}</div>{{- end -}}
+        {{- if .Site.Params.footer.displayCopyright }}<div class="hx:mt-6 hx:text-xs">{{ $copyright | markdownify }}</div>{{- end -}}
+      </div>
+    </div>
+  {{- end -}}
+</footer>
+
+{{- define "theme-credit" -}}
+  <a href="https://imfing.github.io/hextra/" target="_blank" rel="noreferrer">{{ . }}<svg height=1em class="hx:inline-block hx:ltr:ml-1 hx:rtl:mr-1 hx:align-[-2.5px]" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="m 105.50024,22.224647 c -9.59169,-5.537563 -21.40871,-5.537563 -31.000093,0 L 39.054693,42.689119 C 29.463353,48.226675 23.55484,58.460531 23.55484,69.535642 v 40.928918 c 0,11.07542 5.908513,21.3092 15.499853,26.84652 l 35.445453,20.46446 c 9.591313,5.53732 21.408404,5.53732 31.000094,0 l 35.44507,-20.46446 c 9.59131,-5.53732 15.49985,-15.7711 15.49985,-26.84652 V 69.535642 c 0,-11.075111 -5.90854,-21.308967 -15.49985,-26.846523 z M 34.112797,85.737639 c -1.384445,2.397827 -1.384445,5.352099 0,7.749927 l 24.781554,42.922974 c 1.38437,2.39783 3.942853,3.87496 6.711592,3.87496 h 49.563107 c 2.76905,0 5.3273,-1.47713 6.71144,-3.87496 l 24.78194,-42.922974 c 1.38414,-2.397828 1.38414,-5.3521 0,-7.749927 L 121.88049,42.814746 c -1.38414,-2.397828 -3.94239,-3.874964 -6.71144,-3.874964 H 65.605944 c -2.768739,0 -5.327223,1.477059 -6.711592,3.874964 z" style="stroke-width:0.774993" /></svg></a>
+{{- end -}}
