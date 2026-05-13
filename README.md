@@ -66,7 +66,7 @@ func main() {
 - Follow our [Twitter](https://twitter.com/flamego_dev) to stay up to the latest news.
 - Our [brand kit](https://github.com/flamego/brand-kit) is also available on GitHub!
 
-## Development
+## Local development
 
 Install "go-mockgen" and "goimports" to re-generate mocks:
 
