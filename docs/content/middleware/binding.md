@@ -2,7 +2,7 @@
 title: binding
 weight: 40
 ---
-The binding middleware provides request data binding and validation for [Flame instances](../core-concepts#instances), including Form, Multipart Form, JSON and YAML formats.
+The binding middleware provides request data binding and validation for [Flame instances](../core-concepts#instances), including form, multipart form, JSON and YAML formats.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/binding) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/binding?tab=doc).
 
@@ -113,7 +113,7 @@ func main() {
 {{< /tab >}}
 {{< /tabs >}}
 
-### Multipart Form
+### Multipart form
 
 The [`binding.MultipartForm`](https://pkg.go.dev/github.com/flamego/binding#MultipartForm) takes a binding object and parses the request payload encoded as `multipart/form-data`, a [`binding.Options`](https://pkg.go.dev/github.com/flamego/binding#Options) can be used to further customize the behavior of the function.
 
