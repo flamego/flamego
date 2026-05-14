@@ -313,7 +313,7 @@ If the handler returns a non-`nil` error, the error message will be responded to
 
 {{< /callout >}}
 
-You may register handlers for your own return value types. Flamego matches the route handler's returned value types to the registered return handler's non-`flamego.Context` arguments.
+You may register handlers for your own return value types. A custom return handler must accept `flamego.Context` as its first argument. Flamego matches the route handler's returned value types to the remaining arguments by exact type first, then by assignability in registration order.
 
 ```go
 package main
@@ -349,7 +349,7 @@ func main() {
 }
 ```
 
-The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. If no custom return handler matches, Flamego falls back to the built-in return behavior for strings, bytes and errors.
+The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. If no custom return handler matches, Flamego falls back to the built-in return behavior documented above, including strings, bytes, errors and status-code combinations.
 
 ## Service injection
 

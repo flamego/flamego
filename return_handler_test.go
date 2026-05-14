@@ -240,12 +240,13 @@ func TestFlame_ReturnHandler_register(t *testing.T) {
 		assert.Panics(t, func() { f.ReturnHandler(nil) })
 		assert.Panics(t, func() { f.ReturnHandler("string") })
 		assert.Panics(t, func() { f.ReturnHandler(func() string { return "bad" }) })
+		assert.Panics(t, func() { f.ReturnHandler(func(string) {}) })
 		assert.Panics(t, func() { f.ReturnHandler(func(Context) {}) })
 	})
 
 	t.Run("duplicate", func(t *testing.T) {
 		f := New()
-		f.ReturnHandler(func(string) {})
+		f.ReturnHandler(func(Context, string) {})
 		assert.Panics(t, func() {
 			f.ReturnHandler(func(Context, string) {})
 		})

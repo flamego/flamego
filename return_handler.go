@@ -19,6 +19,13 @@ import (
 // based on the values that are passed into this function.
 type ReturnHandler func(Context, []reflect.Value)
 
+// TypedReturnHandler is a function that handles route handler return values.
+//
+// It must accept Context as its first argument and must not return values. Its
+// remaining arguments are matched against route handler return values by exact
+// type first, then by assignability in registration order.
+type TypedReturnHandler interface{}
+
 var contextType = inject.InterfaceOf((*Context)(nil))
 
 type returnHandlers struct {
@@ -28,7 +35,7 @@ type returnHandlers struct {
 }
 
 type typedReturnHandler struct {
-	handler     Handler
+	handler     TypedReturnHandler
 	argTypes    []reflect.Type
 	returnTypes []reflect.Type
 }
@@ -37,7 +44,7 @@ func newReturnHandlers(fallback ReturnHandler) *returnHandlers {
 	return &returnHandlers{fallback: fallback}
 }
 
-func (hs *returnHandlers) Register(handler Handler) {
+func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 	typedHandler := newTypedReturnHandler(handler)
 
 	hs.mu.Lock()
@@ -79,7 +86,7 @@ func (hs *returnHandlers) match(vals []reflect.Value) (typedReturnHandler, bool,
 	return typedReturnHandler{}, false, hs.fallback
 }
 
-func newTypedReturnHandler(handler Handler) typedReturnHandler {
+func newTypedReturnHandler(handler TypedReturnHandler) typedReturnHandler {
 	if handler == nil {
 		panic("return handler must be a callable function, but got nil")
 	}
@@ -91,6 +98,9 @@ func newTypedReturnHandler(handler Handler) typedReturnHandler {
 	if t.NumOut() > 0 {
 		panic("return handler must not return values")
 	}
+	if t.NumIn() == 0 || t.In(0) != contextType {
+		panic("return handler must accept flamego.Context as its first argument")
+	}
 
 	h := typedReturnHandler{
 		handler:  handler,
@@ -99,13 +109,13 @@ func newTypedReturnHandler(handler Handler) typedReturnHandler {
 	for i := 0; i < t.NumIn(); i++ {
 		argType := t.In(i)
 		h.argTypes = append(h.argTypes, argType)
-		if argType == contextType {
+		if i == 0 {
 			continue
 		}
 		h.returnTypes = append(h.returnTypes, argType)
 	}
 	if len(h.returnTypes) == 0 {
-		panic("return handler must accept at least one returned value")
+		panic("return handler must accept at least one returned value after flamego.Context")
 	}
 	return h
 }
@@ -136,8 +146,8 @@ func (h typedReturnHandler) matches(vals []reflect.Value, assignable bool) bool 
 func (h typedReturnHandler) invoke(c Context, vals []reflect.Value) {
 	args := make([]reflect.Value, 0, len(h.argTypes))
 	returnIndex := 0
-	for _, argType := range h.argTypes {
-		if argType == contextType {
+	for i := range h.argTypes {
+		if i == 0 {
 			args = append(args, reflect.ValueOf(c))
 			continue
 		}
@@ -170,11 +180,12 @@ func formatTypes(types []reflect.Type) string {
 
 // ReturnHandler registers a handler for route handler return values.
 //
-// The handler must be a function and may accept Context in addition to the
-// returned value types it handles. For example, registering
-// `func(Context, int, string)` handles route handlers that return
-// `(int, string)`.
-func (f *Flame) ReturnHandler(handler Handler) {
+// The handler must accept Context as its first argument. Its remaining
+// arguments are matched against route handler return values by exact type first,
+// then by assignability in registration order. For example, registering
+// `func(Context, int, string)` handles route handlers that return `(int,
+// string)`.
+func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
 	returnHandlers := f.Value(reflect.TypeOf((*returnHandlers)(nil))).Interface().(*returnHandlers)
 	returnHandlers.Register(handler)
 }
