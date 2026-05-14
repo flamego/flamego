@@ -59,7 +59,9 @@ func NewWithLogger(w io.Writer) *Flame {
 
 	f.Map(f.logger)
 	f.Map(f.logger.StandardLog())
-	f.Map(defaultReturnHandler())
+	returnHandlers := newReturnHandlers(defaultReturnHandler())
+	f.Map(returnHandlers)
+	f.Map(ReturnHandler(returnHandlers.Handle))
 	return f
 }
 

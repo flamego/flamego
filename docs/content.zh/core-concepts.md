@@ -306,6 +306,51 @@ Return some bytes
 
 ![How cool is that?](https://media0.giphy.com/media/hS4Dz87diTpnDXf98E/giphy.gif?cid=ecf05e47go1oiqgxj1ro7e3t1usexogh109gigssvhxlp93a&rid=giphy.gif&ct=g)
 
+### 自定义返回值处理器
+
+{{< callout type="info" >}}
+**🆕 v1.12.0 版本新增**
+
+{{< /callout >}}
+
+你可以为自己的返回值类型注册处理器。Flamego 会将路由处理器的返回值类型与已注册返回值处理器中非 `flamego.Context` 的参数进行匹配。
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/flamego/flamego"
+)
+
+type JSON map[string]any
+
+func main() {
+	f := flamego.New()
+	f.ReturnHandler(func(c flamego.Context, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+	f.ReturnHandler(func(c flamego.Context, status int, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		c.ResponseWriter().WriteHeader(status)
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+
+	f.Get("/json", func() JSON {
+		return JSON{"message": "Hello, Flamego"}
+	})
+	f.Get("/created", func() (int, JSON) {
+		return http.StatusCreated, JSON{"status": "created"}
+	})
+	f.Run()
+}
+```
+
+第一个返回值处理器会处理 `func() JSON`，第二个会处理 `func() (int, JSON)`。如果没有自定义返回值处理器匹配，Flamego 会回退到字符串、字节切片和错误的内置返回行为。
+
 ## 服务注入
 
 Flamego 的[依赖注入](https://en.wikipedia.org/wiki/Dependency_injection)思想主要体现在服务注入上，是整个框架的灵魂所在。Flame 实例通过 [`inject.Injector`](https://pkg.go.dev/github.com/flamego/flamego/inject#Injector) 来管理服务注入和依赖解析，实现在运行时为每个处理器提供其所需的参数对象。

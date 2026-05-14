@@ -306,6 +306,51 @@ If the handler returns a non-`nil` error, the error message will be responded to
 
 ![How cool is that?](https://media0.giphy.com/media/hS4Dz87diTpnDXf98E/giphy.gif?cid=ecf05e47go1oiqgxj1ro7e3t1usexogh109gigssvhxlp93a&rid=giphy.gif&ct=g)
 
+### Custom return handlers
+
+{{< callout type="info" >}}
+**🆕 Available in v1.12.0**
+
+{{< /callout >}}
+
+You may register handlers for your own return value types. Flamego matches the route handler's returned value types to the registered return handler's non-`flamego.Context` arguments.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/flamego/flamego"
+)
+
+type JSON map[string]any
+
+func main() {
+	f := flamego.New()
+	f.ReturnHandler(func(c flamego.Context, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+	f.ReturnHandler(func(c flamego.Context, status int, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		c.ResponseWriter().WriteHeader(status)
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+
+	f.Get("/json", func() JSON {
+		return JSON{"message": "Hello, Flamego"}
+	})
+	f.Get("/created", func() (int, JSON) {
+		return http.StatusCreated, JSON{"status": "created"}
+	})
+	f.Run()
+}
+```
+
+The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. If no custom return handler matches, Flamego falls back to the built-in return behavior for strings, bytes and errors.
+
 ## Service injection
 
 Flamego is claimed to be boiled with [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) because of the service injection, it is the soul of the framework. The Flame instance uses the [`inject.Injector`](https://pkg.go.dev/github.com/flamego/flamego/inject#Injector) to manage injected services and resolves dependencies of a handler's argument list at the time of the handler invocation.
