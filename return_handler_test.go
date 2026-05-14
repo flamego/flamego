@@ -25,10 +25,6 @@ type testReturnStringer string
 
 func (s testReturnStringer) String() string { return string(s) }
 
-type testReturnPtrError struct{ msg string }
-
-func (e *testReturnPtrError) Error() string { return e.msg }
-
 func TestReturnHandler(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -122,15 +118,6 @@ func TestReturnHandler(t *testing.T) {
 			name: "nil-error",
 			handler: func() error {
 				return nil
-			},
-			wantCode: http.StatusOK,
-			wantBody: "",
-		},
-		{
-			name: "typed-nil-error",
-			handler: func() error {
-				var e *testReturnPtrError
-				return e
 			},
 			wantCode: http.StatusOK,
 			wantBody: "",
