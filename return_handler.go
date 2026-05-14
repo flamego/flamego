@@ -35,7 +35,6 @@ type typedReturnHandler struct {
 	handler     TypedReturnHandler
 	argTypes    []reflect.Type
 	returnTypes []reflect.Type
-	terminal    bool
 }
 
 func newReturnHandlers() *returnHandlers {
@@ -75,52 +74,18 @@ func newReturnHandlers() *returnHandlers {
 		}
 		writeReturnValue(c, reflect.ValueOf(body))
 	})
-	hs.registerTerminal(func(c Context, status int, body any) {
-		c.ResponseWriter().WriteHeader(status)
-		writeReturnValue(c, reflect.ValueOf(body))
-	})
-	hs.registerTerminal(func(c Context, body string, _ any) {
-		writeReturnValue(c, reflect.ValueOf(body))
-	})
-	hs.registerTerminal(func(c Context, body []byte, _ any) {
-		writeReturnValue(c, reflect.ValueOf(body))
-	})
-	hs.registerTerminal(func(c Context, body any) {
-		writeReturnValue(c, reflect.ValueOf(body))
-	})
 	return hs
 }
 
 func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 	typedHandler := newTypedReturnHandler(handler)
-	hs.register(typedHandler)
-}
 
-func (hs *returnHandlers) registerTerminal(handler TypedReturnHandler) {
-	typedHandler := newTypedReturnHandler(handler)
-	typedHandler.terminal = true
-	hs.register(typedHandler)
-}
-
-func (hs *returnHandlers) register(typedHandler typedReturnHandler) {
 	for _, h := range hs.handlers {
 		if sameTypes(h.returnTypes, typedHandler.returnTypes) {
 			panic(fmt.Sprintf("return handler already registered for return values (%s)", formatTypes(typedHandler.returnTypes)))
 		}
 	}
-
-	index := len(hs.handlers)
-	if !typedHandler.terminal {
-		for i, h := range hs.handlers {
-			if h.terminal {
-				index = i
-				break
-			}
-		}
-	}
-	hs.handlers = append(hs.handlers, typedReturnHandler{})
-	copy(hs.handlers[index+1:], hs.handlers[index:])
-	hs.handlers[index] = typedHandler
+	hs.handlers = append(hs.handlers, typedHandler)
 }
 
 func (hs *returnHandlers) Handle(c Context, vals []reflect.Value) {
