@@ -313,7 +313,7 @@ If the handler returns a non-`nil` error, the error message will be responded to
 
 {{< /callout >}}
 
-You may register handlers for your own return value types. A custom return handler must accept `flamego.Context` as its first argument. Flamego matches the route handler's returned value types to the remaining arguments by exact type first, then by assignability in registration order.
+You may register handlers for your own return value types. A custom return handler must accept `flamego.Context` as its first argument and must not return values. Flamego matches the route handler's returned value types to the remaining arguments by exact type first, then by assignability in registration order.
 
 ```go
 package main
