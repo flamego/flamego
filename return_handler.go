@@ -215,6 +215,11 @@ func formatTypes(types []reflect.Type) string {
 // then by assignability in registration order. For example, registering
 // `func(Context, int, string)` handles route handlers that return `(int,
 // string)`.
+//
+// Registering a handler for a return signature that is already handled replaces
+// the previous handler, which can be used to override the built-in handlers for
+// shapes such as `(string)` or `(int, string)`. If a route handler returns a
+// signature that no registered handler matches, Flamego panics.
 func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
 	f.returnHandlers.Register(handler)
 }
