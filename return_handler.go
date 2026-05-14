@@ -177,7 +177,7 @@ func formatTypes(types []reflect.Type) string {
 // arguments are matched against route handler return values by exact type first,
 // then by assignability in registration order. For example, registering
 // `func(Context, int, string)` handles route handlers that return `(int,
-// string)`. Return handlers should be registered before serving requests.
+// string)`.
 func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
 	f.returnHandlers.Register(handler)
 }
