@@ -349,7 +349,7 @@ func main() {
 }
 ```
 
-The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. If no custom return handler matches, Flamego falls back to the built-in return behavior documented above, including strings, bytes, errors and status-code combinations.
+The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. Flamego registers built-in handlers for the common shapes documented above (strings, bytes, errors and status-code combinations) and matches them alongside your custom handlers by exact type first, then by assignability in registration order. If a route handler returns a signature that no registered handler matches, Flamego panics; the default `Recovery` middleware will surface it as a 500 response.
 
 ## Service injection
 
