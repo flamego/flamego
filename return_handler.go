@@ -25,7 +25,10 @@ type ReturnHandler func(Context, []reflect.Value)
 // type first, then by assignability in registration order.
 type TypedReturnHandler any
 
-var contextType = inject.InterfaceOf((*Context)(nil))
+var (
+	contextType = inject.InterfaceOf((*Context)(nil))
+	errorType   = reflect.TypeFor[error]()
+)
 
 type returnHandlers struct {
 	handlers []typedReturnHandler
@@ -225,7 +228,11 @@ func writeReturnValue(c Context, respVal reflect.Value) {
 	}
 
 	w := c.ResponseWriter()
-	if err, ok := respVal.Interface().(error); ok && err != nil {
+	if respVal.Type().Implements(errorType) {
+		if respVal.IsNil() || (canDeref(respVal) && respVal.Elem().IsZero()) {
+			return
+		}
+		err := respVal.Interface().(error)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(err.Error()))
 		return
