@@ -245,12 +245,21 @@ func TestFlame_ReturnHandler_register(t *testing.T) {
 		assert.Panics(t, func() { f.ReturnHandler(func(Context) {}) })
 	})
 
-	t.Run("duplicate", func(t *testing.T) {
+	t.Run("override", func(t *testing.T) {
 		f := New()
-		f.ReturnHandler(func(Context, testReturnBody) {})
-		assert.Panics(t, func() {
-			f.ReturnHandler(func(Context, testReturnBody) {})
+		f.ReturnHandler(func(c Context, body string) {
+			_, _ = c.ResponseWriter().Write([]byte("custom: " + body))
 		})
+		f.Get("/", func() string { return "hello" })
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, err)
+
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "custom: hello", resp.Body.String())
 	})
 
 	t.Run("no match", func(t *testing.T) {

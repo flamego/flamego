@@ -80,9 +80,10 @@ func newReturnHandlers() *returnHandlers {
 func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 	typedHandler := newTypedReturnHandler(handler)
 
-	for _, h := range hs.handlers {
+	for i, h := range hs.handlers {
 		if sameTypes(h.returnTypes, typedHandler.returnTypes) {
-			panic(fmt.Sprintf("return handler already registered for return values (%s)", formatTypes(typedHandler.returnTypes)))
+			hs.handlers[i] = typedHandler
+			return
 		}
 	}
 	hs.handlers = append(hs.handlers, typedHandler)
