@@ -35,6 +35,8 @@ type Flame struct {
 	action   Handler         // The last action handler to be executed.
 	logger   *log.Logger     // The default request logger.
 
+	returnHandlers *returnHandlers // The registry of route handler return handlers.
+
 	stop chan struct{} // The signal to stop the HTTP server.
 }
 
@@ -60,7 +62,7 @@ func NewWithLogger(w io.Writer) *Flame {
 	f.Map(f.logger)
 	f.Map(f.logger.StandardLog())
 	returnHandlers := newReturnHandlers(defaultReturnHandler())
-	f.Map(returnHandlers)
+	f.returnHandlers = returnHandlers
 	f.Map(ReturnHandler(returnHandlers.Handle))
 	return f
 }

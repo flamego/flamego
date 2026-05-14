@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/flamego/flamego/inject"
 )
@@ -29,7 +28,6 @@ type TypedReturnHandler interface{}
 var contextType = inject.InterfaceOf((*Context)(nil))
 
 type returnHandlers struct {
-	mu       sync.RWMutex
 	fallback ReturnHandler
 	handlers []typedReturnHandler
 }
@@ -47,8 +45,6 @@ func newReturnHandlers(fallback ReturnHandler) *returnHandlers {
 func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 	typedHandler := newTypedReturnHandler(handler)
 
-	hs.mu.Lock()
-	defer hs.mu.Unlock()
 	for _, h := range hs.handlers {
 		if sameTypes(h.returnTypes, typedHandler.returnTypes) {
 			panic(fmt.Sprintf("return handler already registered for return values (%s)", formatTypes(typedHandler.returnTypes)))
@@ -70,9 +66,6 @@ func (hs *returnHandlers) Handle(c Context, vals []reflect.Value) {
 }
 
 func (hs *returnHandlers) match(vals []reflect.Value) (typedReturnHandler, bool, ReturnHandler) {
-	hs.mu.RLock()
-	defer hs.mu.RUnlock()
-
 	for _, h := range hs.handlers {
 		if h.matches(vals, false) {
 			return h, true, hs.fallback
@@ -184,10 +177,9 @@ func formatTypes(types []reflect.Type) string {
 // arguments are matched against route handler return values by exact type first,
 // then by assignability in registration order. For example, registering
 // `func(Context, int, string)` handles route handlers that return `(int,
-// string)`.
+// string)`. Return handlers should be registered before serving requests.
 func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
-	returnHandlers := f.Value(reflect.TypeOf((*returnHandlers)(nil))).Interface().(*returnHandlers)
-	returnHandlers.Register(handler)
+	f.returnHandlers.Register(handler)
 }
 
 func defaultReturnHandler() ReturnHandler {
