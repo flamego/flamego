@@ -306,6 +306,51 @@ If the handler returns a non-`nil` error, the error message will be responded to
 
 ![How cool is that?](https://media0.giphy.com/media/hS4Dz87diTpnDXf98E/giphy.gif?cid=ecf05e47go1oiqgxj1ro7e3t1usexogh109gigssvhxlp93a&rid=giphy.gif&ct=g)
 
+### Custom return handlers
+
+{{< callout type="info" >}}
+**🆕 Available in v1.12.0**
+
+{{< /callout >}}
+
+You may register handlers for your own return value types. A custom return handler must accept `flamego.Context` as its first argument and must not return values. Flamego matches the route handler's returned value types to the remaining arguments by exact type first, then by assignability in registration order.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/flamego/flamego"
+)
+
+type JSON map[string]any
+
+func main() {
+	f := flamego.New()
+	f.ReturnHandler(func(c flamego.Context, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+	f.ReturnHandler(func(c flamego.Context, status int, body JSON) {
+		c.ResponseWriter().Header().Set("Content-Type", "application/json")
+		c.ResponseWriter().WriteHeader(status)
+		_ = json.NewEncoder(c.ResponseWriter()).Encode(body)
+	})
+
+	f.Get("/json", func() JSON {
+		return JSON{"message": "Hello, Flamego"}
+	})
+	f.Get("/created", func() (int, JSON) {
+		return http.StatusCreated, JSON{"status": "created"}
+	})
+	f.Run()
+}
+```
+
+The first return handler handles `func() JSON`, while the second one handles `func() (int, JSON)`. Flamego registers built-in handlers for the common shapes documented above (strings, bytes, errors and status-code combinations) and matches them alongside your custom handlers by exact type first, then by assignability in registration order. Registering a handler for a return signature that is already handled replaces the previous handler, so you can override the built-in behavior for shapes like `(string)` or `(int, string)`. If a route handler returns a signature that no registered handler matches, Flamego panics; the default `Recovery` middleware will surface it as a 500 response.
+
 ## Service injection
 
 Flamego is claimed to be boiled with [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) because of the service injection, it is the soul of the framework. The Flame instance uses the [`inject.Injector`](https://pkg.go.dev/github.com/flamego/flamego/inject#Injector) to manage injected services and resolves dependencies of a handler's argument list at the time of the handler invocation.

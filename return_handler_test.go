@@ -13,6 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testReturnBody struct {
+	text string
+}
+
+type testReturnError string
+
+func (e testReturnError) Error() string { return string(e) }
+
+type testReturnStringer string
+
+func (s testReturnStringer) String() string { return string(s) }
+
 func TestReturnHandler(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -126,4 +138,140 @@ func TestReturnHandler(t *testing.T) {
 			assert.Equal(t, test.wantBody, resp.Body.String())
 		})
 	}
+}
+
+func TestFlame_ReturnHandler(t *testing.T) {
+	f := New()
+	f.ReturnHandler(func(c Context, body testReturnBody) {
+		_, _ = c.ResponseWriter().Write([]byte(body.text))
+	})
+	f.ReturnHandler(func(c Context, status int, body testReturnBody) {
+		c.ResponseWriter().WriteHeader(status)
+		_, _ = c.ResponseWriter().Write([]byte(body.text))
+	})
+	f.ReturnHandler(func(c Context, body testReturnBody, err error) {
+		if err != nil {
+			c.ResponseWriter().WriteHeader(http.StatusBadRequest)
+			_, _ = c.ResponseWriter().Write([]byte(err.Error()))
+			return
+		}
+
+		_, _ = c.ResponseWriter().Write([]byte(body.text))
+	})
+
+	f.Get("/body", func() testReturnBody {
+		return testReturnBody{text: "body"}
+	})
+	f.Get("/status", func() (int, testReturnBody) {
+		return http.StatusCreated, testReturnBody{text: "created"}
+	})
+	f.Get("/error", func() (testReturnBody, error) {
+		return testReturnBody{}, errors.New("bad body")
+	})
+	f.Get("/nil-error", func() (testReturnBody, error) {
+		return testReturnBody{text: "ok"}, nil
+	})
+
+	tests := []struct {
+		path     string
+		wantCode int
+		wantBody string
+	}{
+		{path: "/body", wantCode: http.StatusOK, wantBody: "body"},
+		{path: "/status", wantCode: http.StatusCreated, wantBody: "created"},
+		{path: "/error", wantCode: http.StatusBadRequest, wantBody: "bad body"},
+		{path: "/nil-error", wantCode: http.StatusOK, wantBody: "ok"},
+	}
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, test.path, nil)
+			assert.Nil(t, err)
+
+			f.ServeHTTP(resp, req)
+
+			assert.Equal(t, test.wantCode, resp.Code)
+			assert.Equal(t, test.wantBody, resp.Body.String())
+		})
+	}
+}
+
+func TestFlame_ReturnHandler_assignable(t *testing.T) {
+	f := New()
+	f.ReturnHandler(func(c Context, body interface{ String() string }) {
+		c.ResponseWriter().WriteHeader(http.StatusTeapot)
+		_, _ = c.ResponseWriter().Write([]byte("stringer: " + body.String()))
+	})
+	f.Get("/", func() testReturnStringer {
+		return testReturnStringer("boom")
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusTeapot, resp.Code)
+	assert.Equal(t, "stringer: boom", resp.Body.String())
+}
+
+func TestFlame_ReturnHandler_exactMatchBeforeAssignable(t *testing.T) {
+	f := New()
+	f.ReturnHandler(func(c Context, err testReturnError) {
+		_, _ = c.ResponseWriter().Write([]byte("exact: " + err.Error()))
+	})
+	f.Get("/", func() testReturnError {
+		return testReturnError("boom")
+	})
+
+	resp := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	assert.Nil(t, err)
+
+	f.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, "exact: boom", resp.Body.String())
+}
+
+func TestFlame_ReturnHandler_register(t *testing.T) {
+	t.Run("invalid", func(t *testing.T) {
+		f := New()
+		assert.Panics(t, func() { f.ReturnHandler(nil) })
+		assert.Panics(t, func() { f.ReturnHandler("string") })
+		assert.Panics(t, func() { f.ReturnHandler(func() string { return "bad" }) })
+		assert.Panics(t, func() { f.ReturnHandler(func(string) {}) })
+		assert.Panics(t, func() { f.ReturnHandler(func(Context) {}) })
+	})
+
+	t.Run("override", func(t *testing.T) {
+		f := New()
+		f.ReturnHandler(func(c Context, body string) {
+			_, _ = c.ResponseWriter().Write([]byte("custom: " + body))
+		})
+		f.Get("/", func() string { return "hello" })
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, err)
+
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "custom: hello", resp.Body.String())
+	})
+
+	t.Run("no match", func(t *testing.T) {
+		f := New()
+		f.Get("/", func() testReturnBody {
+			return testReturnBody{text: "unhandled"}
+		})
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, err)
+
+		assert.Panics(t, func() { f.ServeHTTP(resp, req) })
+	})
 }
