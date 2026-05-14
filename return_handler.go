@@ -89,24 +89,18 @@ func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 }
 
 func (hs *returnHandlers) Handle(c Context, vals []reflect.Value) {
-	handler, ok := hs.match(vals)
-	if ok {
-		handler.invoke(c, vals)
-	}
-}
-
-func (hs *returnHandlers) match(vals []reflect.Value) (typedReturnHandler, bool) {
 	for _, h := range hs.handlers {
 		if h.matches(vals, false) {
-			return h, true
+			h.invoke(c, vals)
+			return
 		}
 	}
 	for _, h := range hs.handlers {
 		if h.matches(vals, true) {
-			return h, true
+			h.invoke(c, vals)
+			return
 		}
 	}
-	return typedReturnHandler{}, false
 }
 
 func newTypedReturnHandler(handler TypedReturnHandler) typedReturnHandler {
