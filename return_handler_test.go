@@ -252,4 +252,17 @@ func TestFlame_ReturnHandler_register(t *testing.T) {
 			f.ReturnHandler(func(Context, testReturnBody) {})
 		})
 	})
+
+	t.Run("no match", func(t *testing.T) {
+		f := New()
+		f.Get("/", func() testReturnBody {
+			return testReturnBody{text: "unhandled"}
+		})
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, err)
+
+		assert.Panics(t, func() { f.ServeHTTP(resp, req) })
+	})
 }

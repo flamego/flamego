@@ -101,6 +101,14 @@ func (hs *returnHandlers) Handle(c Context, vals []reflect.Value) {
 			return
 		}
 	}
+
+	types := make([]reflect.Type, len(vals))
+	for i, val := range vals {
+		if val.IsValid() {
+			types[i] = val.Type()
+		}
+	}
+	panic(fmt.Sprintf("no return handler registered for return values (%s)", formatTypes(types)))
 }
 
 func newTypedReturnHandler(handler TypedReturnHandler) typedReturnHandler {
@@ -190,6 +198,10 @@ func sameTypes(a, b []reflect.Type) bool {
 func formatTypes(types []reflect.Type) string {
 	parts := make([]string, len(types))
 	for i, typ := range types {
+		if typ == nil {
+			parts[i] = "<nil>"
+			continue
+		}
 		parts[i] = typ.String()
 	}
 	return strings.Join(parts, ", ")
