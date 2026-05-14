@@ -3,6 +3,7 @@ title:
 weight: 1
 toc: false
 linkTitle: Flamego
+type: docs
 ---
 ![banner](/imgs/banner.png)
 

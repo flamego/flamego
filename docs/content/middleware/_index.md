@@ -1,6 +1,6 @@
 ---
 title: Middleware
-weight: 1
+weight: 60
 ---
 To accelerate your development, the Flamego core team and the community have built some useful middleware in addition to the [core services](../core-services) that are builtin to the core framework.
 

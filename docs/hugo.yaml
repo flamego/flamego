@@ -25,21 +25,6 @@ languages:
         base: https://github.com/flamego/flamego/edit/main/docs/content
     menus:
       main:
-        - name: Starter guide
-          pageRef: /starter-guide
-          weight: 1
-        - name: Core concepts
-          pageRef: /core-concepts
-          weight: 2
-        - name: Routing
-          pageRef: /routing
-          weight: 3
-        - name: Middleware
-          pageRef: /middleware
-          weight: 4
-        - name: FAQs
-          pageRef: /faqs
-          weight: 5
         - name: Search
           weight: 6
           params:
@@ -59,21 +44,6 @@ languages:
         base: https://github.com/flamego/flamego/edit/main/docs/content.zh
     menus:
       main:
-        - name: 入门指南
-          pageRef: /starter-guide
-          weight: 1
-        - name: 核心概念
-          pageRef: /core-concepts
-          weight: 2
-        - name: 路由
-          pageRef: /routing
-          weight: 3
-        - name: 中间件
-          pageRef: /middleware
-          weight: 4
-        - name: 常见问题
-          pageRef: /faqs
-          weight: 5
         - name: 搜索
           weight: 6
           params:
