@@ -23,7 +23,7 @@ type ReturnHandler func(Context, []reflect.Value)
 // It must accept Context as its first argument and must not return values. Its
 // remaining arguments are matched against route handler return values by exact
 // type first, then by assignability in registration order.
-type TypedReturnHandler interface{}
+type TypedReturnHandler any
 
 var contextType = inject.InterfaceOf((*Context)(nil))
 
