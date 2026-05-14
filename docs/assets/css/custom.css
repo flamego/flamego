@@ -23,6 +23,11 @@ code, pre, kbd, samp, .chroma, .hextra-code-block {
   margin-left: -0.08em;
 }
 
+/* Push sidebar content down below the navbar. */
+.hextra-sidebar-container > .hextra-scrollbar {
+  padding-top: 2rem;
+}
+
 /* Mintlify-style prev/next cards. */
 .flamego-pager {
   display: grid;
@@ -102,8 +107,8 @@ html.dark .flamego-pager-title {
   }
 }
 /* Pierre Light — applies to default (no .dark ancestor). */
-html:not(.dark) .chroma {background-color:#ffffff;color:#070707;border-radius:6px}
-html:not(.dark) pre.chroma {background-color:#ffffff;}
+html:not(.dark) .chroma {background-color:#f6f6f7;color:#070707;border-radius:6px}
+html:not(.dark) pre.chroma {background-color:#f6f6f7;}
 html:not(.dark) .chroma .c {color:#84848A}
 html:not(.dark) .chroma .c1 {color:#84848A}
 html:not(.dark) .chroma .cm {color:#84848A}

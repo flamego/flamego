@@ -1,6 +1,6 @@
 ---
 title: 中间件
-weight: 1
+weight: 60
 ---
 Flamego 在[核心服务](../core-services)之外开发并维护了一定数量的官方中间件来帮助用户开发 Web 应用：
 
