@@ -21,6 +21,10 @@ type testReturnError string
 
 func (e testReturnError) Error() string { return string(e) }
 
+type testReturnStringer string
+
+func (s testReturnStringer) String() string { return string(s) }
+
 func TestReturnHandler(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -194,12 +198,12 @@ func TestFlame_ReturnHandler(t *testing.T) {
 
 func TestFlame_ReturnHandler_assignable(t *testing.T) {
 	f := New()
-	f.ReturnHandler(func(c Context, err error) {
+	f.ReturnHandler(func(c Context, body interface{ String() string }) {
 		c.ResponseWriter().WriteHeader(http.StatusTeapot)
-		_, _ = c.ResponseWriter().Write([]byte("error: " + err.Error()))
+		_, _ = c.ResponseWriter().Write([]byte("stringer: " + body.String()))
 	})
-	f.Get("/", func() testReturnError {
-		return testReturnError("boom")
+	f.Get("/", func() testReturnStringer {
+		return testReturnStringer("boom")
 	})
 
 	resp := httptest.NewRecorder()
@@ -209,14 +213,11 @@ func TestFlame_ReturnHandler_assignable(t *testing.T) {
 	f.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusTeapot, resp.Code)
-	assert.Equal(t, "error: boom", resp.Body.String())
+	assert.Equal(t, "stringer: boom", resp.Body.String())
 }
 
 func TestFlame_ReturnHandler_exactMatchBeforeAssignable(t *testing.T) {
 	f := New()
-	f.ReturnHandler(func(c Context, err error) {
-		_, _ = c.ResponseWriter().Write([]byte("error: " + err.Error()))
-	})
 	f.ReturnHandler(func(c Context, err testReturnError) {
 		_, _ = c.ResponseWriter().Write([]byte("exact: " + err.Error()))
 	})
@@ -246,9 +247,9 @@ func TestFlame_ReturnHandler_register(t *testing.T) {
 
 	t.Run("duplicate", func(t *testing.T) {
 		f := New()
-		f.ReturnHandler(func(Context, string) {})
+		f.ReturnHandler(func(Context, testReturnBody) {})
 		assert.Panics(t, func() {
-			f.ReturnHandler(func(Context, string) {})
+			f.ReturnHandler(func(Context, testReturnBody) {})
 		})
 	})
 }

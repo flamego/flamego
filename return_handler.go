@@ -28,7 +28,6 @@ type TypedReturnHandler any
 var contextType = inject.InterfaceOf((*Context)(nil))
 
 type returnHandlers struct {
-	fallback ReturnHandler
 	handlers []typedReturnHandler
 }
 
@@ -36,47 +35,113 @@ type typedReturnHandler struct {
 	handler     TypedReturnHandler
 	argTypes    []reflect.Type
 	returnTypes []reflect.Type
+	terminal    bool
 }
 
-func newReturnHandlers(fallback ReturnHandler) *returnHandlers {
-	return &returnHandlers{fallback: fallback}
+func newReturnHandlers() *returnHandlers {
+	hs := &returnHandlers{}
+	hs.Register(func(c Context, body string) {
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.Register(func(c Context, body []byte) {
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.Register(func(c Context, err error) {
+		writeReturnValue(c, reflect.ValueOf(err))
+	})
+	hs.Register(func(c Context, status int, body string) {
+		c.ResponseWriter().WriteHeader(status)
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.Register(func(c Context, status int, body []byte) {
+		c.ResponseWriter().WriteHeader(status)
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.Register(func(c Context, status int, err error) {
+		c.ResponseWriter().WriteHeader(status)
+		writeReturnValue(c, reflect.ValueOf(err))
+	})
+	hs.Register(func(c Context, body string, err error) {
+		if err != nil {
+			writeReturnValue(c, reflect.ValueOf(err))
+			return
+		}
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.Register(func(c Context, body []byte, err error) {
+		if err != nil {
+			writeReturnValue(c, reflect.ValueOf(err))
+			return
+		}
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.registerTerminal(func(c Context, status int, body any) {
+		c.ResponseWriter().WriteHeader(status)
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.registerTerminal(func(c Context, body string, _ any) {
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.registerTerminal(func(c Context, body []byte, _ any) {
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	hs.registerTerminal(func(c Context, body any) {
+		writeReturnValue(c, reflect.ValueOf(body))
+	})
+	return hs
 }
 
 func (hs *returnHandlers) Register(handler TypedReturnHandler) {
 	typedHandler := newTypedReturnHandler(handler)
+	hs.register(typedHandler)
+}
 
+func (hs *returnHandlers) registerTerminal(handler TypedReturnHandler) {
+	typedHandler := newTypedReturnHandler(handler)
+	typedHandler.terminal = true
+	hs.register(typedHandler)
+}
+
+func (hs *returnHandlers) register(typedHandler typedReturnHandler) {
 	for _, h := range hs.handlers {
 		if sameTypes(h.returnTypes, typedHandler.returnTypes) {
 			panic(fmt.Sprintf("return handler already registered for return values (%s)", formatTypes(typedHandler.returnTypes)))
 		}
 	}
-	hs.handlers = append(hs.handlers, typedHandler)
+
+	index := len(hs.handlers)
+	if !typedHandler.terminal {
+		for i, h := range hs.handlers {
+			if h.terminal {
+				index = i
+				break
+			}
+		}
+	}
+	hs.handlers = append(hs.handlers, typedReturnHandler{})
+	copy(hs.handlers[index+1:], hs.handlers[index:])
+	hs.handlers[index] = typedHandler
 }
 
 func (hs *returnHandlers) Handle(c Context, vals []reflect.Value) {
-	handler, ok, fallback := hs.match(vals)
+	handler, ok := hs.match(vals)
 	if ok {
 		handler.invoke(c, vals)
-		return
-	}
-
-	if fallback != nil {
-		fallback(c, vals)
 	}
 }
 
-func (hs *returnHandlers) match(vals []reflect.Value) (typedReturnHandler, bool, ReturnHandler) {
+func (hs *returnHandlers) match(vals []reflect.Value) (typedReturnHandler, bool) {
 	for _, h := range hs.handlers {
 		if h.matches(vals, false) {
-			return h, true, hs.fallback
+			return h, true
 		}
 	}
 	for _, h := range hs.handlers {
 		if h.matches(vals, true) {
-			return h, true, hs.fallback
+			return h, true
 		}
 	}
-	return typedReturnHandler{}, false, hs.fallback
+	return typedReturnHandler{}, false
 }
 
 func newTypedReturnHandler(handler TypedReturnHandler) typedReturnHandler {
@@ -182,64 +247,37 @@ func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
 	f.returnHandlers.Register(handler)
 }
 
-func defaultReturnHandler() ReturnHandler {
-	canDeref := func(val reflect.Value) bool {
-		return val.Kind() == reflect.Interface || val.Kind() == reflect.Pointer
+func writeReturnValue(c Context, respVal reflect.Value) {
+	if !respVal.IsValid() {
+		return
 	}
 
-	isByteSlice := func(val reflect.Value) bool {
-		return val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8
+	w := c.ResponseWriter()
+	if err, ok := respVal.Interface().(error); ok && err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
 	}
 
-	return func(c Context, vals []reflect.Value) {
-		v := c.Value(inject.InterfaceOf((*http.ResponseWriter)(nil)))
-		w := v.Interface().(http.ResponseWriter)
-		var respVal reflect.Value
-
-		switch len(vals) {
-		case 1: // string, []byte, error
-			respVal = vals[0]
-
-		case 2:
-			// (int, string), (int, []byte), (int, error)
-			if vals[0].Kind() == reflect.Int {
-				w.WriteHeader(int(vals[0].Int()))
-				respVal = vals[1]
-				break
-			}
-
-			// (string, error), ([]byte, error)
-			if vals[0].Kind() == reflect.String || isByteSlice(vals[0]) {
-				respVal = vals[0]
-				if _, ok := vals[1].Interface().(error); ok {
-					respVal = vals[1]
-				}
-				break
-			}
-		}
-
-		if !respVal.IsValid() {
-			return
-		}
-
-		if err, ok := respVal.Interface().(error); ok && err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-
-		if respVal.IsZero() {
-			return
-		}
-
-		if canDeref(respVal) {
-			respVal = respVal.Elem()
-		}
-
-		if isByteSlice(respVal) {
-			_, _ = w.Write(respVal.Bytes())
-		} else {
-			_, _ = w.Write([]byte(respVal.String()))
-		}
+	if respVal.IsZero() {
+		return
 	}
+
+	if canDeref(respVal) {
+		respVal = respVal.Elem()
+	}
+
+	if isByteSlice(respVal) {
+		_, _ = w.Write(respVal.Bytes())
+	} else {
+		_, _ = w.Write([]byte(respVal.String()))
+	}
+}
+
+func canDeref(val reflect.Value) bool {
+	return val.Kind() == reflect.Interface || val.Kind() == reflect.Pointer
+}
+
+func isByteSlice(val reflect.Value) bool {
+	return val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8
 }
