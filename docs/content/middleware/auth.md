@@ -2,7 +2,7 @@
 title: auth
 weight: 100
 ---
-The auth middleware provides request authentication for [Flame instances](../core-concepts#instances), including basic and bearer authentications.
+The auth middleware provides request authentication for [Flame instances](/core-concepts#instances), including basic and bearer authentications.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/auth) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/auth?tab=doc).
 

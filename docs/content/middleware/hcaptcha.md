@@ -2,7 +2,7 @@
 title: hcaptcha
 weight: 120
 ---
-The hcaptcha middleware provides [hCaptcha](https://www.hcaptcha.com/) integration for [Flame instances](../core-concepts#instances).
+The hcaptcha middleware provides [hCaptcha](https://www.hcaptcha.com/) integration for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/hcaptcha) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/hcaptcha?tab=doc).
 

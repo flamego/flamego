@@ -10,9 +10,9 @@ The classic Flame instance is the one that comes with a reasonable list of defau
 
 A fresh classic Flame instance is returned every time you call [`flamego.Classic`](https://pkg.go.dev/github.com/flamego/flamego#Classic), and following middleware are registered automatically:
 
-- [`flamego.Logger`](core-services#routing-logger) for logging requested routes.
-- [`flamego.Recovery`](core-services#panic-recovery) for recovering from panic.
-- [`flamego.Static`](core-services#serving-static-files) for serving static files.
+- [`flamego.Logger`](/core-services#routing-logger) for logging requested routes.
+- [`flamego.Recovery`](/core-services#panic-recovery) for recovering from panic.
+- [`flamego.Static`](/core-services#serving-static-files) for serving static files.
 
 {{< callout type="info" >}}
 If you look up [the source code of the `flamego.Classic`](https://github.com/flamego/flamego/blob/8505d18c5243f797d5bb7160797d26454b9e5011/flame.go#L65-L77), it is fairly simple:
@@ -396,7 +396,7 @@ http: panic serving 127.0.0.1:50061: unable to invoke the 0th handler [func(main
 {{< /tabs >}}
 
 {{< callout type="info" >}}
-If you're interested in learning how exactly the service injection works in Flamego, the [custom services](custom-services) has the best resources you would want.
+If you're interested in learning how exactly the service injection works in Flamego, the [custom services](/custom-services) has the best resources you would want.
 {{< /callout >}}
 
 ### Builtin services
@@ -436,7 +436,7 @@ Global middleware are always invoked regardless whether a route is matched.
 {{< /callout >}}
 
 {{< callout type="info" >}}
-If you're interested in learning how to inject services for your middleware, the [custom services](custom-services) has the best resources you would want.
+If you're interested in learning how to inject services for your middleware, the [custom services](/custom-services) has the best resources you would want.
 {{< /callout >}}
 
 ## Env

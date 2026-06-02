@@ -2,7 +2,7 @@
 title: session
 weight: 20
 ---
-The session middleware provides user session management for [Flame instances](../core-concepts#instances), supporting various storage backends, including memory, file, PostgreSQL, MySQL, Redis, MongoDB and SQLite.
+The session middleware provides user session management for [Flame instances](/core-concepts#instances), supporting various storage backends, including memory, file, PostgreSQL, MySQL, Redis, MongoDB and SQLite.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/session) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/session?tab=doc).
 

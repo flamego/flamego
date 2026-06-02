@@ -2,7 +2,7 @@
 title: captcha
 weight: 130
 ---
-captcha 中间件为 [Flame 实例](../core-concepts#实例)提供验证码生成和验证服务，该中间件依赖于 [session](session) 中间件。
+captcha 中间件为 [Flame 实例](/core-concepts#实例)提供验证码生成和验证服务，该中间件依赖于 [session](/middleware/session) 中间件。
 
 你可以在 [GitHub](https://github.com/flamego/captcha) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/captcha?tab=doc) 查看 API 文档。
 

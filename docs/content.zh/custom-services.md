@@ -2,7 +2,7 @@
 title: 自定义服务
 weight: 40
 ---
-Flamego 提供的[核心服务](core-services)都很实用，但对于开发复杂的 Web 应用来说显然是远远不够的。届时，你必然会需要开发自己的[中间件](core-concepts#中间件)来满足应用的实际需求。
+Flamego 提供的[核心服务](/core-services)都很实用，但对于开发复杂的 Web 应用来说显然是远远不够的。届时，你必然会需要开发自己的[中间件](/core-concepts#中间件)来满足应用的实际需求。
 
 ## 注入服务
 
@@ -47,7 +47,7 @@ f.MapTo(w, (*io.Closer)(nil))
 
 全局服务直接与整个 Flame 实例而非具体某个路由绑定，且可以被所有路由的处理器使用。
 
-全局服务可以通过调用 Flame 实例的 `Map` 或 `MapTo` 方法完成注入，或通过调用 `Use` 方法在[全局中间件](core-concepts#中间件)中注入：
+全局服务可以通过调用 Flame 实例的 `Map` 或 `MapTo` 方法完成注入，或通过调用 `Use` 方法在[全局中间件](/core-concepts#中间件)中注入：
 
 ```go
 db := database.New()
@@ -65,7 +65,7 @@ f.Use(func(c flamego.Context) {
 
 ### 组级服务
 
-组级服务可以被组内的所有路由的处理器使用，并且只可以通过[组级中间件](core-concepts#中间件)注入：
+组级服务可以被组内的所有路由的处理器使用，并且只可以通过[组级中间件](/core-concepts#中间件)注入：
 
 ```go {hl_lines=["3-7", "14"] linenostart=1}
 f := flamego.New()
@@ -91,7 +91,7 @@ f.Group("/repo", func() {
 
 ### 路由级服务
 
-路由级服务仅可被与该路由绑定的处理器使用，并且只可以通过[路由级中间件](core-concepts#中间件)注入：
+路由级服务仅可被与该路由绑定的处理器使用，并且只可以通过[路由级中间件](/core-concepts#中间件)注入：
 
 ```go {hl_lines=["7-9", "11"] linenostart=1}
 f := flamego.New()

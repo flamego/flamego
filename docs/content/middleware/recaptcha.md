@@ -2,7 +2,7 @@
 title: recaptcha
 weight: 110
 ---
-The recaptcha middleware provides [Google reCAPTCHA](https://www.google.com/recaptcha/about/) integration for [Flame instances](../core-concepts#instances).
+The recaptcha middleware provides [Google reCAPTCHA](https://www.google.com/recaptcha/about/) integration for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/recaptcha) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/recaptcha?tab=doc).
 

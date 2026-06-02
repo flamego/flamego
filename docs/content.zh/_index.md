@@ -34,17 +34,17 @@ func main() {
 
 ## 功能说明
 
-- 在所有 Go Web 框架中都[无可匹敌的路由配置语法](routing)
-- [无限路由组合与嵌套](routing#group-routes)
-- [在路由的任意位置注入中间件](core-concepts#middleware)
-- [无侵入式地集成到任何已有的 Web 应用程序中](faqs#how-do-i-integrate-into-existing-applications)
-- [通过函数签名实现依赖注入](core-concepts#service-injection)以编写更易测试和维护的代码
+- 在所有 Go Web 框架中都[无可匹敌的路由配置语法](/routing)
+- [无限路由组合与嵌套](/routing#组路由)
+- [在路由的任意位置注入中间件](/core-concepts#中间件)
+- [无侵入式地集成到任何已有的 Web 应用程序中](/faqs#如何集成到现有的-web-应用)
+- [通过函数签名实现依赖注入](/core-concepts#服务注入)以编写更易测试和维护的代码
 
 ## 相关信息
 
-- 如果对 Flamego 还不了解，则可以先阅读[初学指南](starter-guide)
-- 查找已有的[中间件集成](middleware/)
-- 许多[常见问题](faqs)可能都已经得到解答
+- 如果对 Flamego 还不了解，则可以先阅读[初学指南](/starter-guide)
+- 查找已有的[中间件集成](/middleware/)
+- 许多[常见问题](/faqs)可能都已经得到解答
 - 请通过[提交工单](https://github.com/flamego/flamego/issues)或[发起讨论](https://github.com/flamego/flamego/discussions)向我们提供反馈
 - 关注 [Twitter](https://twitter.com/flamego_dev) 官方账号以获取最新动态
 - 还可以在 GitHub 上找到我们的[品牌套件](https://github.com/flamego/brand-kit)

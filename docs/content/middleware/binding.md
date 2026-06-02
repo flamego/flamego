@@ -2,7 +2,7 @@
 title: binding
 weight: 40
 ---
-The binding middleware provides request data binding and validation for [Flame instances](../core-concepts#instances), including form, multipart form, JSON and YAML formats.
+The binding middleware provides request data binding and validation for [Flame instances](/core-concepts#instances), including form, multipart form, JSON and YAML formats.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/binding) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/binding?tab=doc).
 

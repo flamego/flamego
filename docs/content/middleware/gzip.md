@@ -2,7 +2,7 @@
 title: gzip
 weight: 70
 ---
-The gzip middleware provides Gzip compression to responses for [Flame instances](../core-concepts#instances).
+The gzip middleware provides Gzip compression to responses for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/gzip) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/gzip?tab=doc).
 

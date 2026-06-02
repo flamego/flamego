@@ -2,7 +2,7 @@
 title: template
 weight: 10
 ---
-template 中间件为 [Flame 实例](../core-concepts#实例)提供基于 [Go 模板引擎](https://pkg.go.dev/html/template)的 HTML 渲染服务。
+template 中间件为 [Flame 实例](/core-concepts#实例)提供基于 [Go 模板引擎](https://pkg.go.dev/html/template)的 HTML 渲染服务。
 
 你可以在 [GitHub](https://github.com/flamego/template) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/template?tab=doc) 查看 API 文档。
 
@@ -176,4 +176,4 @@ var Templates embed.FS
 
 当你的应用运行环境为 `flamego.EnvTypeDev`（默认运行环境）或 `flamego.EnvTypeTest` 时，每次响应客户端的请求都会对模板文件进行重新构建，便于开发调试。
 
-通过 [Env](../core-concepts#env) 函数将运行环境设置为 `flamego.EnvTypeProd` 可以启用模板缓存功能。
+通过 [Env](/core-concepts#运行环境) 函数将运行环境设置为 `flamego.EnvTypeProd` 可以启用模板缓存功能。

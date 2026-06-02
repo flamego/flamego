@@ -2,7 +2,7 @@
 title: captcha
 weight: 130
 ---
-The captcha middleware generates and validates captcha images for [Flame instances](../core-concepts#instances), it relies on the [session](session) middleware.
+The captcha middleware generates and validates captcha images for [Flame instances](/core-concepts#instances), it relies on the [session](/middleware/session) middleware.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/captcha) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/captcha?tab=doc).
 

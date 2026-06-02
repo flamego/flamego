@@ -2,7 +2,7 @@
 title: cors
 weight: 60
 ---
-The cors middleware configures [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) for [Flame instances](../core-concepts#instances).
+The cors middleware configures [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/cors) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/cors?tab=doc).
 

@@ -2,7 +2,7 @@
 title: brotli
 weight: 80
 ---
-brotli 中间件为 [Flame 实例](../core-concepts#实例)提供基于 Brotli 的响应流压缩服务。
+brotli 中间件为 [Flame 实例](/core-concepts#实例)提供基于 Brotli 的响应流压缩服务。
 
 你可以在 [GitHub](https://github.com/flamego/brotli) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/brotli?tab=doc) 查看 API 文档。
 

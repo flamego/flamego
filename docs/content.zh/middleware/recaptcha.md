@@ -2,7 +2,7 @@
 title: recaptcha
 weight: 110
 ---
-recaptcha 中间件为 [Flame 实例](../core-concepts#实例)提供 [Google reCAPTCHA](https://www.google.com/recaptcha/about/) 验证服务的集成。
+recaptcha 中间件为 [Flame 实例](/core-concepts#实例)提供 [Google reCAPTCHA](https://www.google.com/recaptcha/about/) 验证服务的集成。
 
 你可以在 [GitHub](https://github.com/flamego/recaptcha) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/recaptcha?tab=doc) 查看 API 文档。
 

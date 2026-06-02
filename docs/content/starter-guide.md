@@ -18,11 +18,11 @@ func main() {
 }
 ```
 
-On line 6, the function [`flamego.Classic`](https://pkg.go.dev/github.com/flamego/flamego#Classic) creates and returns a [classic Flame instance](core-concepts#classic-flame) with a default list of middleware, including [`flamego.Logger`](core-services#routing-logger), [`flamego.Recovery`](core-services#panic-recovery) and [`flamego.Static`](core-services#serving-static-files).
+On line 6, the function [`flamego.Classic`](https://pkg.go.dev/github.com/flamego/flamego#Classic) creates and returns a [classic Flame instance](/core-concepts#classic-flame) with a default list of middleware, including [`flamego.Logger`](/core-services#routing-logger), [`flamego.Recovery`](/core-services#panic-recovery) and [`flamego.Static`](/core-services#serving-static-files).
 
 On line 7, the method [`f.Get`](https://pkg.go.dev/github.com/flamego/flamego#Router) registers the anonymous function (from line 7 to 9) to be the [handler](core-concepts#handlers) of the root path ("/") when a HTTP GET request comes in. In this case, the handler simply responds with a "Hello, Flamego!" string to the client.
 
-On line 10, we start the web server by calling [`f.Run`](https://pkg.go.dev/github.com/flamego/flamego#Flame.Run). By default, the [Flame instance](core-concepts#instances) listens on the address `0.0.0.0:2830`.
+On line 10, we start the web server by calling [`f.Run`](https://pkg.go.dev/github.com/flamego/flamego#Flame.Run). By default, the [Flame instance](/core-concepts#instances) listens on the address `0.0.0.0:2830`.
 
 Alright, now save the file and initialize a [Go module](https://go.dev/blog/using-go-modules#:~:text=A%20module%20is%20a%20collection,needed%20for%20a%20successful%20build.):
 
@@ -43,7 +43,7 @@ $ go run main.go
 
 Once you see the last line from your terminal, you're good to go!
 
-You may verify the result by either visiting [http://localhost:2830](http://localhost:2830) ([why 2830?](faqs#why-the-default-port-is-2830)) in your browser, or through the folllowing `curl` command:
+You may verify the result by either visiting [http://localhost:2830](http://localhost:2830) ([why 2830?](/faqs#why-the-default-port-is-2830)) in your browser, or through the folllowing `curl` command:
 
 ```
 $ curl http://localhost:2830
@@ -55,7 +55,7 @@ Hello, Flamego!
 
 If you have used other Go web frameworks like [Gin](https://github.com/gin-gonic/gin) or [Echo](https://echo.labstack.com/), you may be surprised that you can directly return a string in Flamego handlers as the response body to the client.
 
-That is exactly right! Of course, this won't be the only way to make a response body (which would be a very unfriendly design!). If you're interested in reading more, the [return values](core-concepts#return-values) is the magician behind the scene.
+That is exactly right! Of course, this won't be the only way to make a response body (which would be a very unfriendly design!). If you're interested in reading more, the [return values](/core-concepts#return-values) is the magician behind the scene.
 {{< /callout >}}
 
 ## Unfolding hidden parts
@@ -122,12 +122,12 @@ On line 11, we're still using the `flamego.Classic` to give us a classic Flame i
 On line 12, instead of using an anonymous function, function `printRequestPath` is registered as the handler for all of the HTTP GET requests under root path ("/") using the notation `{*}`. The routing match stops at the slash ("/") as you can tell from the last test request to "http://localhost:2830/bad-ass/who-am-i" that gives us 404.
 
 {{< callout type="info" >}}
-Try using the notation `{**}`, then redo all test requests and see what changes. If you're interested in reading more, the [routing](routing) has the best resources you would want.
+Try using the notation `{**}`, then redo all test requests and see what changes. If you're interested in reading more, the [routing](/routing) has the best resources you would want.
 {{< /callout >}}
 
 On line 15, the call of `f.Run` is replaced by the [`http.ListenAndServe`](https://pkg.go.dev/net/http#ListenAndServe), which is the most common way to start a web server in Go, and maybe more familiar to you if you have used other Go web frameworks. This is possible with Flamego because Flame instances implement the [`http.Handler`](https://pkg.go.dev/net/http#Handler) interface. Therefore, a Flame instance can be plugged into anything that accepts a `http.Handler`, and is particularly useful when you want to progressively migrate an existing Go web application to use Flamego.
 
-On line 18 to 20, we define the signature and the body of the `printRequestPath`. It accepts one argument with the type [`flamego.Context`](core-services#context) and returns a string. It then calls the `Request` method to retrieve the [`http.Request`](https://pkg.go.dev/net/http#Request) which contains the request path from the client.
+On line 18 to 20, we define the signature and the body of the `printRequestPath`. It accepts one argument with the type [`flamego.Context`](/core-services#context) and returns a string. It then calls the `Request` method to retrieve the [`http.Request`](https://pkg.go.dev/net/http#Request) which contains the request path from the client.
 
 {{< callout type="info" >}}
 **💡 Did you know?**
@@ -136,7 +136,7 @@ You may start wondering why we did not tell the Flame instance what arguments it
 
 So how does the Flame instance determine what to pass down to its handlers at runtime?
 
-This is the beauty (or confusion? 😅) of the [service injection](core-concepts#service-injection), and [`flamego.Context`](core-services#context) is one of the default services that are injected into every request.
+This is the beauty (or confusion? 😅) of the [service injection](/core-concepts#service-injection), and [`flamego.Context`](/core-services#context) is one of the default services that are injected into every request.
 {{< /callout >}}
 
 ## Wrapping up

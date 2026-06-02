@@ -2,7 +2,7 @@
 title: binding
 weight: 40
 ---
-binding 中间件为 [Flame 实例](../core-concepts#实例)提供请求数据绑定和验证服务，支持的数据格式包括 form、multipart form、JSON 和 YAML。
+binding 中间件为 [Flame 实例](/core-concepts#实例)提供请求数据绑定和验证服务，支持的数据格式包括 form、multipart form、JSON 和 YAML。
 
 你可以在 [GitHub](https://github.com/flamego/binding) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/binding?tab=doc) 查看 API 文档。
 

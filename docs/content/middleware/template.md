@@ -2,7 +2,7 @@
 title: template
 weight: 10
 ---
-The template middleware provides HTML rendering using [Go template](https://pkg.go.dev/html/template) for [Flame instances](../core-concepts#instances).
+The template middleware provides HTML rendering using [Go template](https://pkg.go.dev/html/template) for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/template) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/template?tab=doc).
 
@@ -176,4 +176,4 @@ var Templates embed.FS
 
 When your application is running with `flamego.EnvTypeDev` (default) or `flamego.EnvTypeTest`, template files are reloaded and recomplied upon every client request.
 
-Set the [Env](../core-concepts#env) to `flamego.EnvTypeProd` to enable template caching in production.
+Set the [Env](/core-concepts#env) to `flamego.EnvTypeProd` to enable template caching in production.

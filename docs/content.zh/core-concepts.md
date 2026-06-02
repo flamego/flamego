@@ -10,9 +10,9 @@ weight: 20
 
 每次调用 [`flamego.Classic`](https://pkg.go.dev/github.com/flamego/flamego#Classic) 方法都会返回一个全新的经典 Flame 实例，并自动注册以下中间件：
 
-- [`flamego.Logger`](core-services#routing-logger) 用于请求路由日志
-- [`flamego.Recovery`](core-services#panic-recovery) 用于从 panic 恢复
-- [`flamego.Static`](core-services#serving-static-files) 用于响应静态资源
+- [`flamego.Logger`](/core-services#路由日志) 用于请求路由日志
+- [`flamego.Recovery`](/core-services#panic-恢复) 用于从 panic 恢复
+- [`flamego.Static`](/core-services#响应静态资源) 用于响应静态资源
 
 {{< callout type="info" >}}
 如果查看 [`flamego.Classic` 的源码](https://github.com/flamego/flamego/blob/8505d18c5243f797d5bb7160797d26454b9e5011/flame.go#L65-L77)则不难发现它其实也不过一层浅浅的封装：
@@ -395,7 +395,7 @@ http: panic serving 127.0.0.1:50061: unable to invoke the 0th handler [func(main
 {{< /tabs >}}
 
 {{< callout type="info" >}}
-如果你对服务注入的底层原理感兴趣，可以阅读[自定义服务](custom-services)的相关内容。
+如果你对服务注入的底层原理感兴趣，可以阅读[自定义服务](/custom-services)的相关内容。
 {{< /callout >}}
 
 ### 内置服务
@@ -435,7 +435,7 @@ f.Get("/hi", middleware7, middleware8, middleware9, func() { ... })
 {{< /callout >}}
 
 {{< callout type="info" >}}
-如果你想要创建自己的中间件进行服务注入，可以阅读[自定义服务](custom-services)的相关内容。
+如果你想要创建自己的中间件进行服务注入，可以阅读[自定义服务](/custom-services)的相关内容。
 {{< /callout >}}
 
 ## 运行环境

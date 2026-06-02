@@ -2,7 +2,7 @@
 title: csrf
 weight: 50
 ---
-csrf 中间件为 [Flame 实例](../core-concepts#实例)提供 CSRF 令牌的生成和验证服务，该中间件依赖于 [session](session) 中间件。
+csrf 中间件为 [Flame 实例](/core-concepts#实例)提供 CSRF 令牌的生成和验证服务，该中间件依赖于 [session](/middleware/session) 中间件。
 
 你可以在 [GitHub](https://github.com/flamego/csrf) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/csrf?tab=doc) 查看 API 文档。
 

@@ -2,7 +2,7 @@
 title: cors
 weight: 60
 ---
-cors 中间件为 [Flame 实例](../core-concepts#实例)提供[跨站资源共享](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)服务。
+cors 中间件为 [Flame 实例](/core-concepts#实例)提供[跨站资源共享](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)服务。
 
 你可以在 [GitHub](https://github.com/flamego/cors) 上阅读该中间件的源码或通过 [pkg.go.dev](https://pkg.go.dev/github.com/flamego/cors?tab=doc) 查看 API 文档。
 

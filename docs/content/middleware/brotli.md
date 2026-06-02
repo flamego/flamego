@@ -2,7 +2,7 @@
 title: brotli
 weight: 80
 ---
-The brotli middleware provides Brotli compression to responses for [Flame instances](../core-concepts#instances).
+The brotli middleware provides Brotli compression to responses for [Flame instances](/core-concepts#instances).
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/brotli) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/brotli?tab=doc).
 

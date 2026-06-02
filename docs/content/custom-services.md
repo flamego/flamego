@@ -2,7 +2,7 @@
 title: Custom services
 weight: 40
 ---
-The [core services](core-services) from Flamego are great, but they are certainly not enough for your web applications, Inevitably, you will start want to make your own [middleware](core-concepts#middleware) and custom services that are specifically fitting your needs.
+The [core services](/core-services) from Flamego are great, but they are certainly not enough for your web applications, Inevitably, you will start want to make your own [middleware](/core-concepts#middleware) and custom services that are specifically fitting your needs.
 
 ## Injecting services
 
@@ -47,7 +47,7 @@ The `MapTo` method does a naive mapping and runtime panic could occur if the int
 
 When you inject services to the Flame instance without attaching to any route, these injected services are considered as global services, which are available for all handlers of the Flame instance.
 
-There are two ways you can inject a global service, directly call `Map` or `MapTo` on the Flame instance, or through a [global middleware](core-concepts#middleware) using the `Use` method:
+There are two ways you can inject a global service, directly call `Map` or `MapTo` on the Flame instance, or through a [global middleware](/core-concepts#middleware) using the `Use` method:
 
 ```go
 db := database.New()
@@ -67,7 +67,7 @@ f.Use(func(c flamego.Context) {
 
 When you inject services to a group of routes, these injected services are considered as group services, which are only available for all handlers within the group.
 
-You can only inject a group service through a [group middleware](core-concepts#middleware):
+You can only inject a group service through a [group middleware](/core-concepts#middleware):
 
 ```go {hl_lines=["3-7", "14"] linenostart=1}
 f := flamego.New()
@@ -95,7 +95,7 @@ In the above example, the `*database.User` is only available to the group of rou
 
 When you inject services to a single route, these injected services are considered as route-level services, which are only available the handlers of that particular route.
 
-You can only inject a route-level service through a [route-level middleware](core-concepts#middleware):
+You can only inject a route-level service through a [route-level middleware](/core-concepts#middleware):
 
 ```go {hl_lines=["7-9", "11"] linenostart=1}
 f := flamego.New()

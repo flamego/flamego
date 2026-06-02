@@ -2,7 +2,7 @@
 title: csrf
 weight: 50
 ---
-The csrf middleware generates and validates CSRF tokens for [Flame instances](../core-concepts#instances), it relies on the [session](session) middleware.
+The csrf middleware generates and validates CSRF tokens for [Flame instances](/core-concepts#instances), it relies on the [session](/middleware/session) middleware.
 
 You can read source code of this middleware on [GitHub](https://github.com/flamego/session) and API documentation on [pkg.go.dev](https://pkg.go.dev/github.com/flamego/session?tab=doc).
 
