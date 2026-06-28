@@ -9,6 +9,21 @@ code, pre, kbd, samp, .chroma, .hextra-code-block {
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/* iOS: stop code blocks from dimming the whole page.
+   Hextra applies `filter: contrast(150%)` to every <pre>. A CSS filter promotes
+   the element to its own compositing layer rendered in extended color space; on
+   iOS (EDR-capable displays) contrast(150%) pushes the bright code-block pixels
+   above the SDR white point into HDR headroom, so iOS allocates EDR brightness
+   for it and tone-maps the rest of the SDR page DOWN — making everything except
+   the code block look dimmed. Desktop has little/no EDR headroom so it looks
+   fine, and dark mode never pushes past white. Dropping the filter removes the
+   HDR trigger. The 150% contrast bump is cosmetic and unnecessary with our
+   explicit syntax palette below. */
+.content pre,
+.hextra-code-block pre {
+  filter: none !important;
+}
+
 .hextra-nav-container nav > a > span {
   font-family: 'Quicksand', system-ui, -apple-system, sans-serif;
   font-weight: 500;
