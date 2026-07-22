@@ -366,6 +366,17 @@ When you run the above program and visit [http://localhost:2830/](http://localho
 
 ![panic recovery](/imgs/panic-recovery.png)
 
+To return the panic and stack trace as plain text in development mode, pass
+[`flamego.RecoveryOptions`](https://pkg.go.dev/github.com/flamego/flamego#RecoveryOptions):
+
+```go
+f.Use(flamego.Recovery(
+	flamego.RecoveryOptions{
+		PlainText: true,
+	},
+))
+```
+
 ## Serving static files
 
 {{< callout type="info" >}}

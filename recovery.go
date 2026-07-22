@@ -16,10 +16,23 @@ import (
 	"github.com/flamego/flamego/inject"
 )
 
+// RecoveryOptions contains options for the flamego.Recovery middleware.
+type RecoveryOptions struct {
+	// PlainText indicates whether to respond with plain text instead of HTML when
+	// recovering from a panic in development mode.
+	PlainText bool
+}
+
 // Recovery returns a middleware handler that recovers from any panics and
 // writes a 500 status code to the response if there was one. While in
-// development mode (EnvTypeDev), Recovery will also output the panic as HTML.
-func Recovery() Handler {
+// development mode (EnvTypeDev), Recovery will also output the panic as HTML,
+// or as plain text when the PlainText option is enabled.
+func Recovery(opts ...RecoveryOptions) Handler {
+	var opt RecoveryOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+
 	const html = `<html>
 <head><title>PANIC: %[1]s</title>
 <meta charset="utf-8" />
@@ -135,8 +148,13 @@ pre {
 				// Respond with panic message only in development mode
 				var body []byte
 				if Env() == EnvTypeDev {
-					w.Header().Set("Content-Type", "text/html")
-					body = []byte(fmt.Sprintf(html, err, stack))
+					if opt.PlainText {
+						w.Header().Set("Content-Type", "text/plain")
+						body = []byte(fmt.Sprintf("PANIC: %s\n%s", err, bytes.TrimRight(stack, "\n")))
+					} else {
+						w.Header().Set("Content-Type", "text/html")
+						body = []byte(fmt.Sprintf(html, err, stack))
+					}
 				} else {
 					w.Header().Set("Content-Type", "text/plain")
 					body = []byte(http.StatusText(http.StatusInternalServerError))
