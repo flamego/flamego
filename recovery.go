@@ -138,7 +138,7 @@ pre {
 	return LoggerInvoker(func(c Context, logger *log.Logger) {
 		defer func() {
 			if err := recover(); err != nil {
-				stack := stack(3)
+				stack := bytes.TrimRight(stack(3), "\n")
 				logger.Error(fmt.Sprintf("PANIC: %s\n%s", err, stack))
 
 				// Lookup the current ResponseWriter
@@ -150,7 +150,7 @@ pre {
 				if Env() == EnvTypeDev {
 					if opt.PlainText {
 						w.Header().Set("Content-Type", "text/plain")
-						body = []byte(fmt.Sprintf("PANIC: %s\n%s", err, bytes.TrimRight(stack, "\n")))
+						body = []byte(fmt.Sprintf("PANIC: %s\n%s", err, stack))
 					} else {
 						w.Header().Set("Content-Type", "text/html")
 						body = []byte(fmt.Sprintf(html, err, stack))
