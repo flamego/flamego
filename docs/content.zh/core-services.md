@@ -362,6 +362,17 @@ func main() {
 
 ![panic recovery](/imgs/panic-recovery.png)
 
+如果要在开发模式下以纯文本格式返回 panic 和堆栈跟踪，可传入
+[`flamego.RecoveryOptions`](https://pkg.go.dev/github.com/flamego/flamego#RecoveryOptions)：
+
+```go
+f.Use(flamego.Recovery(
+	flamego.RecoveryOptions{
+		PlainText: true,
+	},
+))
+```
+
 ## 响应静态资源
 
 {{< callout type="info" >}}

@@ -31,6 +31,25 @@ func TestRecovery(t *testing.T) {
 		assert.Contains(t, resp.Body.String(), "PANIC")
 	})
 
+	t.Run("recovery from panic in plain text", func(t *testing.T) {
+		f := NewWithLogger(&bytes.Buffer{})
+		f.Use(Recovery(RecoveryOptions{PlainText: true}))
+		f.Use(func() { panic("here is a panic!") })
+		f.Get("/", func() {})
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, err)
+
+		f.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, "text/plain", resp.Header().Get("Content-Type"))
+		assert.Contains(t, resp.Body.String(), "PANIC: here is a panic!\n")
+		assert.Contains(t, resp.Body.String(), "recovery_test.go")
+		assert.NotEqual(t, '\n', resp.Body.String()[resp.Body.Len()-1])
+	})
+
 	t.Run("recovery from panic in non-development mode", func(t *testing.T) {
 		SetEnv(EnvTypeProd)
 		defer SetEnv(EnvTypeDev)
