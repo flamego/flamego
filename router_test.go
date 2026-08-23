@@ -303,6 +303,18 @@ func TestRouter_On(t *testing.T) {
 			assert.Equal(t, http.StatusOK, resp.Code)
 		}
 	})
+
+	t.Run("auto head", func(t *testing.T) {
+		f := New()
+		f.AutoHead(true)
+		f.On(method.Get, "/", func() {})
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodHead, "/", nil)
+		require.NoError(t, err)
+		f.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
 }
 
 func TestRouter_AutoHead(t *testing.T) {
@@ -347,6 +359,25 @@ func TestRouter_AutoHead(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Equal(t, "/", gotRoute)
+	})
+
+	t.Run("route modifiers apply to auto head", func(t *testing.T) {
+		f := New()
+		f.AutoHead(true)
+		f.Get("/", func() {}).Headers("X-Match", "yes")
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodHead, "/", nil)
+		require.NoError(t, err)
+		f.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusNotFound, resp.Code)
+
+		resp = httptest.NewRecorder()
+		req, err = http.NewRequest(http.MethodHead, "/", nil)
+		require.NoError(t, err)
+		req.Header.Set("X-Match", "yes")
+		f.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
 	})
 }
 

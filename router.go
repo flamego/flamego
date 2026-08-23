@@ -296,6 +296,18 @@ type group struct {
 }
 
 func (r *router) routes(methods []string, routePath string, handlers []Handler) *Route {
+	if r.autoHead {
+		hasGet := false
+		hasHead := false
+		for _, m := range methods {
+			hasGet = hasGet || strings.EqualFold(m, http.MethodGet)
+			hasHead = hasHead || strings.EqualFold(m, http.MethodHead)
+		}
+		if hasGet && !hasHead {
+			methods = append(methods, http.MethodHead)
+		}
+	}
+
 	if len(r.groups) > 0 {
 		groupPath := ""
 		hs := make([]Handler, 0)
@@ -358,11 +370,7 @@ func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
 }
 
 func (r *router) Get(routePath string, handlers ...Handler) *Route {
-	route := r.Route(http.MethodGet, routePath, handlers)
-	if r.autoHead {
-		r.Head(routePath, handlers...)
-	}
-	return route
+	return r.Route(http.MethodGet, routePath, handlers)
 }
 
 func (r *router) Patch(routePath string, handlers ...Handler) *Route {
