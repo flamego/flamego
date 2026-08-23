@@ -87,7 +87,7 @@ This method looks at following things in the order to determine which one is mor
 This way, you can configure your reverse proxy to pass on one of these headers.
 
 {{< callout type="warning" >}}
-The client can always fake its address using a proxy or VPN, getting the remote address is always considered as a best effort in web applications.
+The `X-Real-IP` and `X-Forwarded-For` headers can be forged directly by clients. Only trust the address returned by `RemoteAddr()` when your application is behind a trusted reverse proxy that removes incoming forwarding headers and sets them itself. If your application is exposed directly to the internet, use `http.Request.RemoteAddr` to identify the network peer. Do not use an untrusted address for security-sensitive decisions such as access control.
 {{< /callout >}}
 
 ### Redirect
