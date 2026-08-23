@@ -26,14 +26,21 @@ If you want to match all HTTP methods for a single route, `Any` is available for
 f.Any("/", ...)
 ```
 
-When you want to match a selected list of HTTP methods for a single route, `Routes` is your friend:
+When you want to match a selected set of HTTP methods for a single route, combine the type-safe values from the [`method`](https://pkg.go.dev/github.com/flamego/flamego/method) package and pass the set to `On`:
 
 ```go
-f.Routes("/", "GET,POST", ...)
+import "github.com/flamego/flamego/method"
 
-// or
+f.On(method.Get|method.Post, "/", ...)
+```
 
-f.Routes("/", http.MethodGet, http.MethodPost, ...)
+Method sets are reusable values and `method.All` contains every method supported by Flamego:
+
+```go
+const readable = method.Get | method.Head
+
+f.On(readable, "/documents/{id}", ...)
+f.On(method.All, "/health", ...)
 ```
 
 ## Terminology

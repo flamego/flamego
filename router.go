@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/flamego/flamego/internal/route"
+	"github.com/flamego/flamego/method"
 )
 
 // Router is the router for adding routes and their handlers.
@@ -25,6 +26,9 @@ type Router interface {
 	HandlerWrapper(f func(Handler) Handler)
 	// Route adds the new route path and its handlers to the router tree.
 	Route(method, routePath string, handlers []Handler) *Route
+	// On adds the new route path and its handlers for the given set of HTTP
+	// methods.
+	On(methods method.Set, routePath string, handlers ...Handler) *Route
 	// Combo returns a ComboRoute for adding handlers of different HTTP methods to
 	// the same route.
 	Combo(routePath string, handlers ...Handler) *ComboRoute
@@ -100,6 +104,21 @@ var httpMethods = []string{
 	http.MethodHead,
 	http.MethodConnect,
 	http.MethodTrace,
+}
+
+var methodSets = []struct {
+	set  method.Set
+	name string
+}{
+	{method.Get, http.MethodGet},
+	{method.Post, http.MethodPost},
+	{method.Put, http.MethodPut},
+	{method.Delete, http.MethodDelete},
+	{method.Patch, http.MethodPatch},
+	{method.Options, http.MethodOptions},
+	{method.Head, http.MethodHead},
+	{method.Connect, http.MethodConnect},
+	{method.Trace, http.MethodTrace},
 }
 
 // newRouter creates and returns a new Router.
@@ -276,7 +295,7 @@ type group struct {
 	handlers []Handler
 }
 
-func (r *router) Route(method, routePath string, handlers []Handler) *Route {
+func (r *router) routes(methods []string, routePath string, handlers []Handler) *Route {
 	if len(r.groups) > 0 {
 		groupPath := ""
 		hs := make([]Handler, 0)
@@ -290,9 +309,41 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 	}
 
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
-	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params) {
+	handler := func(w http.ResponseWriter, req *http.Request, params route.Params) {
 		r.contextCreator(w, req, params, handlers, r.URLPath).run()
-	})
+	}
+
+	leaves := make(map[string]route.Leaf, len(methods))
+	for _, m := range methods {
+		added := r.addRoute(m, routePath, handler)
+		for name, leaf := range added.leaves {
+			leaves[name] = leaf
+		}
+	}
+	return &Route{
+		router: r,
+		leaves: leaves,
+	}
+}
+
+func (r *router) Route(method, routePath string, handlers []Handler) *Route {
+	return r.routes([]string{method}, routePath, handlers)
+}
+
+func (r *router) On(methods method.Set, routePath string, handlers ...Handler) *Route {
+	if methods == 0 {
+		panic("empty method set")
+	} else if unknown := methods &^ method.All; unknown != 0 {
+		panic(fmt.Sprintf("unknown method set bits: %d", unknown))
+	}
+
+	names := make([]string, 0, len(methodSets))
+	for _, candidate := range methodSets {
+		if methods&candidate.set != 0 {
+			names = append(names, candidate.name)
+		}
+	}
+	return r.routes(names, routePath, handlers)
 }
 
 func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
@@ -370,11 +421,7 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 		ms = append(ms, m)
 	}
 
-	var route *Route
-	for _, m := range ms {
-		route = r.Route(m, routePath, handlers)
-	}
-	return route
+	return r.routes(ms, routePath, handlers)
 }
 
 func (r *router) NotFound(handlers ...Handler) {

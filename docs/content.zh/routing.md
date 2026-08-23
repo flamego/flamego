@@ -26,14 +26,21 @@ f.Trace("/", ...)
 f.Any("/", ...)
 ```
 
-当你需要将单个路由与多个 HTTP 请求方法进行组合时，则可以使用 `Routes` 方法：
+当你需要将单个路由与多个 HTTP 请求方法进行组合时，可以组合 [`method`](https://pkg.go.dev/github.com/flamego/flamego/method) 包中类型安全的值，并将该集合传递给 `On`：
 
 ```go
-f.Routes("/", "GET,POST", ...)
+import "github.com/flamego/flamego/method"
 
-// 或者
+f.On(method.Get|method.Post, "/", ...)
+```
 
-f.Routes("/", http.MethodGet, http.MethodPost, ...)
+请求方法集合可以被重复使用，`method.All` 则包含 Flamego 支持的所有请求方法：
+
+```go
+const readable = method.Get | method.Head
+
+f.On(readable, "/documents/{id}", ...)
+f.On(method.All, "/health", ...)
 ```
 
 ## 术语

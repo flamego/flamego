@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flamego/flamego/internal/route"
+	"github.com/flamego/flamego/method"
 )
 
 func TestRouter_Route(t *testing.T) {
@@ -207,6 +208,99 @@ func TestRouter_Routes(t *testing.T) {
 
 			assert.Equal(t, http.StatusOK, resp.Code)
 			assert.Equal(t, "/routes", gotRoute)
+		}
+	})
+
+	t.Run("route modifiers apply to every method", func(t *testing.T) {
+		f := New()
+		f.Routes("/routes", "GET,POST", func() {}).Headers("X-Match", "yes")
+
+		for _, m := range []string{http.MethodGet, http.MethodPost} {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/routes", nil)
+			require.NoError(t, err)
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusNotFound, resp.Code)
+
+			resp = httptest.NewRecorder()
+			req, err = http.NewRequest(m, "/routes", nil)
+			require.NoError(t, err)
+			req.Header.Set("X-Match", "yes")
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		}
+	})
+}
+
+func TestRouter_On(t *testing.T) {
+	t.Run("empty method set", func(t *testing.T) {
+		f := New()
+		assert.PanicsWithValue(t, "empty method set", func() {
+			f.On(0, "/", func() {})
+		})
+	})
+
+	t.Run("unknown method set bits", func(t *testing.T) {
+		f := New()
+		assert.PanicsWithValue(t, "unknown method set bits: 512", func() {
+			f.On(method.Set(1<<9), "/", func() {})
+		})
+	})
+
+	t.Run("selected methods", func(t *testing.T) {
+		f := New()
+		f.On(method.Get|method.Post, "/", func() string {
+			return "matched"
+		})
+
+		for _, m := range []string{http.MethodGet, http.MethodPost} {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/", nil)
+			require.NoError(t, err)
+
+			f.ServeHTTP(resp, req)
+
+			assert.Equal(t, http.StatusOK, resp.Code)
+			assert.Equal(t, "matched", resp.Body.String())
+		}
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodPut, "/", nil)
+		require.NoError(t, err)
+		f.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusNotFound, resp.Code)
+	})
+
+	t.Run("all methods", func(t *testing.T) {
+		f := New()
+		f.On(method.All, "/", func() {})
+
+		for _, m := range httpMethods {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/", nil)
+			require.NoError(t, err)
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		}
+	})
+
+	t.Run("route modifiers apply to every method", func(t *testing.T) {
+		f := New()
+		f.On(method.Get|method.Post, "/", func() {}).Headers("X-Match", "yes")
+
+		for _, m := range []string{http.MethodGet, http.MethodPost} {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/", nil)
+			require.NoError(t, err)
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusNotFound, resp.Code)
+
+			resp = httptest.NewRecorder()
+			req, err = http.NewRequest(m, "/", nil)
+			require.NoError(t, err)
+			req.Header.Set("X-Match", "yes")
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
 		}
 	})
 }
