@@ -5,12 +5,14 @@
 package flamego
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/flamego/flamego/internal/route"
+	"github.com/flamego/flamego/method"
 )
 
 // Router is the router for adding routes and their handlers.
@@ -25,6 +27,14 @@ type Router interface {
 	HandlerWrapper(f func(Handler) Handler)
 	// Route adds the new route path and its handlers to the router tree.
 	Route(method, routePath string, handlers []Handler) *Route
+	// Methods adds the new route path and its handlers for the given set of HTTP
+	// methods.
+	//
+	// Example:
+	//  f.Methods("/", method.Get, handlers...)
+	//  f.Methods("/", method.Get|method.Post, handlers...)
+	//  f.Methods("/", method.All, handlers...)
+	Methods(routePath string, methods method.Set, handlers ...Handler) *Route
 	// Combo returns a ComboRoute for adding handlers of different HTTP methods to
 	// the same route.
 	Combo(routePath string, handlers ...Handler) *ComboRoute
@@ -57,6 +67,9 @@ type Router interface {
 	// Example:
 	//  f.Routes("/", http.MethodGet, http.MethodPost, handlers...)
 	//  f.Routes("/", "GET,POST", handlers...)
+	//
+	// Deprecated: Use Methods with the type-safe method.Set values instead, e.g.,
+	// f.Methods("/", method.Get|method.Post, handlers...).
 	Routes(routePath, methods string, handlers ...Handler) *Route
 	// NotFound configures a http.HandlerFunc to be called when no matching route is
 	// found. When it is not set, http.NotFound is used. Be sure to set
@@ -89,18 +102,32 @@ type router struct {
 	handlerWrapper func(Handler) Handler
 }
 
-// httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
-var httpMethods = []string{
-	http.MethodGet,
-	http.MethodPost,
-	http.MethodPut,
-	http.MethodDelete,
-	http.MethodPatch,
-	http.MethodOptions,
-	http.MethodHead,
-	http.MethodConnect,
-	http.MethodTrace,
+// methodSets pairs each type-safe method.Set bit with its HTTP method string,
+// covering the methods defined in IETF RFC 7231 and RFC 5789.
+var methodSets = []struct {
+	set  method.Set
+	name string
+}{
+	{method.Get, http.MethodGet},
+	{method.Post, http.MethodPost},
+	{method.Put, http.MethodPut},
+	{method.Delete, http.MethodDelete},
+	{method.Patch, http.MethodPatch},
+	{method.Options, http.MethodOptions},
+	{method.Head, http.MethodHead},
+	{method.Connect, http.MethodConnect},
+	{method.Trace, http.MethodTrace},
 }
+
+// httpMethods is the list of HTTP method strings derived from methodSets, in
+// the same order.
+var httpMethods = func() []string {
+	names := make([]string, len(methodSets))
+	for i, ms := range methodSets {
+		names[i] = ms.name
+	}
+	return names
+}()
 
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
@@ -270,13 +297,60 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	}
 }
 
+// tryAddRoute adds the route for a single canonical HTTP method, returning false
+// without mutating the router when a route already exists for the same method
+// and path. It is used for framework-synthesized routes (e.g., autoHead) that
+// must yield to explicitly registered routes instead of panicking on collision.
+func (r *router) tryAddRoute(method, routePath string, handler route.Handler) (*Route, bool) {
+	ast, err := r.parser.Parse(routePath)
+	if err != nil {
+		panic(fmt.Sprintf("unable to parse route %q: %v", routePath, err))
+	}
+
+	leaf, err := route.AddRoute(r.routeTrees[method], ast, handler)
+	if err != nil {
+		// A duplicated route means an explicit registration already owns this method and
+		// path, so the synthesized route defers to it. Any other error is unexpected
+		// here (the pattern already parsed and registered for GET) and must not be
+		// swallowed.
+		if errors.Is(err, route.ErrDuplicateRoute) {
+			return nil, false
+		}
+		panic(fmt.Sprintf("unable to add route %q with method %s: %v", routePath, method, err))
+	}
+
+	if leaf.Static() {
+		r.staticRoutes[method][leaf.Route()] = leaf
+	}
+	return &Route{
+		router: r,
+		leaves: map[string]route.Leaf{method: leaf},
+	}, true
+}
+
 // group contains information of a nested routing group.
 type group struct {
 	path     string
 	handlers []Handler
 }
 
-func (r *router) Route(method, routePath string, handlers []Handler) *Route {
+func (r *router) routes(methods []string, routePath string, handlers []Handler) *Route {
+	// autoHead synthesizes a HEAD route whenever GET is registered. It is a
+	// framework convenience rather than a user intent, so it must never cause a
+	// panic when a HEAD route already exists for the same path (e.g. registered
+	// explicitly, or by an earlier autoHead GET). The synthesized HEAD is added
+	// on a best-effort basis below and skipped silently on collision.
+	autoHead := false
+	if r.autoHead {
+		hasGet := false
+		hasHead := false
+		for _, m := range methods {
+			hasGet = hasGet || strings.EqualFold(m, http.MethodGet)
+			hasHead = hasHead || strings.EqualFold(m, http.MethodHead)
+		}
+		autoHead = hasGet && !hasHead
+	}
+
 	if len(r.groups) > 0 {
 		groupPath := ""
 		hs := make([]Handler, 0)
@@ -290,9 +364,48 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 	}
 
 	validateAndWrapHandlers(handlers, r.handlerWrapper)
-	return r.addRoute(method, routePath, func(w http.ResponseWriter, req *http.Request, params route.Params) {
+	handler := func(w http.ResponseWriter, req *http.Request, params route.Params) {
 		r.contextCreator(w, req, params, handlers, r.URLPath).run()
-	})
+	}
+
+	leaves := make(map[string]route.Leaf, len(methods)+1)
+	for _, m := range methods {
+		added := r.addRoute(m, routePath, handler)
+		for name, leaf := range added.leaves {
+			leaves[name] = leaf
+		}
+	}
+	if autoHead {
+		if added, ok := r.tryAddRoute(http.MethodHead, routePath, handler); ok {
+			for name, leaf := range added.leaves {
+				leaves[name] = leaf
+			}
+		}
+	}
+	return &Route{
+		router: r,
+		leaves: leaves,
+	}
+}
+
+func (r *router) Route(method, routePath string, handlers []Handler) *Route {
+	return r.routes([]string{method}, routePath, handlers)
+}
+
+func (r *router) Methods(routePath string, methods method.Set, handlers ...Handler) *Route {
+	if methods == 0 {
+		panic("empty method set")
+	} else if unknown := methods &^ method.All; unknown != 0 {
+		panic(fmt.Sprintf("unknown method set bits: %d", unknown))
+	}
+
+	names := make([]string, 0, len(methodSets))
+	for _, candidate := range methodSets {
+		if methods&candidate.set != 0 {
+			names = append(names, candidate.name)
+		}
+	}
+	return r.routes(names, routePath, handlers)
 }
 
 func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
@@ -307,11 +420,7 @@ func (r *router) Group(routePath string, fn func(), handlers ...Handler) {
 }
 
 func (r *router) Get(routePath string, handlers ...Handler) *Route {
-	route := r.Route(http.MethodGet, routePath, handlers)
-	if r.autoHead {
-		r.Head(routePath, handlers...)
-	}
-	return route
+	return r.Route(http.MethodGet, routePath, handlers)
 }
 
 func (r *router) Patch(routePath string, handlers ...Handler) *Route {
@@ -370,11 +479,7 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 		ms = append(ms, m)
 	}
 
-	var route *Route
-	for _, m := range ms {
-		route = r.Route(m, routePath, handlers)
-	}
-	return route
+	return r.routes(ms, routePath, handlers)
 }
 
 func (r *router) NotFound(handlers ...Handler) {

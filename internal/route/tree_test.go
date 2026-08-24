@@ -161,7 +161,7 @@ func TestAddRoute(t *testing.T) {
 		require.NoError(t, err)
 		_, err = AddRoute(tree, r2, nil)
 		got := fmt.Sprintf("%v", err)
-		want := `add optional leaf to grandparent: duplicated route "/webapi/users/?events"`
+		want := `add optional leaf to grandparent: "/webapi/users/?events": duplicated route`
 		assert.Equal(t, want, got)
 	})
 
