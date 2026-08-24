@@ -31,13 +31,13 @@ When you want to match a selected set of HTTP methods for a single route, combin
 ```go
 import "github.com/flamego/flamego/method"
 
-f.On(method.Get|method.Post, "/", ...)
+f.On("/", method.Get|method.Post, ...)
 ```
 
 `method.All` contains every method supported by Flamego:
 
 ```go
-f.On(method.All, "/health", ...)
+f.On("/health", method.All, ...)
 ```
 
 ## Terminology

@@ -31,13 +31,13 @@ f.Any("/", ...)
 ```go
 import "github.com/flamego/flamego/method"
 
-f.On(method.Get|method.Post, "/", ...)
+f.On("/", method.Get|method.Post, ...)
 ```
 
 `method.All` 则包含 Flamego 支持的所有请求方法：
 
 ```go
-f.On(method.All, "/health", ...)
+f.On("/health", method.All, ...)
 ```
 
 ## 术语
