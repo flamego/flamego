@@ -34,12 +34,9 @@ import "github.com/flamego/flamego/method"
 f.On(method.Get|method.Post, "/", ...)
 ```
 
-请求方法集合可以被重复使用，`method.All` 则包含 Flamego 支持的所有请求方法：
+`method.All` 则包含 Flamego 支持的所有请求方法：
 
 ```go
-const readable = method.Get | method.Head
-
-f.On(readable, "/documents/{id}", ...)
 f.On(method.All, "/health", ...)
 ```
 

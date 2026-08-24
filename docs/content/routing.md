@@ -34,12 +34,9 @@ import "github.com/flamego/flamego/method"
 f.On(method.Get|method.Post, "/", ...)
 ```
 
-Method sets are reusable values and `method.All` contains every method supported by Flamego:
+`method.All` contains every method supported by Flamego:
 
 ```go
-const readable = method.Get | method.Head
-
-f.On(readable, "/documents/{id}", ...)
 f.On(method.All, "/health", ...)
 ```
 
