@@ -5,6 +5,7 @@
 package flamego
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -93,19 +94,8 @@ type router struct {
 	handlerWrapper func(Handler) Handler
 }
 
-// httpMethods is a list of HTTP methods defined in IETF RFC 7231 and RFC 5789.
-var httpMethods = []string{
-	http.MethodGet,
-	http.MethodPost,
-	http.MethodPut,
-	http.MethodDelete,
-	http.MethodPatch,
-	http.MethodOptions,
-	http.MethodHead,
-	http.MethodConnect,
-	http.MethodTrace,
-}
-
+// methodSets pairs each type-safe method.Set bit with its HTTP method string,
+// covering the methods defined in IETF RFC 7231 and RFC 5789.
 var methodSets = []struct {
 	set  method.Set
 	name string
@@ -120,6 +110,16 @@ var methodSets = []struct {
 	{method.Connect, http.MethodConnect},
 	{method.Trace, http.MethodTrace},
 }
+
+// httpMethods is the list of HTTP method strings derived from methodSets, in
+// the same order.
+var httpMethods = func() []string {
+	names := make([]string, len(methodSets))
+	for i, ms := range methodSets {
+		names[i] = ms.name
+	}
+	return names
+}()
 
 // newRouter creates and returns a new Router.
 func newRouter(contextCreator contextCreator) Router {
@@ -289,13 +289,11 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	}
 }
 
-// addRouteIfAbsent adds the route for a single HTTP method, returning false
+// tryAddRoute adds the route for a single canonical HTTP method, returning false
 // without mutating the router when a route already exists for the same method
-// and path. It is used for framework-synthesized routes (e.g. autoHead) that
+// and path. It is used for framework-synthesized routes (e.g., autoHead) that
 // must yield to explicitly registered routes instead of panicking on collision.
-func (r *router) addRouteIfAbsent(method, routePath string, handler route.Handler) (*Route, bool) {
-	method = strings.ToUpper(method)
-
+func (r *router) tryAddRoute(method, routePath string, handler route.Handler) (*Route, bool) {
 	ast, err := r.parser.Parse(routePath)
 	if err != nil {
 		panic(fmt.Sprintf("unable to parse route %q: %v", routePath, err))
@@ -303,10 +301,14 @@ func (r *router) addRouteIfAbsent(method, routePath string, handler route.Handle
 
 	leaf, err := route.AddRoute(r.routeTrees[method], ast, handler)
 	if err != nil {
-		// The only expected error here is a duplicated route, which means an
-		// explicit registration already owns this method and path. Swallow it so
-		// the synthesized route defers to the explicit one.
-		return nil, false
+		// A duplicated route means an explicit registration already owns this method and
+		// path, so the synthesized route defers to it. Any other error is unexpected
+		// here (the pattern already parsed and registered for GET) and must not be
+		// swallowed.
+		if errors.Is(err, route.ErrDuplicateRoute) {
+			return nil, false
+		}
+		panic(fmt.Sprintf("unable to add route %q with method %s: %v", routePath, method, err))
 	}
 
 	if leaf.Static() {
@@ -366,7 +368,7 @@ func (r *router) routes(methods []string, routePath string, handlers []Handler) 
 		}
 	}
 	if autoHead {
-		if added, ok := r.addRouteIfAbsent(http.MethodHead, routePath, handler); ok {
+		if added, ok := r.tryAddRoute(http.MethodHead, routePath, handler); ok {
 			for name, leaf := range added.leaves {
 				leaves[name] = leaf
 			}

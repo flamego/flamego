@@ -14,6 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrDuplicateRoute is returned by AddRoute when a route with the same pattern
+// already exists in the tree.
+var ErrDuplicateRoute = errors.New("duplicated route")
+
 // Tree is a tree derived from a segment.
 type Tree interface {
 	// Match matches a leaf for the given request, values of bind parameters are
@@ -118,7 +122,7 @@ func addLeaf(t Tree, r *Route, s *Segment, h Handler) (Leaf, error) {
 	leaves := t.getLeaves()
 	for _, l := range leaves {
 		if l.getSegment().String() == s.String() {
-			return nil, errors.Errorf("duplicated route %q", r.String())
+			return nil, errors.Wrapf(ErrDuplicateRoute, "%q", r.String())
 		}
 	}
 
