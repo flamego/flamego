@@ -289,6 +289,35 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	}
 }
 
+// addRouteIfAbsent adds the route for a single HTTP method, returning false
+// without mutating the router when a route already exists for the same method
+// and path. It is used for framework-synthesized routes (e.g. autoHead) that
+// must yield to explicitly registered routes instead of panicking on collision.
+func (r *router) addRouteIfAbsent(method, routePath string, handler route.Handler) (*Route, bool) {
+	method = strings.ToUpper(method)
+
+	ast, err := r.parser.Parse(routePath)
+	if err != nil {
+		panic(fmt.Sprintf("unable to parse route %q: %v", routePath, err))
+	}
+
+	leaf, err := route.AddRoute(r.routeTrees[method], ast, handler)
+	if err != nil {
+		// The only expected error here is a duplicated route, which means an
+		// explicit registration already owns this method and path. Swallow it so
+		// the synthesized route defers to the explicit one.
+		return nil, false
+	}
+
+	if leaf.Static() {
+		r.staticRoutes[method][leaf.Route()] = leaf
+	}
+	return &Route{
+		router: r,
+		leaves: map[string]route.Leaf{method: leaf},
+	}, true
+}
+
 // group contains information of a nested routing group.
 type group struct {
 	path     string
@@ -296,6 +325,12 @@ type group struct {
 }
 
 func (r *router) routes(methods []string, routePath string, handlers []Handler) *Route {
+	// autoHead synthesizes a HEAD route whenever GET is registered. It is a
+	// framework convenience rather than a user intent, so it must never cause a
+	// panic when a HEAD route already exists for the same path (e.g. registered
+	// explicitly, or by an earlier autoHead GET). The synthesized HEAD is added
+	// on a best-effort basis below and skipped silently on collision.
+	autoHead := false
 	if r.autoHead {
 		hasGet := false
 		hasHead := false
@@ -303,9 +338,7 @@ func (r *router) routes(methods []string, routePath string, handlers []Handler) 
 			hasGet = hasGet || strings.EqualFold(m, http.MethodGet)
 			hasHead = hasHead || strings.EqualFold(m, http.MethodHead)
 		}
-		if hasGet && !hasHead {
-			methods = append(methods, http.MethodHead)
-		}
+		autoHead = hasGet && !hasHead
 	}
 
 	if len(r.groups) > 0 {
@@ -325,11 +358,18 @@ func (r *router) routes(methods []string, routePath string, handlers []Handler) 
 		r.contextCreator(w, req, params, handlers, r.URLPath).run()
 	}
 
-	leaves := make(map[string]route.Leaf, len(methods))
+	leaves := make(map[string]route.Leaf, len(methods)+1)
 	for _, m := range methods {
 		added := r.addRoute(m, routePath, handler)
 		for name, leaf := range added.leaves {
 			leaves[name] = leaf
+		}
+	}
+	if autoHead {
+		if added, ok := r.addRouteIfAbsent(http.MethodHead, routePath, handler); ok {
+			for name, leaf := range added.leaves {
+				leaves[name] = leaf
+			}
 		}
 	}
 	return &Route{

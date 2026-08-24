@@ -379,6 +379,38 @@ func TestRouter_AutoHead(t *testing.T) {
 		f.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
 	})
+
+	t.Run("explicit head before get does not panic", func(t *testing.T) {
+		f := New()
+		f.AutoHead(true)
+		f.Head("/", func() string { return "head" })
+		assert.NotPanics(t, func() {
+			f.Get("/", func() string { return "get" })
+		})
+
+		for _, m := range []string{http.MethodGet, http.MethodHead} {
+			resp := httptest.NewRecorder()
+			req, err := http.NewRequest(m, "/", nil)
+			require.NoError(t, err)
+			f.ServeHTTP(resp, req)
+			assert.Equal(t, http.StatusOK, resp.Code)
+		}
+	})
+
+	t.Run("auto head applies to On", func(t *testing.T) {
+		f := New()
+		f.AutoHead(true)
+		assert.NotPanics(t, func() {
+			f.On(method.Head, "/", func() {})
+			f.On(method.Get, "/", func() {})
+		})
+
+		resp := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodHead, "/", nil)
+		require.NoError(t, err)
+		f.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
 }
 
 func TestRouter_DuplicatedRoutes(t *testing.T) {
