@@ -57,6 +57,7 @@ func main() {
 - [i18n](https://flamego.dev/middleware/i18n.html) - Internationalization and localization
 - [captcha](https://flamego.dev/middleware/captcha.html) - Captcha service
 - [hcaptcha](https://flamego.dev/middleware/hcaptcha.html) - hCaptcha verification
+- [sse](https://flamego.dev/middleware/sse.html) - Server-Sent Events
 
 ## Getting help
 
