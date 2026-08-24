@@ -232,24 +232,24 @@ func TestRouter_Routes(t *testing.T) {
 	})
 }
 
-func TestRouter_On(t *testing.T) {
+func TestRouter_Methods(t *testing.T) {
 	t.Run("empty method set", func(t *testing.T) {
 		f := New()
 		assert.PanicsWithValue(t, "empty method set", func() {
-			f.On("/", 0, func() {})
+			f.Methods("/", 0, func() {})
 		})
 	})
 
 	t.Run("unknown method set bits", func(t *testing.T) {
 		f := New()
 		assert.PanicsWithValue(t, "unknown method set bits: 512", func() {
-			f.On("/", method.Set(1<<9), func() {})
+			f.Methods("/", method.Set(1<<9), func() {})
 		})
 	})
 
 	t.Run("selected methods", func(t *testing.T) {
 		f := New()
-		f.On("/", method.Get|method.Post, func() string {
+		f.Methods("/", method.Get|method.Post, func() string {
 			return "matched"
 		})
 
@@ -273,7 +273,7 @@ func TestRouter_On(t *testing.T) {
 
 	t.Run("all methods", func(t *testing.T) {
 		f := New()
-		f.On("/", method.All, func() {})
+		f.Methods("/", method.All, func() {})
 
 		for _, m := range httpMethods {
 			resp := httptest.NewRecorder()
@@ -286,7 +286,7 @@ func TestRouter_On(t *testing.T) {
 
 	t.Run("route modifiers apply to every method", func(t *testing.T) {
 		f := New()
-		f.On("/", method.Get|method.Post, func() {}).Headers("X-Match", "yes")
+		f.Methods("/", method.Get|method.Post, func() {}).Headers("X-Match", "yes")
 
 		for _, m := range []string{http.MethodGet, http.MethodPost} {
 			resp := httptest.NewRecorder()
@@ -385,12 +385,12 @@ func TestRouter_AutoHead(t *testing.T) {
 		}
 	})
 
-	t.Run("auto head applies to On", func(t *testing.T) {
+	t.Run("auto head applies to Methods", func(t *testing.T) {
 		f := New()
 		f.AutoHead(true)
 		assert.NotPanics(t, func() {
-			f.On("/", method.Head, func() {})
-			f.On("/", method.Get, func() {})
+			f.Methods("/", method.Head, func() {})
+			f.Methods("/", method.Get, func() {})
 		})
 
 		resp := httptest.NewRecorder()

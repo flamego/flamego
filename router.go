@@ -27,14 +27,14 @@ type Router interface {
 	HandlerWrapper(f func(Handler) Handler)
 	// Route adds the new route path and its handlers to the router tree.
 	Route(method, routePath string, handlers []Handler) *Route
-	// On adds the new route path and its handlers for the given set of HTTP
+	// Methods adds the new route path and its handlers for the given set of HTTP
 	// methods.
 	//
 	// Example:
-	//  f.On("/", method.Get, handlers...)
-	//  f.On("/", method.Get|method.Post, handlers...)
-	//  f.On("/", method.All, handlers...)
-	On(routePath string, methods method.Set, handlers ...Handler) *Route
+	//  f.Methods("/", method.Get, handlers...)
+	//  f.Methods("/", method.Get|method.Post, handlers...)
+	//  f.Methods("/", method.All, handlers...)
+	Methods(routePath string, methods method.Set, handlers ...Handler) *Route
 	// Combo returns a ComboRoute for adding handlers of different HTTP methods to
 	// the same route.
 	Combo(routePath string, handlers ...Handler) *ComboRoute
@@ -68,8 +68,8 @@ type Router interface {
 	//  f.Routes("/", http.MethodGet, http.MethodPost, handlers...)
 	//  f.Routes("/", "GET,POST", handlers...)
 	//
-	// Deprecated: Use On with the type-safe method.Set values instead, e.g.,
-	// f.On("/", method.Get|method.Post, handlers...).
+	// Deprecated: Use Methods with the type-safe method.Set values instead, e.g.,
+	// f.Methods("/", method.Get|method.Post, handlers...).
 	Routes(routePath, methods string, handlers ...Handler) *Route
 	// NotFound configures a http.HandlerFunc to be called when no matching route is
 	// found. When it is not set, http.NotFound is used. Be sure to set
@@ -392,7 +392,7 @@ func (r *router) Route(method, routePath string, handlers []Handler) *Route {
 	return r.routes([]string{method}, routePath, handlers)
 }
 
-func (r *router) On(routePath string, methods method.Set, handlers ...Handler) *Route {
+func (r *router) Methods(routePath string, methods method.Set, handlers ...Handler) *Route {
 	if methods == 0 {
 		panic("empty method set")
 	} else if unknown := methods &^ method.All; unknown != 0 {
