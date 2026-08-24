@@ -20,5 +20,5 @@ To accelerate your development, the Flamego core team and the community have bui
 - [sse](/middleware/sse) for sending server events to web clients.
 
 {{< callout type="info" >}}
-If you notice any middleware that is missing from the list, please don't hesitate to [send a pull request to this page](https://github.com/flamego/flamego.dev/edit/main/docs/middleware/README.md)!
+If you notice any middleware that is missing from the list, please don't hesitate to [send a pull request to this page](https://github.com/flamego/flamego/edit/main/docs/content/middleware/_index.md)!
 {{< /callout >}}

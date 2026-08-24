@@ -20,5 +20,5 @@ Flamego 在[核心服务](/core-services)之外开发并维护了一定数量的
 - [sse](/middleware/sse) 用于向 Web 客户端发送服务器事件
 
 {{< callout type="info" >}}
-如果你发现列表有缺失，请直接[发送 Pull request 进行补充](https://github.com/flamego/flamego.dev/edit/main/docs/middleware/README.md)！
+如果你发现列表有缺失，请直接[发送 Pull request 进行补充](https://github.com/flamego/flamego/edit/main/docs/content.zh/middleware/_index.md)！
 {{< /callout >}}
