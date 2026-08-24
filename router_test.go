@@ -303,18 +303,6 @@ func TestRouter_On(t *testing.T) {
 			assert.Equal(t, http.StatusOK, resp.Code)
 		}
 	})
-
-	t.Run("auto head", func(t *testing.T) {
-		f := New()
-		f.AutoHead(true)
-		f.On(method.Get, "/", func() {})
-
-		resp := httptest.NewRecorder()
-		req, err := http.NewRequest(http.MethodHead, "/", nil)
-		require.NoError(t, err)
-		f.ServeHTTP(resp, req)
-		assert.Equal(t, http.StatusOK, resp.Code)
-	})
 }
 
 func TestRouter_AutoHead(t *testing.T) {
