@@ -15,7 +15,7 @@ go get github.com/flamego/binding
 ## 用法示例
 
 {{< callout type="info" >}}
-本小结仅展示 binding 中间件的相关用法，如需了解验证模块的用法请移步 [`validator`](https://pkg.go.dev/github.com/flamego/validator) 的文档。
+本小结仅展示 binding 中间件的相关用法，如需了解验证模块的用法请移步 [`validator`](https://pkg.go.dev/github.com/go-playground/validator/v10) 的文档。
 {{< /callout >}}
 
 绑定对象自身会被注入到请求上下文中以供后续的处理器使用，并额外提供 [`binding.Errors`](https://pkg.go.dev/github.com/flamego/binding#Errors) 用于错误传递。
@@ -42,7 +42,7 @@ import (
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
@@ -132,7 +132,7 @@ import (
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
@@ -204,7 +204,7 @@ import (
 
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type Address struct {
@@ -260,7 +260,7 @@ import (
 
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type Address struct {
@@ -335,7 +335,7 @@ import (
 	"github.com/flamego/flamego"
 	"github.com/flamego/i18n"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {

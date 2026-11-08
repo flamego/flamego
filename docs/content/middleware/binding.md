@@ -15,7 +15,7 @@ go get github.com/flamego/binding
 ## Usage examples
 
 {{< callout type="info" >}}
-Examples included in this section is to demonstrate the usage of the binding middleware, please refer to the documentation of [`validator`](https://pkg.go.dev/github.com/flamego/validator) package for validation syntax and constraints.
+Examples included in this section is to demonstrate the usage of the binding middleware, please refer to the documentation of [`validator`](https://pkg.go.dev/github.com/go-playground/validator/v10) package for validation syntax and constraints.
 {{< /callout >}}
 
 The type of binding object is injected into the request context and the special data type [`binding.Errors`](https://pkg.go.dev/github.com/flamego/binding#Errors) is provided to indicate any errors occurred in binding and/or validation phases.
@@ -42,7 +42,7 @@ import (
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
@@ -132,7 +132,7 @@ import (
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
@@ -204,7 +204,7 @@ import (
 
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type Address struct {
@@ -260,7 +260,7 @@ import (
 
 	"github.com/flamego/binding"
 	"github.com/flamego/flamego"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type Address struct {
@@ -335,7 +335,7 @@ import (
 	"github.com/flamego/flamego"
 	"github.com/flamego/i18n"
 	"github.com/flamego/template"
-	"github.com/flamego/validator"
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
