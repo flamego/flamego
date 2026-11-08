@@ -18,6 +18,10 @@ go get github.com/flamego/binding
 Examples included in this section is to demonstrate the usage of the binding middleware, please refer to the documentation of [`validator`](https://pkg.go.dev/github.com/go-playground/validator/v10) package for validation syntax and constraints.
 {{< /callout >}}
 
+{{< callout type="info" >}}
+Starting from v1.4.0, the binding middleware uses [`github.com/go-playground/validator/v10`](https://github.com/go-playground/validator). Prior versions use the archived [`github.com/flamego/validator`](https://github.com/flamego/validator) instead, which is the package to import for type assertions like `validator.ValidationErrors`.
+{{< /callout >}}
+
 The type of binding object is injected into the request context and the special data type [`binding.Errors`](https://pkg.go.dev/github.com/flamego/binding#Errors) is provided to indicate any errors occurred in binding and/or validation phases.
 
 {{< callout type="error" >}}
