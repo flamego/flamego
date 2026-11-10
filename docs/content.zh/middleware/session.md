@@ -483,6 +483,13 @@ func main() {
 
 截止时间与会话数据存储在一起，因此在使用持久化存储后端时，截止时间在重启和多实例之间依然生效。它不会延长会话的寿命：如果存储后端的空闲生命周期或 Cookie 先过期，会话仍会提前结束。如果只希望截止时间生效，请将存储后端的 `Lifetime` 和 `Cookie.MaxAge` 设置得足够长。
 
+关于截止时间还需要注意：
+
+- [`Session.Flush`](https://pkg.go.dev/github.com/flamego/session#Session) 会保留截止时间，因此清空会话后重新登录不会解除截止时间。如需移除截止时间，请调用 `session.SetDeadline(s, time.Time{})`。
+- 截止时间会在请求开始和结束时各检查一次。到达截止时间时仍在处理中的请求会继续使用旧会话直到返回，但随后该会话会被销毁而不是保存。WebSocket 或服务器发送事件（SSE）等长连接需要自行将 `session.Deadline` 与当前时间进行比较。
+- 过期会话的数据会保留在存储后端中，直到客户端再次使用该会话发送请求，或由存储后端的空闲生命周期回收，但这些数据无法再用于验证请求。
+- 每个实例都使用自己的时钟比较截止时间，因此请保持多个实例的时钟同步。
+
 ## 存储类型支持
 
 缓存数据的默认编解码格式为 [gob](https://pkg.go.dev/encoding/gob)，因此仅支持有限的值类型。如果遇到类似 `encode: gob: type not registered for interface: time.Duration` 这样的错误，则可以通过 [`gob.Register`](https://pkg.go.dev/encoding/gob#Register) 在应用中将该类型注册到编解码器中解决：

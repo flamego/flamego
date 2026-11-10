@@ -484,6 +484,13 @@ func main() {
 
 The deadline is stored with the session data, so it is enforced across restarts and multiple instances when using a persistent storage backend. It does not keep the session alive any longer: the session still ends earlier if the idle lifetime of the storage backend or the cookie expires first, so set the `Lifetime` of the storage backend and `Cookie.MaxAge` long enough if you only want the deadline to apply.
 
+A few more things to know about deadlines:
+
+- [`Session.Flush`](https://pkg.go.dev/github.com/flamego/session#Session) keeps the deadline, so flushing and then signing the user in again does not lift it. Use `session.SetDeadline(s, time.Time{})` to remove the deadline.
+- The deadline is checked when a request starts and again when it ends. A request that is still running at the deadline keeps the old session until it returns, but the session is then destroyed instead of saved. Long-lived connections such as WebSocket or server-sent events should compare `session.Deadline` with the current time themselves.
+- Data of an expired session stays in the storage backend until the client sends a request with that session again, or until the idle lifetime of the storage backend recycles it. It can no longer be used to authenticate requests.
+- Every instance compares the deadline with its own clock, so keep clocks of multiple instances in sync.
+
 ## Supported value types
 
 The default encoder and decoder of cache data use [gob](https://pkg.go.dev/encoding/gob), and only limited types are supported for values. When you encounter errors like `encode: gob: type not registered for interface: time.Duration`, you can use [`gob.Register`](https://pkg.go.dev/encoding/gob#Register) to register the type for encoding and decoding.
