@@ -487,7 +487,7 @@ The deadline is stored with the session data, so it is enforced across restarts 
 A few more things to know about deadlines:
 
 - [`Session.Flush`](https://pkg.go.dev/github.com/flamego/session#Session) keeps the deadline, so flushing and then signing the user in again does not lift it. Use `s.SetDeadline(time.Time{})` to remove the deadline.
-- The deadline is checked when a request starts and again when it ends. A request that is still running at the deadline keeps the old session until it returns, but the session is then destroyed instead of saved, and the next request with the old ID gets an empty session under that ID. Long-lived connections such as WebSocket or server-sent events should compare `Session.Deadline` with the current time themselves.
+- The deadline is checked when a request starts. A request that is still running at the deadline keeps the old session until it returns, and the next request gets a new session. Long-lived connections such as WebSocket or server-sent events should compare `Session.Deadline` with the current time themselves.
 - Data of an expired session stays in the storage backend until the client sends a request with that session again, or until the idle lifetime of the storage backend recycles it. It can no longer be used to authenticate requests.
 - Every instance compares the deadline with its own clock, so keep clocks of multiple instances in sync.
 
