@@ -430,7 +430,10 @@ In the above example, we use different types of flash messages (`string` and `Fl
 
 ## Absolute deadlines
 
-Absolute deadlines are available starting from v1.7.0.
+{{< callout type="info" >}}
+**🆕 Available in v1.7.0**
+
+{{< /callout >}}
 
 The lifetime of storage backends is based on idle time, i.e., every request extends the session. When a session must end at a fixed time regardless of activity, use [`Session.SetDeadline`](https://pkg.go.dev/github.com/flamego/session#Session) to set an absolute deadline, e.g., when the user signs in. Requests before the deadline do not move it. When a request starts at or after the deadline, the session middleware destroys the session and starts a new one with a new ID, even if the client still sends the old one.
 
