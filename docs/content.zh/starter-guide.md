@@ -132,7 +132,7 @@ $ curl http://localhost:2830/bad-ass/who-am-i
 {{< callout type="info" >}}
 **💡 小贴士**
 
-你可能会疑惑 `printRequestPath` 函数在被调用的时候是如何获得对应的参数对象的，这涉及到 Flamego 中处理器的本质。如果你查看 [`flamego.Handler`](https://pkg.go.dev/github.com/flamego/flamego#Handler) 的类型定义便会发现它其实是一个[空接口（`interface{}`）](https://github.com/flamego/flamego/blob/8505d18c5243f797d5bb7160797d26454b9e5011/handler.go#L17)。
+你可能会疑惑 `printRequestPath` 函数在被调用的时候是如何获得对应的参数对象的，这涉及到 Flamego 中处理器的本质。如果你查看 [`flamego.Handler`](https://pkg.go.dev/github.com/flamego/flamego#Handler) 的类型定义便会发现它其实是一个[空接口（`any`）](https://github.com/flamego/flamego/blob/8505d18c5243f797d5bb7160797d26454b9e5011/handler.go#L17)。
 
 那么 Flame 实例又是如何在运行时确定将哪些参数传递给对应的处理器的呢？
 

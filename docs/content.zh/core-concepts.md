@@ -65,14 +65,14 @@ func main() {
 
 ## 处理器
 
-[`flamego.Hander`](https://pkg.go.dev/github.com/flamego/flamego#Handler) 是 Flamego 中处理器的类型容器，如果你打开源码便能发现其本质上就是一个空接口（`interface{}`）：
+[`flamego.Hander`](https://pkg.go.dev/github.com/flamego/flamego#Handler) 是 Flamego 中处理器的类型容器，如果你打开源码便能发现其本质上就是一个空接口（`any`）：
 
 ```go
 // Handler is any callable function or a value that implements http.Handler.
 // Flamego attempts to inject services into the Handler's argument list and
 // panics if any argument could not be fulfilled via dependency injection.
 // Values implementing http.Handler are invoked via their ServeHTTP method.
-type Handler interface{}
+type Handler any
 ```
 
 根据注释文档的所言，任何可以被调用的函数都是有效的 `flamego.Handler`，无论是匿名函数、声明函数还是某个类型的方法：

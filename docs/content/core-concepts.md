@@ -65,14 +65,14 @@ It feels so elegent to have isolated state managed by each Flame instance, and m
 
 ## Handlers
 
-Flamego handlers are defined as [`flamego.Handler`](https://pkg.go.dev/github.com/flamego/flamego#Handler), and if you look closer, it is just an empty interface (`interface{}`):
+Flamego handlers are defined as [`flamego.Handler`](https://pkg.go.dev/github.com/flamego/flamego#Handler), and if you look closer, it is just an empty interface (`any`):
 
 ```go
 // Handler is any callable function or a value that implements http.Handler.
 // Flamego attempts to inject services into the Handler's argument list and
 // panics if any argument could not be fulfilled via dependency injection.
 // Values implementing http.Handler are invoked via their ServeHTTP method.
-type Handler interface{}
+type Handler any
 ```
 
 As being noted in the docstring, any callable function is a valid `flamego.Handler`, doesn't matter if it's an anonymous, a declared function or even a method of a type:

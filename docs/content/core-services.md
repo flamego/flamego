@@ -620,7 +620,7 @@ func main() {
 	))
 	f.Get("/", func(r flamego.Render) {
 		r.JSON(http.StatusOK,
-			map[string]interface{}{
+			map[string]any{
 				"id":       1,
 				"username": "joe",
 			},

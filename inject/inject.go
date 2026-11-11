@@ -27,44 +27,44 @@ type Injector interface {
 type Applicator interface {
 	// Apply maps dependencies in the Type map to each field in the struct that is
 	// tagged with "inject". Returns an error if the injection fails.
-	Apply(interface{}) error
+	Apply(any) error
 }
 
 // Invoker represents an interface for calling functions via reflection.
 type Invoker interface {
-	// Invoke attempts to call the `interface{}` provided as a function, providing
+	// Invoke attempts to call the `any` provided as a function, providing
 	// dependencies for function arguments based on Type. Returns a slice of
 	// reflect.Value representing the returned values of the function. Returns an
 	// error if the injection fails.
-	Invoke(interface{}) ([]reflect.Value, error)
+	Invoke(any) ([]reflect.Value, error)
 }
 
 // FastInvoker represents an interface in order to avoid the calling function
 // via reflection.
 type FastInvoker interface {
-	// Invoke attempts to call the `interface{}` provided as interface method,
+	// Invoke attempts to call the `any` provided as interface method,
 	// providing dependencies for function arguments based on Type. Returns a slice
 	// of reflect.Value representing the returned values of the function. Returns an
 	// error if the injection fails.
-	Invoke([]interface{}) ([]reflect.Value, error)
+	Invoke([]any) ([]reflect.Value, error)
 }
 
 // IsFastInvoker returns true if the `handler` implements FastInvoker.
-func IsFastInvoker(handler interface{}) bool {
+func IsFastInvoker(handler any) bool {
 	_, ok := handler.(FastInvoker)
 	return ok
 }
 
-// TypeMapper represents an interface for mapping `interface{}` values based on
+// TypeMapper represents an interface for mapping `any` values based on
 // type.
 type TypeMapper interface {
-	// Map maps the `interface{}` values based on their immediate type from
+	// Map maps the `any` values based on their immediate type from
 	// reflect.TypeOf.
-	Map(...interface{}) TypeMapper
-	// MapTo maps the `interface{}` value based on the pointer of an Interface
+	Map(...any) TypeMapper
+	// MapTo maps the `any` value based on the pointer of an Interface
 	// provided. This is really only useful for mapping a value as an interface, as
 	// interfaces cannot at this time be referenced directly without a pointer.
-	MapTo(interface{}, interface{}) TypeMapper
+	MapTo(any, any) TypeMapper
 	// Set provides a possibility to directly insert a mapping based on type and
 	// value. This makes it possible to directly map type arguments not possible to
 	// instantiate with reflect like unidirectional channels.
@@ -81,7 +81,7 @@ type injector struct {
 
 // InterfaceOf dereferences a pointer to an Interface type. It panics if value
 // is not an pointer to an interface.
-func InterfaceOf(value interface{}) reflect.Type {
+func InterfaceOf(value any) reflect.Type {
 	t := reflect.TypeOf(value)
 	for t.Kind() == reflect.Pointer {
 		t = t.Elem()
@@ -100,12 +100,12 @@ func New() Injector {
 	}
 }
 
-// Invoke attempts to call the interface{} provided as a function,
+// Invoke attempts to call the any provided as a function,
 // providing dependencies for function arguments based on Type.
 // Returns a slice of reflect.Value representing the returned values of the function.
 // Returns an error if the injection fails.
 // It panics if f is not a function
-func (inj *injector) Invoke(f interface{}) ([]reflect.Value, error) {
+func (inj *injector) Invoke(f any) ([]reflect.Value, error) {
 	t := reflect.TypeOf(f)
 	switch v := f.(type) {
 	case FastInvoker:
@@ -116,9 +116,9 @@ func (inj *injector) Invoke(f interface{}) ([]reflect.Value, error) {
 }
 
 func (inj *injector) fastInvoke(f FastInvoker, t reflect.Type, numIn int) ([]reflect.Value, error) {
-	var in []interface{}
+	var in []any
 	if numIn > 0 {
-		in = make([]interface{}, numIn) // Panic if t is not kind of Func
+		in = make([]any, numIn) // Panic if t is not kind of Func
 		var argType reflect.Type
 		var val reflect.Value
 		for i := 0; i < numIn; i++ {
@@ -134,7 +134,7 @@ func (inj *injector) fastInvoke(f FastInvoker, t reflect.Type, numIn int) ([]ref
 	return f.Invoke(in)
 }
 
-func (inj *injector) callInvoke(f interface{}, t reflect.Type, numIn int) ([]reflect.Value, error) {
+func (inj *injector) callInvoke(f any, t reflect.Type, numIn int) ([]reflect.Value, error) {
 	var in []reflect.Value
 	if numIn > 0 {
 		in = make([]reflect.Value, numIn)
@@ -153,7 +153,7 @@ func (inj *injector) callInvoke(f interface{}, t reflect.Type, numIn int) ([]ref
 	return reflect.ValueOf(f).Call(in), nil
 }
 
-func (inj *injector) Apply(val interface{}) error {
+func (inj *injector) Apply(val any) error {
 	v := reflect.ValueOf(val)
 
 	for v.Kind() == reflect.Pointer {
@@ -184,14 +184,14 @@ func (inj *injector) Apply(val interface{}) error {
 	return nil
 }
 
-func (inj *injector) Map(values ...interface{}) TypeMapper {
+func (inj *injector) Map(values ...any) TypeMapper {
 	for _, val := range values {
 		inj.values[reflect.TypeOf(val)] = reflect.ValueOf(val)
 	}
 	return inj
 }
 
-func (inj *injector) MapTo(val, ifacePtr interface{}) TypeMapper {
+func (inj *injector) MapTo(val, ifacePtr any) TypeMapper {
 	inj.values[InterfaceOf(ifacePtr)] = reflect.ValueOf(val)
 	return inj
 }
