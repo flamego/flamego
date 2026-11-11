@@ -428,6 +428,73 @@ func main() {
 
 上例展示了如何在不同的路由中使用不同类型的闪现消息（`string` and `Flash`）。
 
+## 绝对截止时间
+
+{{< callout type="info" >}}
+**🆕 v1.7.0 版本新增**
+
+{{< /callout >}}
+
+存储后端的生命周期是基于空闲时间的，即每次请求都会延长会话。如果会话必须在固定时间结束而不论是否有活动，则可以使用 [`Session.SetDeadline`](https://pkg.go.dev/github.com/flamego/session#Session) 设置绝对截止时间，例如在用户登录时。截止时间之前的请求不会推迟它。如果请求在截止时间或之后开始，会话中间件会销毁该会话并使用新的 ID 创建一个新会话，即便客户端仍然发送旧的会话 ID。
+
+例如，要求用户在每周一 00:00 UTC 重新登录，但截止时间距离登录必须超过五分钟：
+
+```go
+package main
+
+import (
+	"time"
+
+	"github.com/flamego/flamego"
+	"github.com/flamego/session"
+)
+
+// nextDeadline 返回下一个周一 00:00 UTC，如果距离它不足或恰好五分钟，则返回再下一个周一。
+func nextDeadline(now time.Time) time.Time {
+	now = now.UTC()
+	daysUntilMonday := (7 - int(now.Weekday()) + int(time.Monday)) % 7
+	deadline := time.Date(now.Year(), now.Month(), now.Day()+daysUntilMonday, 0, 0, 0, 0, time.UTC)
+	if deadline.Sub(now) <= 5*time.Minute {
+		deadline = deadline.AddDate(0, 0, 7)
+	}
+	return deadline
+}
+
+func main() {
+	f := flamego.Classic()
+	f.Use(session.Sessioner(
+		session.Options{
+			Config: session.MemoryConfig{
+				// 由截止时间而非空闲时间结束会话
+				Lifetime: 8 * 24 * time.Hour,
+			},
+		},
+	))
+	f.Get("/sign-in", func(s session.Session) string {
+		s.Set("user_id", 123)
+		s.SetDeadline(nextDeadline(time.Now()))
+		return "Signed in"
+	})
+	f.Get("/deadline", func(s session.Session) string {
+		deadline, ok := s.Deadline()
+		if !ok {
+			return "No deadline"
+		}
+		return deadline.UTC().String()
+	})
+	f.Run()
+}
+```
+
+截止时间与会话数据存储在一起，因此在使用持久化存储后端时，截止时间在重启和多实例之间依然生效。它不会延长会话的寿命：如果存储后端的空闲生命周期或 Cookie 先过期，会话仍会提前结束。如果只希望截止时间生效，请将存储后端的 `Lifetime` 和 `Cookie.MaxAge` 设置得足够长。
+
+关于截止时间还需要注意：
+
+- [`Session.Flush`](https://pkg.go.dev/github.com/flamego/session#Session) 会保留截止时间，因此清空会话后重新登录不会解除截止时间。如需移除截止时间，请调用 `s.SetDeadline(time.Time{})`。
+- 截止时间会在请求开始时检查。到达截止时间时仍在处理中的请求会继续使用旧会话直到返回，下一个请求会得到一个新会话。WebSocket 或服务器发送事件（SSE）等长连接需要自行将 `Session.Deadline` 与当前时间进行比较。
+- 过期会话的数据会保留在存储后端中，直到客户端再次使用该会话发送请求，或由存储后端的空闲生命周期回收，但这些数据无法再用于验证请求。
+- 每个实例都使用自己的时钟比较截止时间，因此请保持多个实例的时钟同步。
+
 ## 存储类型支持
 
 缓存数据的默认编解码格式为 [gob](https://pkg.go.dev/encoding/gob)，因此仅支持有限的值类型。如果遇到类似 `encode: gob: type not registered for interface: time.Duration` 这样的错误，则可以通过 [`gob.Register`](https://pkg.go.dev/encoding/gob#Register) 在应用中将该类型注册到编解码器中解决：

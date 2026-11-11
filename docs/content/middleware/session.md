@@ -428,6 +428,74 @@ func main() {
 
 In the above example, we use different types of flash messages (`string` and `Flash`) for different routes and both of them work!
 
+## Absolute deadlines
+
+{{< callout type="info" >}}
+**🆕 Available in v1.7.0**
+
+{{< /callout >}}
+
+The lifetime of storage backends is based on idle time, i.e., every request extends the session. When a session must end at a fixed time regardless of activity, use [`Session.SetDeadline`](https://pkg.go.dev/github.com/flamego/session#Session) to set an absolute deadline, e.g., when the user signs in. Requests before the deadline do not move it. When a request starts at or after the deadline, the session middleware destroys the session and starts a new one with a new ID, even if the client still sends the old one.
+
+For example, to require signing in again every Monday at 00:00 UTC, but never five minutes or less after signing in:
+
+```go
+package main
+
+import (
+	"time"
+
+	"github.com/flamego/flamego"
+	"github.com/flamego/session"
+)
+
+// nextDeadline returns the next Monday 00:00 UTC, or the one after when the next
+// one is five minutes or less away.
+func nextDeadline(now time.Time) time.Time {
+	now = now.UTC()
+	daysUntilMonday := (7 - int(now.Weekday()) + int(time.Monday)) % 7
+	deadline := time.Date(now.Year(), now.Month(), now.Day()+daysUntilMonday, 0, 0, 0, 0, time.UTC)
+	if deadline.Sub(now) <= 5*time.Minute {
+		deadline = deadline.AddDate(0, 0, 7)
+	}
+	return deadline
+}
+
+func main() {
+	f := flamego.Classic()
+	f.Use(session.Sessioner(
+		session.Options{
+			Config: session.MemoryConfig{
+				// Let the deadline end the session rather than being idle.
+				Lifetime: 8 * 24 * time.Hour,
+			},
+		},
+	))
+	f.Get("/sign-in", func(s session.Session) string {
+		s.Set("user_id", 123)
+		s.SetDeadline(nextDeadline(time.Now()))
+		return "Signed in"
+	})
+	f.Get("/deadline", func(s session.Session) string {
+		deadline, ok := s.Deadline()
+		if !ok {
+			return "No deadline"
+		}
+		return deadline.UTC().String()
+	})
+	f.Run()
+}
+```
+
+The deadline is stored with the session data, so it is enforced across restarts and multiple instances when using a persistent storage backend. It does not keep the session alive any longer: the session still ends earlier if the idle lifetime of the storage backend or the cookie expires first, so set the `Lifetime` of the storage backend and `Cookie.MaxAge` long enough if you only want the deadline to apply.
+
+A few more things to know about deadlines:
+
+- [`Session.Flush`](https://pkg.go.dev/github.com/flamego/session#Session) keeps the deadline, so flushing and then signing the user in again does not lift it. Use `s.SetDeadline(time.Time{})` to remove the deadline.
+- The deadline is checked when a request starts. A request that is still running at the deadline keeps the old session until it returns, and the next request gets a new session. Long-lived connections such as WebSocket or server-sent events should compare `Session.Deadline` with the current time themselves.
+- Data of an expired session stays in the storage backend until the client sends a request with that session again, or until the idle lifetime of the storage backend recycles it. It can no longer be used to authenticate requests.
+- Every instance compares the deadline with its own clock, so keep clocks of multiple instances in sync.
+
 ## Supported value types
 
 The default encoder and decoder of cache data use [gob](https://pkg.go.dev/encoding/gob), and only limited types are supported for values. When you encounter errors like `encode: gob: type not registered for interface: time.Duration`, you can use [`gob.Register`](https://pkg.go.dev/encoding/gob#Register) to register the type for encoding and decoding.
