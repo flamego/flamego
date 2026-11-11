@@ -430,7 +430,7 @@ In the above example, we use different types of flash messages (`string` and `Fl
 
 ## Absolute deadlines
 
-The lifetime of storage backends is based on idle time, i.e. every request extends the session. When a session must end at a fixed time regardless of activity, use [`session.SetDeadline`](https://pkg.go.dev/github.com/flamego/session#SetDeadline) to set an absolute deadline, e.g. when the user signs in. Requests before the deadline do not move it, and at or after the deadline, the session middleware destroys the session and starts a new one with a new ID, even if the client still sends the old one.
+The lifetime of storage backends is based on idle time, i.e., every request extends the session. When a session must end at a fixed time regardless of activity, use [`session.SetDeadline`](https://pkg.go.dev/github.com/flamego/session#SetDeadline) to set an absolute deadline, e.g., when the user signs in. Requests before the deadline do not move it, and at or after the deadline, the session middleware destroys the session and starts a new one with a new ID, even if the client still sends the old one.
 
 For example, to require signing in again every Monday at 00:00 UTC, but never five minutes or less after signing in:
 
