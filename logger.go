@@ -19,7 +19,7 @@ var _ inject.FastInvoker = (*LoggerInvoker)(nil)
 // `func(ctx Context, log *log.Logger)`.
 type LoggerInvoker func(ctx Context, logger *log.Logger)
 
-func (invoke LoggerInvoker) Invoke(params []interface{}) ([]reflect.Value, error) {
+func (invoke LoggerInvoker) Invoke(params []any) ([]reflect.Value, error) {
 	invoke(params[0].(Context), params[1].(*log.Logger))
 	return nil, nil
 }

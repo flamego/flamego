@@ -72,7 +72,7 @@ func main() {
 Install "go-mockgen" and "goimports" to re-generate mocks:
 
 ```sh
-go install github.com/derision-test/go-mockgen/cmd/go-mockgen@latest
+go install github.com/unknwon/go-mockgen/cmd/go-mockgen@main
 go install golang.org/x/tools/cmd/goimports@latest
 
 go generate ./...

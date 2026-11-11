@@ -18,7 +18,7 @@ var _ inject.FastInvoker = (*testHandlerFastInvoker)(nil)
 
 type testHandlerFastInvoker func() string
 
-func (invoke testHandlerFastInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+func (invoke testHandlerFastInvoker) Invoke([]any) ([]reflect.Value, error) {
 	return []reflect.Value{reflect.ValueOf(invoke())}, nil
 }
 

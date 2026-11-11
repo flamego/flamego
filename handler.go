@@ -16,14 +16,14 @@ import (
 // Flamego attempts to inject services into the Handler's argument list and
 // panics if any argument could not be fulfilled via dependency injection.
 // Values implementing http.Handler are invoked via their ServeHTTP method.
-type Handler interface{}
+type Handler any
 
 var _ inject.FastInvoker = (*ContextInvoker)(nil)
 
 // ContextInvoker is an inject.FastInvoker implementation of `func(Context)`.
 type ContextInvoker func(ctx Context)
 
-func (invoke ContextInvoker) Invoke(args []interface{}) ([]reflect.Value, error) {
+func (invoke ContextInvoker) Invoke(args []any) ([]reflect.Value, error) {
 	invoke(args[0].(Context))
 	return nil, nil
 }
@@ -34,7 +34,7 @@ var _ inject.FastInvoker = (*httpHandlerFuncInvoker)(nil)
 // `func(http.ResponseWriter, *http.Request)`.
 type httpHandlerFuncInvoker func(http.ResponseWriter, *http.Request)
 
-func (invoke httpHandlerFuncInvoker) Invoke(args []interface{}) ([]reflect.Value, error) {
+func (invoke httpHandlerFuncInvoker) Invoke(args []any) ([]reflect.Value, error) {
 	invoke(args[0].(http.ResponseWriter), args[1].(*http.Request))
 	return nil, nil
 }
@@ -43,7 +43,7 @@ var _ inject.FastInvoker = (*teapotInvoker)(nil)
 
 type teapotInvoker func() (int, string)
 
-func (invoke teapotInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+func (invoke teapotInvoker) Invoke([]any) ([]reflect.Value, error) {
 	ret1, ret2 := invoke()
 	return []reflect.Value{reflect.ValueOf(ret1), reflect.ValueOf(ret2)}, nil
 }

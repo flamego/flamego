@@ -150,7 +150,7 @@ func TestFlame_NoRace(t *testing.T) {
 	// Ensure append will not reallocate alice that triggers the race condition
 	f.handlers = handlers[:1]
 	f.Get("/", func() {})
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		go func() {
 			req, err := http.NewRequest(http.MethodGet, "/", nil)
 			resp := httptest.NewRecorder()

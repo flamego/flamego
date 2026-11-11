@@ -14,10 +14,10 @@ import (
 type Render interface {
 	// JSON encodes given value in JSON format with given status code to the
 	// ResponseWriter.
-	JSON(status int, v interface{})
+	JSON(status int, v any)
 	// XML encodes given value in XML format with given status code to the
 	// ResponseWriter.
-	XML(status int, v interface{})
+	XML(status int, v any)
 	// Binary writes binary data with given status code to the ResponseWriter.
 	Binary(status int, v []byte)
 	// PlainText writes string with given status code to the ResponseWriter.
@@ -42,7 +42,7 @@ type RenderOptions struct {
 	XMLIndent string
 }
 
-func (r *render) JSON(status int, v interface{}) {
+func (r *render) JSON(status int, v any) {
 	r.responseWriter.Header().Set("Content-Type", "application/json; charset="+r.opts.Charset)
 	r.responseWriter.WriteHeader(status)
 
@@ -58,7 +58,7 @@ func (r *render) JSON(status int, v interface{}) {
 	}
 }
 
-func (r *render) XML(status int, v interface{}) {
+func (r *render) XML(status int, v any) {
 	r.responseWriter.Header().Set("Content-Type", "text/xml; charset="+r.opts.Charset)
 	r.responseWriter.WriteHeader(status)
 

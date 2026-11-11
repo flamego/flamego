@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type specialString interface{}
+type specialString any
 
 type testStruct struct {
 	Dep1 string        `inject:"" json:"-"`
@@ -30,7 +30,7 @@ func (g *greeter) String() string {
 
 type myFastInvoker func(string)
 
-func (myFastInvoker) Invoke([]interface{}) ([]reflect.Value, error) {
+func (myFastInvoker) Invoke([]any) ([]reflect.Value, error) {
 	return nil, nil
 }
 
@@ -109,7 +109,7 @@ func TestInjector_InterfaceOf(t *testing.T) {
 func TestInjector_Set(t *testing.T) {
 	inj := New()
 
-	typ := reflect.TypeOf("string")
+	typ := reflect.TypeFor[string]()
 	typSend := reflect.ChanOf(reflect.SendDir, typ)
 	typRecv := reflect.ChanOf(reflect.RecvDir, typ)
 
@@ -130,8 +130,8 @@ func TestInjector_GetVal(t *testing.T) {
 	inj := New()
 	inj.Map("some dependency")
 
-	assert.True(t, inj.Value(reflect.TypeOf("string")).IsValid())
-	assert.False(t, inj.Value(reflect.TypeOf(11)).IsValid())
+	assert.True(t, inj.Value(reflect.TypeFor[string]()).IsValid())
+	assert.False(t, inj.Value(reflect.TypeFor[int]()).IsValid())
 }
 
 func TestInjector_SetParent(t *testing.T) {
@@ -169,7 +169,7 @@ func BenchmarkInjector_Invoke(b *testing.B) {
 
 type testFastInvoker func(d1 string, d2 specialString) string
 
-func (f testFastInvoker) Invoke(args []interface{}) ([]reflect.Value, error) {
+func (f testFastInvoker) Invoke(args []any) ([]reflect.Value, error) {
 	f(args[0].(string), args[1].(specialString))
 	return nil, nil
 }
