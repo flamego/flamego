@@ -7,8 +7,10 @@ package flamego
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/flamego/flamego/internal/route"
@@ -261,13 +263,8 @@ func (r *router) addRoute(method, routePath string, handler route.Handler) *Rout
 	var methods []string
 	if method == "*" {
 		methods = httpMethods
-	} else {
-		for _, m := range httpMethods {
-			if method == m {
-				methods = []string{method}
-				break
-			}
-		}
+	} else if slices.Contains(httpMethods, method) {
+		methods = []string{method}
 	}
 	if len(methods) == 0 {
 		panic("unknown HTTP method: " + method)
@@ -352,14 +349,14 @@ func (r *router) routes(methods []string, routePath string, handlers []Handler) 
 	}
 
 	if len(r.groups) > 0 {
-		groupPath := ""
+		var groupPath strings.Builder
 		hs := make([]Handler, 0)
 		for _, g := range r.groups {
-			groupPath += g.path
+			groupPath.WriteString(g.path)
 			hs = append(hs, g.handlers...)
 		}
 
-		routePath = groupPath + routePath
+		routePath = groupPath.String() + routePath
 		handlers = append(hs, handlers...)
 	}
 
@@ -371,15 +368,11 @@ func (r *router) routes(methods []string, routePath string, handlers []Handler) 
 	leaves := make(map[string]route.Leaf, len(methods)+1)
 	for _, m := range methods {
 		added := r.addRoute(m, routePath, handler)
-		for name, leaf := range added.leaves {
-			leaves[name] = leaf
-		}
+		maps.Copy(leaves, added.leaves)
 	}
 	if autoHead {
 		if added, ok := r.tryAddRoute(http.MethodHead, routePath, handler); ok {
-			for name, leaf := range added.leaves {
-				leaves[name] = leaf
-			}
+			maps.Copy(leaves, added.leaves)
 		}
 	}
 	return &Route{
@@ -465,7 +458,7 @@ func (r *router) Routes(routePath, methods string, handlers ...Handler) *Route {
 	}
 
 	var ms []string
-	for _, m := range strings.Split(methods, ",") {
+	for m := range strings.SplitSeq(methods, ",") {
 		ms = append(ms, strings.TrimSpace(m))
 	}
 

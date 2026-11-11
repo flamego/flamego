@@ -109,7 +109,7 @@ func TestInjector_InterfaceOf(t *testing.T) {
 func TestInjector_Set(t *testing.T) {
 	inj := New()
 
-	typ := reflect.TypeOf("string")
+	typ := reflect.TypeFor[string]()
 	typSend := reflect.ChanOf(reflect.SendDir, typ)
 	typRecv := reflect.ChanOf(reflect.RecvDir, typ)
 
@@ -130,8 +130,8 @@ func TestInjector_GetVal(t *testing.T) {
 	inj := New()
 	inj.Map("some dependency")
 
-	assert.True(t, inj.Value(reflect.TypeOf("string")).IsValid())
-	assert.False(t, inj.Value(reflect.TypeOf(11)).IsValid())
+	assert.True(t, inj.Value(reflect.TypeFor[string]()).IsValid())
+	assert.False(t, inj.Value(reflect.TypeFor[int]()).IsValid())
 }
 
 func TestInjector_SetParent(t *testing.T) {

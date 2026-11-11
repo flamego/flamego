@@ -12,10 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func strptr(s string) *string {
-	return &s
-}
-
 func TestParser(t *testing.T) {
 	parser, err := NewParser()
 	assert.Nil(t, err)
@@ -47,7 +43,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						},
@@ -76,7 +72,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -97,7 +93,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 14,
 									},
-									Ident: strptr("users"),
+									Ident: new("users"),
 								},
 							},
 						},
@@ -126,7 +122,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -147,7 +143,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 14,
 									},
-									Ident: strptr("users"),
+									Ident: new("users"),
 								},
 							},
 						}, {
@@ -169,7 +165,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 20,
 									},
-									BindIdent: strptr("id"),
+									BindIdent: new("id"),
 								},
 							},
 						},
@@ -198,7 +194,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									BindIdent: strptr("name"),
+									BindIdent: new("name"),
 								},
 							},
 						},
@@ -227,7 +223,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -248,7 +244,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 17,
 									},
-									BindIdent: strptr("name-1"),
+									BindIdent: new("name-1"),
 								},
 							},
 						}, {
@@ -273,7 +269,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: new("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -305,7 +301,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -326,7 +322,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 17,
 									},
-									BindIdent: strptr("name-1"),
+									BindIdent: new("name-1"),
 								},
 							},
 						}, {
@@ -351,7 +347,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: new("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -379,7 +375,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "year",
-												Value: BindParameterValue{Literal: strptr("regex2")},
+												Value: BindParameterValue{Literal: new("regex2")},
 											},
 										},
 									},
@@ -395,7 +391,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 61,
 									},
-									Ident: strptr("-"),
+									Ident: new("-"),
 								},
 								{
 									Pos: lexer.Position{
@@ -408,7 +404,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 72,
 									},
-									BindIdent: strptr("month-day"),
+									BindIdent: new("month-day"),
 								},
 							},
 						},
@@ -437,7 +433,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -458,7 +454,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 19,
 									},
-									Ident: strptr("users:list"),
+									Ident: new("users:list"),
 								},
 							},
 						},
@@ -487,7 +483,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -508,7 +504,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 22,
 									},
-									Ident: strptr("users[0],info"),
+									Ident: new("users[0],info"),
 								},
 							},
 						}, {
@@ -529,7 +525,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 29,
 									},
-									Ident: strptr("events"),
+									Ident: new("events"),
 								},
 							},
 						},
@@ -559,7 +555,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 8,
 									},
-									Ident: strptr("webapi"),
+									Ident: new("webapi"),
 								},
 							},
 						}, {
@@ -580,7 +576,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 17,
 									},
-									BindIdent: strptr("name-1"),
+									BindIdent: new("name-1"),
 								},
 							},
 						}, {
@@ -605,7 +601,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "name-2",
-												Value: BindParameterValue{Regex: strptr("[a-z0-9]{7, 40}")},
+												Value: BindParameterValue{Regex: new("[a-z0-9]{7, 40}")},
 											},
 										},
 									},
@@ -633,7 +629,7 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "year",
-												Value: BindParameterValue{Literal: strptr("regex2")},
+												Value: BindParameterValue{Literal: new("regex2")},
 											},
 										},
 									},
@@ -649,7 +645,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 61,
 									},
-									Ident: strptr("-"),
+									Ident: new("-"),
 								},
 								{
 									Pos: lexer.Position{
@@ -662,7 +658,7 @@ func TestParser(t *testing.T) {
 										Line:   1,
 										Column: 72,
 									},
-									BindIdent: strptr("month-day"),
+									BindIdent: new("month-day"),
 								},
 							},
 						}, {
@@ -687,10 +683,10 @@ func TestParser(t *testing.T) {
 										Parameters: []BindParameter{
 											{
 												Ident: "**",
-												Value: BindParameterValue{Literal: strptr("**")},
+												Value: BindParameterValue{Literal: new("**")},
 											}, {
 												Ident: "capture",
-												Value: BindParameterValue{Literal: strptr("3")},
+												Value: BindParameterValue{Literal: new("3")},
 											},
 										},
 									},

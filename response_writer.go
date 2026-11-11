@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"net"
 	"net/http"
+	"slices"
 	"sync"
 	"sync/atomic"
 
@@ -40,7 +41,7 @@ type responseWriter struct {
 	http.ResponseWriter
 
 	method      string       // The HTTP method of the coming request.
-	status      int32        // The written status of the response.
+	status      atomic.Int32 // The written status of the response.
 	size        int          // The written size of the response.
 	beforeFuncs []BeforeFunc // The list of functions to be called before written to the response.
 
@@ -59,8 +60,8 @@ func NewResponseWriter(method string, w http.ResponseWriter) ResponseWriter {
 }
 
 func (w *responseWriter) callBefore() {
-	for i := len(w.beforeFuncs) - 1; i >= 0; i-- {
-		w.beforeFuncs[i](w)
+	for _, v := range slices.Backward(w.beforeFuncs) {
+		v(w)
 	}
 }
 
@@ -72,7 +73,7 @@ func (w *responseWriter) WriteHeader(s int) {
 
 		w.callBefore()
 		w.ResponseWriter.WriteHeader(s)
-		atomic.StoreInt32(&w.status, int32(s))
+		w.status.Store(int32(s))
 	})
 }
 
@@ -89,7 +90,7 @@ func (w *responseWriter) Write(b []byte) (size int, err error) {
 }
 
 func (w *responseWriter) Status() int {
-	return int(atomic.LoadInt32(&w.status))
+	return int(w.status.Load())
 }
 
 func (w *responseWriter) Size() int {

@@ -121,7 +121,7 @@ func (inj *injector) fastInvoke(f FastInvoker, t reflect.Type, numIn int) ([]ref
 		in = make([]any, numIn) // Panic if t is not kind of Func
 		var argType reflect.Type
 		var val reflect.Value
-		for i := 0; i < numIn; i++ {
+		for i := range numIn {
 			argType = t.In(i)
 			val = inj.Value(argType)
 			if !val.IsValid() {
@@ -140,7 +140,7 @@ func (inj *injector) callInvoke(f any, t reflect.Type, numIn int) ([]reflect.Val
 		in = make([]reflect.Value, numIn)
 		var argType reflect.Type
 		var val reflect.Value
-		for i := 0; i < numIn; i++ {
+		for i := range numIn {
 			argType = t.In(i)
 			val = inj.Value(argType)
 			if !val.IsValid() {

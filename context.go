@@ -221,7 +221,7 @@ func (c *context) run() {
 
 		// If the handler returned something, write it to the response.
 		if len(vals) > 0 {
-			ev := c.Value(reflect.TypeOf(ReturnHandler(nil)))
+			ev := c.Value(reflect.TypeFor[ReturnHandler]())
 			handleReturn := ev.Interface().(ReturnHandler)
 			handleReturn(c, vals)
 		}

@@ -139,7 +139,7 @@ func TestResponseWriter_Flush(t *testing.T) {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			time.Sleep(10 * time.Millisecond)
 			_, _ = io.WriteString(w, "data: Hello\n\n")
 			f.Flush()
