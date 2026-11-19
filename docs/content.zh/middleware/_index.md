@@ -18,6 +18,7 @@ Flamego 在[核心服务](/core-services)之外开发并维护了一定数量的
 - [captcha](/middleware/captcha) 用于生成和验证验证码图片
 - [hcaptcha](/middleware/hcaptcha) 用于集成 [hCaptcha](https://www.hcaptcha.com/) 验证服务
 - [sse](/middleware/sse) 用于向 Web 客户端发送服务器事件
+- [altcha](/middleware/altcha) 用于提供自托管的 [ALTCHA](https://altcha.org) 工作量证明验证码
 
 {{< callout type="info" >}}
 如果你发现列表有缺失，请直接[发送 Pull request 进行补充](https://github.com/flamego/flamego/edit/main/docs/content.zh/middleware/_index.md)！
