@@ -49,15 +49,15 @@ func newReturnHandlers() *returnHandlers {
 		writeReturnValue(c, reflect.ValueOf(err))
 	})
 	hs.Register(func(c Context, status int, body string) {
-		c.ResponseWriter().WriteHeader(status)
+		mappedResponseWriter(c).WriteHeader(status)
 		writeReturnValue(c, reflect.ValueOf(body))
 	})
 	hs.Register(func(c Context, status int, body []byte) {
-		c.ResponseWriter().WriteHeader(status)
+		mappedResponseWriter(c).WriteHeader(status)
 		writeReturnValue(c, reflect.ValueOf(body))
 	})
 	hs.Register(func(c Context, status int, err error) {
-		c.ResponseWriter().WriteHeader(status)
+		mappedResponseWriter(c).WriteHeader(status)
 		writeReturnValue(c, reflect.ValueOf(err))
 	})
 	hs.Register(func(c Context, body string, err error) {
@@ -224,12 +224,19 @@ func (f *Flame) ReturnHandler(handler TypedReturnHandler) {
 	f.returnHandlers.Register(handler)
 }
 
+// mappedResponseWriter returns the http.ResponseWriter mapped in c. Middleware such as
+// gzip map their own writer to wrap the response, so return values must go
+// through it rather than c.ResponseWriter().
+func mappedResponseWriter(c Context) http.ResponseWriter {
+	return c.Value(inject.InterfaceOf((*http.ResponseWriter)(nil))).Interface().(http.ResponseWriter)
+}
+
 func writeReturnValue(c Context, respVal reflect.Value) {
 	if !respVal.IsValid() {
 		return
 	}
 
-	w := c.ResponseWriter()
+	w := mappedResponseWriter(c)
 	if err, ok := respVal.Interface().(error); ok && err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(err.Error()))

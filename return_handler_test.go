@@ -5,6 +5,7 @@
 package flamego
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -274,4 +275,30 @@ func TestFlame_ReturnHandler_register(t *testing.T) {
 
 		assert.Panics(t, func() { f.ServeHTTP(resp, req) })
 	})
+}
+
+type upperWriter struct {
+	http.ResponseWriter
+}
+
+func (w upperWriter) Write(p []byte) (int, error) {
+	return w.ResponseWriter.Write(bytes.ToUpper(p))
+}
+
+// Middleware that maps its own http.ResponseWriter, such as gzip, must see
+// the values route handlers return.
+func TestReturnHandler_MappedResponseWriter(t *testing.T) {
+	f := NewWithLogger(&bytes.Buffer{})
+	f.Use(func(c Context) {
+		c.MapTo(upperWriter{c.ResponseWriter()}, (*http.ResponseWriter)(nil))
+	})
+	f.Get("/string", func() string { return "hello" })
+	f.Get("/status", func() (int, string) { return http.StatusTeapot, "hello" })
+
+	for path, wantCode := range map[string]int{"/string": http.StatusOK, "/status": http.StatusTeapot} {
+		resp := httptest.NewRecorder()
+		f.ServeHTTP(resp, httptest.NewRequest(http.MethodGet, path, nil))
+		assert.Equal(t, wantCode, resp.Code, path)
+		assert.Equal(t, "HELLO", resp.Body.String(), path)
+	}
 }
