@@ -6,6 +6,7 @@ To accelerate your development, the Flamego core team and the community have bui
 
 - [template](/middleware/template) for rendering HTML using Go template.
 - [session](/middleware/session) for managing user sessions.
+- [altcha](/middleware/altcha) for providing self-hosted [ALTCHA](https://altcha.org) proof-of-work captchas.
 - [recaptcha](/middleware/recaptcha) for providing [Google reCAPTCHA](https://www.google.com/recaptcha/about/) verification.
 - [csrf](/middleware/csrf) for generating and validating CSRF tokens.
 - [cors](/middleware/cors) for configuring [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).

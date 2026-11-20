@@ -71,6 +71,6 @@ func main() {
 
 Below is how it would look like in your browser for the above example:
 
-![Form with captcha](https://user-images.githubusercontent.com/2946214/158567419-9a9556ad-c9d0-48db-b96a-32b9d4b67045.png)
+![Form with captcha](/imgs/captcha-form.png)
 
-As the tooltip implies, single left-click on the captcha image would reload for a different one if characters in the current image is hard to recognize.
+Single left-click on the captcha image would reload for a different one if characters in the current image is hard to recognize.

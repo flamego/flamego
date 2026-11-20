@@ -71,6 +71,6 @@ func main() {
 
 下图为程序运行时浏览器中所展示的内容：
 
-![Form with captcha](https://user-images.githubusercontent.com/2946214/158567419-9a9556ad-c9d0-48db-b96a-32b9d4b67045.png)
+![Form with captcha](/imgs/captcha-form.png)
 
-正如图中提示，当验证码图片无法识别时可以通过鼠标左键点击更换新的图片。
+当验证码图片无法识别时可以通过鼠标左键点击更换新的图片。
