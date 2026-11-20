@@ -46,6 +46,7 @@ func main() {
 - [Renderer](https://flamego.dev/core-services.html#rendering-content) - Render content
 - [template](https://flamego.dev/middleware/template.html) - Go template rendering
 - [session](https://flamego.dev/middleware/session.html) - User session management
+- [altcha](https://flamego.dev/middleware/altcha.html) - Self-hosted ALTCHA proof-of-work captcha
 - [recaptcha](https://flamego.dev/middleware/recaptcha.html) - Google reCAPTCHA verification
 - [csrf](https://flamego.dev/middleware/csrf.html) - Generate and validate CSRF tokens
 - [cors](https://flamego.dev/middleware/cors.html) - Cross-Origin Resource Sharing

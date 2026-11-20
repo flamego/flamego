@@ -1,6 +1,6 @@
 ---
 title: altcha
-weight: 150
+weight: 105
 ---
 altcha 中间件为 [Flame 实例](/core-concepts#实例)提供 [ALTCHA](https://altcha.org) v3 格式的自托管工作量证明验证码。浏览器花一点时间寻找一个数字，服务端用两次 HMAC 校验答案。不依赖第三方服务，不使用 Cookie，也不做任何追踪。
 
@@ -69,6 +69,10 @@ func main() {
 ```
 {{< /tab >}}
 {{< /tabs >}}
+
+下图为程序运行时浏览器中所展示的内容：
+
+![Form with altcha](/imgs/altcha-form.png)
 
 `Secret` 必须是至少 16 字节的随机数据（例如由 `openssl rand -hex 32` 生成），并且所有校验答案的服务端都要使用相同的值。
 

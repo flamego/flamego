@@ -1,6 +1,6 @@
 ---
 title: altcha
-weight: 150
+weight: 105
 ---
 The altcha middleware provides self-hosted, proof-of-work captchas in the [ALTCHA](https://altcha.org) v3 format for [Flame instances](/core-concepts#instances). The browser spends a moment searching for a number, and the server checks the answer with two HMACs. There is no third-party service, no cookie, and no tracking.
 
@@ -69,6 +69,10 @@ func main() {
 ```
 {{< /tab >}}
 {{< /tabs >}}
+
+Below is how it would look like in your browser for the above example:
+
+![Form with altcha](/imgs/altcha-form.png)
 
 The `Secret` must be at least 16 bytes of random data, such as from `openssl rand -hex 32`, and the same on every server that verifies solutions.
 
