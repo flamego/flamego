@@ -106,6 +106,22 @@ Mount a single `altcha.Challenger` with `f.Use`. A challenge only verifies with 
 
 The default store keeps accepted solutions in memory, so a solution accepted by one process could be accepted again by another. When several processes verify solutions, give them the same `Secret` and a shared [`altcha.ReplayStore`](https://pkg.go.dev/github.com/flamego/altcha#ReplayStore) as the `Store`. Its `Use` method must check and mark the key in one atomic step, for example with Redis `SET key 1 NX EXAT expiresAt`.
 
+### Translating the widget
+
+The widget shows one short text in each state, in English by default. Pass [`altcha.Messages`](https://pkg.go.dev/github.com/flamego/altcha#Messages) to `altcha.Challenge.HTML` to replace them, for example with translations from the [i18n](/middleware/i18n) middleware. An empty field keeps the English default:
+
+```go
+f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i18n.Locale) {
+	data["AltchaHTML"] = c.HTML(altcha.Messages{
+		Idle:      l.Translate("altcha.idle"),
+		Verifying: l.Translate("altcha.verifying"),
+		Verified:  l.Translate("altcha.verified"),
+		Error:     l.Translate("altcha.error"),
+	})
+	t.HTML(http.StatusOK, "home")
+})
+```
+
 ### Styling the widget
 
 There are three ways to change how the widget looks:

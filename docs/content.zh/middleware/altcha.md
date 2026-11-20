@@ -106,6 +106,22 @@ altcha.Options{
 
 默认存储将已接受的答案保存在内存中，因此一个进程接受过的答案可能会被另一个进程再次接受。当有多个进程校验答案时，需要为它们配置相同的 `Secret`，并将共享的 [`altcha.ReplayStore`](https://pkg.go.dev/github.com/flamego/altcha#ReplayStore) 设置为 `Store`。它的 `Use` 方法必须以原子操作检查并标记键，例如使用 Redis 的 `SET key 1 NX EXAT expiresAt`。
 
+### 翻译组件文字
+
+组件在每个状态下显示一段简短的文字，默认为英文。可以向 `altcha.Challenge.HTML` 传入 [`altcha.Messages`](https://pkg.go.dev/github.com/flamego/altcha#Messages) 进行替换，例如使用 [i18n](/middleware/i18n) 中间件提供的翻译。留空的字段会继续使用英文默认值：
+
+```go
+f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i18n.Locale) {
+	data["AltchaHTML"] = c.HTML(altcha.Messages{
+		Idle:      l.Translate("altcha.idle"),
+		Verifying: l.Translate("altcha.verifying"),
+		Verified:  l.Translate("altcha.verified"),
+		Error:     l.Translate("altcha.error"),
+	})
+	t.HTML(http.StatusOK, "home")
+})
+```
+
 ### 自定义组件样式
 
 可以通过以下三种方式修改组件的外观：
