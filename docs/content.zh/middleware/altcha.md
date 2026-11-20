@@ -122,6 +122,10 @@ f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i
 })
 ```
 
+在 “zh-CN” 的本地化文件中翻译这四个 `altcha.*` 键后，组件的效果如下：
+
+![Form with altcha in Chinese](/imgs/altcha-form-zh.png)
+
 ### 自定义组件样式
 
 可以通过以下三种方式修改组件的外观：

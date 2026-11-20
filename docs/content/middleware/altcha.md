@@ -122,6 +122,10 @@ f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i
 })
 ```
 
+With the four `altcha.*` keys translated in the "zh-CN" locale file, the widget looks like this:
+
+![Form with altcha in Chinese](/imgs/altcha-form-zh.png)
+
 ### Styling the widget
 
 There are three ways to change how the widget looks:
