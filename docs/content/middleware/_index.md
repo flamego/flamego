@@ -6,18 +6,18 @@ To accelerate your development, the Flamego core team and the community have bui
 
 - [template](/middleware/template) for rendering HTML using Go template.
 - [session](/middleware/session) for managing user sessions.
-- [altcha](/middleware/altcha) for providing self-hosted [ALTCHA](https://altcha.org) proof-of-work captchas.
-- [recaptcha](/middleware/recaptcha) for providing [Google reCAPTCHA](https://www.google.com/recaptcha/about/) verification.
+- [cache](/middleware/cache) for managing cache data.
+- [binding](/middleware/binding) for request data binding and validation.
 - [csrf](/middleware/csrf) for generating and validating CSRF tokens.
 - [cors](/middleware/cors) for configuring [Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
-- [binding](/middleware/binding) for request data binding and validation.
 - [gzip](/middleware/gzip) for Gzip compression to responses.
-- [cache](/middleware/cache) for managing cache data.
 - [brotli](/middleware/brotli) for Brotli compression to responses.
-- [auth](/middleware/auth) for providing basic and bearer authentications.
 - [i18n](/middleware/i18n) for providing internationalization and localization.
-- [captcha](/middleware/captcha) for generating and validating captcha images.
+- [auth](/middleware/auth) for providing basic and bearer authentications.
+- [altcha](/middleware/altcha) for providing self-hosted [ALTCHA](https://altcha.org) proof-of-work captchas.
+- [recaptcha](/middleware/recaptcha) for providing [Google reCAPTCHA](https://www.google.com/recaptcha/about/) verification.
 - [hcaptcha](/middleware/hcaptcha) for providing [hCaptcha](https://www.hcaptcha.com/) verification.
+- [captcha](/middleware/captcha) for generating and validating captcha images.
 - [sse](/middleware/sse) for sending server events to web clients.
 
 {{< callout type="info" >}}

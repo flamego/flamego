@@ -6,18 +6,18 @@ Flamego 在[核心服务](/core-services)之外开发并维护了一定数量的
 
 - [template](/middleware/template) 使用 Go 模板引擎渲染 HTML
 - [session](/middleware/session) 用于管理用户会话
-- [altcha](/middleware/altcha) 用于提供自托管的 [ALTCHA](https://altcha.org) 工作量证明验证码
-- [recaptcha](/middleware/recaptcha) 用于集成 [Google reCAPTCHA](https://www.google.com/recaptcha/about/) 验证服务
+- [cache](/middleware/cache) 用于管理缓存数据
+- [binding](/middleware/binding) 用于请求数据绑定和验证
 - [csrf](/middleware/csrf) 用于生成和验证 CSRF 令牌
 - [cors](/middleware/cors) 用于配置 [跨域资源共享](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
-- [binding](/middleware/binding) 用于请求数据绑定和验证
 - [gzip](/middleware/gzip) 使用 Gzip 压缩响应流
-- [cache](/middleware/cache) 用于管理缓存数据
 - [brotli](/middleware/brotli) 使用 Brotli 压缩响应流
-- [auth](/middleware/auth) 用于提供基于 HTTP Basic 和 Bearer 形式的请求验证
 - [i18n](/middleware/i18n) 用于提供应用本地化服务
-- [captcha](/middleware/captcha) 用于生成和验证验证码图片
+- [auth](/middleware/auth) 用于提供基于 HTTP Basic 和 Bearer 形式的请求验证
+- [altcha](/middleware/altcha) 用于提供自托管的 [ALTCHA](https://altcha.org) 工作量证明验证码
+- [recaptcha](/middleware/recaptcha) 用于集成 [Google reCAPTCHA](https://www.google.com/recaptcha/about/) 验证服务
 - [hcaptcha](/middleware/hcaptcha) 用于集成 [hCaptcha](https://www.hcaptcha.com/) 验证服务
+- [captcha](/middleware/captcha) 用于生成和验证验证码图片
 - [sse](/middleware/sse) 用于向 Web 客户端发送服务器事件
 
 {{< callout type="info" >}}
