@@ -117,12 +117,13 @@ f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i
 		Verifying: l.Translate("altcha.verifying"),
 		Verified:  l.Translate("altcha.verified"),
 		Error:     l.Translate("altcha.error"),
+		Retry:     l.Translate("altcha.retry"),
 	})
 	t.HTML(http.StatusOK, "home")
 })
 ```
 
-在 “zh-CN” 的本地化文件中翻译这四个 `altcha.*` 键后，组件的效果如下：
+在 “zh-CN” 的本地化文件中翻译这五个 `altcha.*` 键后，组件的效果如下：
 
 ![Form with altcha in Chinese](/imgs/altcha-form-zh.png)
 
@@ -131,7 +132,7 @@ f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i
 可以通过以下三种方式修改组件的外观：
 
 1. 覆盖内置规则。所有内置规则都包裹在 `:where()` 中，因此你的任何规则都会生效，无需使用 `!important`。
-1. 在 `.flamego-altcha` 上使用 CSS 自定义属性设置主题，例如 `--altcha-color`、`--altcha-background`、`--altcha-border`、`--altcha-radius`、`--altcha-accent`、`--altcha-success` 和 `--altcha-error`。
+1. 在 `.flamego-altcha` 上使用 CSS 自定义属性设置主题，例如 `--altcha-color`、`--altcha-background`、`--altcha-border`、`--altcha-radius`、`--altcha-accent`、`--altcha-success`、`--altcha-muted` 和 `--altcha-error`。
 1. 编写自己的标记。添加 `data-unstyled` 以关闭内置规则，并在容器中放置任意带有 `altcha-check` 类的元素作为控件。容器的 `data-state` 的值为 `idle`、`verifying`、`verified` 或 `error`：
 
 ```html

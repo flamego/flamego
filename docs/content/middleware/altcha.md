@@ -117,12 +117,13 @@ f.Get("/", func(t template.Template, data template.Data, c altcha.Challenge, l i
 		Verifying: l.Translate("altcha.verifying"),
 		Verified:  l.Translate("altcha.verified"),
 		Error:     l.Translate("altcha.error"),
+		Retry:     l.Translate("altcha.retry"),
 	})
 	t.HTML(http.StatusOK, "home")
 })
 ```
 
-With the four `altcha.*` keys translated in the "zh-CN" locale file, the widget looks like this:
+With the five `altcha.*` keys translated in the "zh-CN" locale file, the widget looks like this:
 
 ![Form with altcha in Chinese](/imgs/altcha-form-zh.png)
 
@@ -131,7 +132,7 @@ With the four `altcha.*` keys translated in the "zh-CN" locale file, the widget 
 There are three ways to change how the widget looks:
 
 1. Override the built-in rules. They are all wrapped in `:where()`, so any rule of yours wins without `!important`.
-1. Theme it with CSS custom properties on `.flamego-altcha`, such as `--altcha-color`, `--altcha-background`, `--altcha-border`, `--altcha-radius`, `--altcha-accent`, `--altcha-success` and `--altcha-error`.
+1. Theme it with CSS custom properties on `.flamego-altcha`, such as `--altcha-color`, `--altcha-background`, `--altcha-border`, `--altcha-radius`, `--altcha-accent`, `--altcha-success`, `--altcha-muted` and `--altcha-error`.
 1. Write your own markup. Add `data-unstyled` to turn the built-in rules off, and put any element with class `altcha-check` inside the container; it becomes the control. The container's `data-state` is `idle`, `verifying`, `verified` or `error`:
 
 ```html
